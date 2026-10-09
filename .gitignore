@@ -1,0 +1,55 @@
+# Secrets y entorno local (nunca commitear)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+ENV/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Frontend / Node
+node_modules/
+dist/
+.vite/
+coverage/
+*.tsbuildinfo
+
+# Playwright / E2E
+test-results/
+playwright-report/
+playwright/.auth/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*
+
+# IDEs y editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs y dumps locales
+*.log
+*.sqlite
+*.sqlite3
+*.dump
+pgdata/
+postgres-data/
+
+# Generado local regenerable (no versionado)
+.atl/
