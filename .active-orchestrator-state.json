@@ -1,1 +1,346 @@
-{"discovery": {"casos_de_uso": ["Reservar turno online sin llamar", "Ver agenda dÃ­a/semana por sillÃ³n y profesional", "Confirmar/cancelar por WhatsApp", "Presupuestar y cobrar (MP/OS)", "Verificar cobertura y facturar", "Recuperar ausentes"], "competitors": [{"name": "DentalSaaS", "notes_file": "docs/discovery/sources/dentalsass.md"}, {"name": "DentalSoft", "notes_file": "docs/discovery/sources/dentalsoft.md"}, {"name": "Dentalink", "notes_file": "docs/discovery/sources/dentalink.md"}, {"name": "Doctocliq", "notes_file": "docs/discovery/sources/doctocliq.md"}, {"name": "DentalTec", "notes_file": "docs/discovery/sources/dentaltec.md"}], "created_by": "discovery-research", "funcionalidades_necesarias": ["Agenda multi-profesional y multi-sillÃ³n con antisolapamiento", "Reserva online 24/7 con link/QR", "ConfirmaciÃ³n/cancelaciÃ³n/reprogramaciÃ³n + recordatorios WhatsApp", "Lista de espera con auto-relleno", "Odontograma + ficha + presupuestos con aprobaciÃ³n online", "Caja + Mercado Pago link/seÃ±a (MVP)", "Obras sociales con nomenclador", "Roles/permisos + auditorÃ­a + exportaciÃ³n", "Reportes ocupaciÃ³n/facturaciÃ³n/ausentismo"], "funcionalidades_opcionales": ["Periodontograma avanzado y fichas de especialidad", "ImÃ¡genes con visor e IA de segunda opiniÃ³n", "CampaÃ±as y recupero de inactivos", "API pÃºblica + Google Calendar", "Multi-sucursal enterprise", "App mÃ³vil nativa", "Recepcionista IA 24h"], "integraciones": ["WhatsApp Business API (MVP)", "Mercado Pago link/seÃ±a (MVP)", "Sitio web/portal propio (MVP)", "ARCA factura electrÃ³nica (fase 2, diseÃ±o preparado)", "Google Calendar (fase 2)", "API pÃºblica (fase 2)"], "preguntas_abiertas": ["Segmento dÃ­a 1: 1 sillÃ³n vs 2-3 sillones (recomendado) vs multi-sede", "Prioridad exacta de ARCA post-MVP", "Login de paciente vs nombre+DNI+telÃ©fono"], "problema": "Consultorios y clÃ­nicas odontolÃ³gicas argentinas coordinan turnos por WhatsApp/papel o sistemas parciales: dobles reservas por sillÃ³n, ausentismo sin recupero, presupuestos sin cerrar ni cobrar, y conciliaciÃ³n manual entre caja, Mercado Pago, obras sociales y facturaciÃ³n.", "reglas_de_negocio": ["Sin solapamiento por sillÃ³n ni por profesional", "DuraciÃ³n variable por prestaciÃ³n", "CancelaciÃ³n con antelaciÃ³n configurable; seÃ±a no reembolsable", "Trazabilidad total de caja exportable", "Consentimiento y acceso por rol (Ley 25.326)"], "restricciones": ["SaaS nube multi-dispositivo", "EspaÃ±ol rioplatense", "Precios en ARS", "Modelo de datos con sillÃ³n desde dÃ­a 1", "ARCA diseÃ±ado pero diferido a fase 2"], "riesgos": ["Paciente prefiere WhatsApp manual antes que link (sin validar)", "Consultorio no mantiene disponibilidad actualizada", "ValidaciÃ³n OS online fuera de DentalTec es supuesto", "Costo WhatsApp por mensaje a escala", "Diferir ARCA frena a clÃ­nicas RI hasta fase 2"], "sources": ["https://dental.delriotech.com.ar/", "https://dentalsoft.com.ar/", "https://www.softwaredentalink.com/es/planes", "https://www.doctocliq.com/planes-y-precios", "https://web.dentaltec.com.ar/", "https://doctorya.com.ar/", "https://odonthia.com/planes", "https://profesionales.docturno.com/", "https://agendapro.com/ar/planes", "https://tab32.com/pricing", "https://opendental.com/site/fees.html", "https://www.curvedental.com/", "https://www.dentally.com/en-gb/pricing", "https://carestack.com/"], "sources_fetched_at": "2026-10-01", "usuarios": ["Paciente", "Secretaria/recepciÃ³n", "OdontÃ³logo", "Administrador/dueÃ±o"]}, "kb": {"created_by": "kb-creator", "source": "interactive", "discovery": {"problem": "Consultorios y clÃƒÂ­nicas odontolÃƒÂ³gicas argentinas coordinan turnos por WhatsApp/papel o sistemas parciales: dobles reservas por sillÃƒÂ³n, ausentismo sin recupero, presupuestos sin cerrar ni cobrar, y conciliaciÃƒÂ³n manual entre caja, Mercado Pago, obras sociales y facturaciÃƒÂ³n.", "system_type": "saas_multi_tenant", "domain": "salud digital odontolÃƒÂ³gica", "scale": "multi_tenant", "stack": ["Python", "FastAPI", "SQLAlchemy", "PostgreSQL", "Redis", "Docker", "React", "TypeScript", "Vite"], "needs_infra": true}, "files": ["knowledge-base/01_vision_y_objetivos.md", "knowledge-base/02_descripcion_general.md", "knowledge-base/03_actores_y_roles.md", "knowledge-base/04_modelo_de_datos.md", "knowledge-base/05_reglas_de_negocio.md", "knowledge-base/06_funcionalidades.md", "knowledge-base/07_flujos_principales.md", "knowledge-base/08_arquitectura_propuesta.md", "knowledge-base/09_decisiones_y_supuestos.md", "knowledge-base/10_preguntas_abiertas.md", "knowledge-base/README.md"]}, "owner": "active-orchestrator", "step": "done", "version": 4, "skills": {"recommended": [{"skill": "vercel-react-best-practices", "repo": "vercel-labs/agent-skills", "installs": "763.2K", "url": "https://skills.sh/vercel-labs/agent-skills/vercel-react-best-practices", "why": "SPA React+TS+Vite: reserva online publica, agenda dia/semana por sillon y calendarios sin solapes en UI"}, {"skill": "frontend-design", "repo": "anthropics/skills", "installs": "945.5K", "url": "https://skills.sh/anthropics/skills/frontend-design", "why": "UX reserva 24/7 con link/QR + odontograma/presupuestos aprobables online en Tailwind"}, {"skill": "web-design-guidelines", "repo": "vercel-labs/agent-skills", "installs": "690K", "url": "https://skills.sh/vercel-labs/agent-skills/web-design-guidelines", "why": "Sistema de diseno consistente para portal paciente + panel recepcion/odontologo/admin"}, {"skill": "tailwind-design-system", "repo": "wshobson/agents", "installs": "66.9K", "url": "https://skills.sh/wshobson/agents/tailwind-design-system", "why": "Design system Tailwind para Zustand SPA multi-rol y multi-dispositivo en espanol rioplatense"}, {"skill": "supabase-postgres-best-practices", "repo": "supabase/agent-skills", "installs": "426.5K", "url": "https://skills.sh/supabase/agent-skills/supabase-postgres-best-practices", "why": "Postgres: antisolapamiento por sillon/profesional, rangos tstzrange + exclusion constraints"}, {"skill": "postgresql-table-design", "repo": "wshobson/agents", "installs": "26.7K", "url": "https://skills.sh/wshobson/agents/postgresql-table-design", "why": "Modelado agenda multi-sillon, duracion variable, nomenclador OS, caja exportable y auditoria"}, {"skill": "postgresql-optimization", "repo": "github/awesome-copilot", "installs": "16K", "url": "https://skills.sh/github/awesome-copilot/postgresql-optimization", "why": "Indices y queries para ocupacion/facturacion/ausentismo y lista de espera con auto-relleno"}, {"skill": "fastapi-templates", "repo": "wshobson/agents", "installs": "25.1K", "url": "https://skills.sh/wshobson/agents/fastapi-templates", "why": "Monolito modular FastAPI: JWT por rol, Alembic, webhooks idempotentes MP/WhatsApp"}, {"skill": "fastapi", "repo": "fastapi/fastapi", "installs": "11.2K", "url": "https://skills.sh/fastapi/fastapi/fastapi", "why": "Fuente oficial FastAPI para endpoints async, validacion y OpenAPI que usara la API publica fase 2"}, {"skill": "async-python-patterns", "repo": "wshobson/agents", "installs": "17.1K", "url": "https://skills.sh/wshobson/agents/async-python-patterns", "why": "Workers Redis para recordatorios/campanas WhatsApp y conciliacion MP sin bloquear API"}, {"skill": "api-and-interface-design", "repo": "addyosmani/agent-skills", "installs": "44K", "url": "https://skills.sh/addyosmani/agent-skills/api-and-interface-design", "why": "Contratos versionados para webhooks MP/WhatsApp, Google Calendar y ARCA fase 2 preparada"}, {"skill": "playwright-cli", "repo": "microsoft/playwright-cli", "installs": "172.1K", "url": "https://skills.sh/microsoft/playwright-cli/playwright-cli", "why": "E2E reserva online, confirmacion/cancelacion y caja+MP antes de cada release"}, {"skill": "webapp-testing", "repo": "anthropics/skills", "installs": "168.5K", "url": "https://skills.sh/anthropics/skills/webapp-testing", "why": "Estrategia de testing backend+frontend para no-solape, sena no reembolsable y Ley 25.326"}, {"skill": "docker-compose-orchestration", "repo": "manutej/luxor-claude-marketplace", "installs": "2.9K", "url": "https://skills.sh/manutej/luxor-claude-marketplace/docker-compose-orchestration", "why": "Compose local/prod FastAPI+Postgres+Redis (autor no oficial: revisar con cautela, <10K installs)"}], "installed": ["vercel-react-best-practices", "tailwind-design-system", "supabase-postgres-best-practices", "postgresql-table-design", "fastapi-templates", "async-python-patterns", "api-and-interface-design", "playwright-cli"]}, "roadmap": {"created_by": "roadmap-generator", "source": "CHANGES.md", "changes": ["C-01", "C-02", "C-03", "C-04", "C-05", "C-06", "C-07", "C-08", "C-09", "C-10", "C-11", "C-12", "C-13", "C-14", "C-15", "C-16", "C-17", "C-18", "C-19", "C-20", "C-21", "C-22"]}, "registry": {"created_by": "skill-registry", "file": ".atl/skill-registry.md", "skills": ["vercel-react-best-practices", "tailwind-design-system", "supabase-postgres-best-practices", "postgresql-table-design", "fastapi-templates", "async-python-patterns", "api-and-interface-design", "playwright-cli"], "project_conventions": [], "count": 8}, "agents": {"created_by": "agent-instruction", "files": ["CLAUDE.md", "AGENTS.md"], "reglas_applied": ["R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10", "R11", "R12", "R13"]}}
+{
+    "discovery":  {
+                      "casos_de_uso":  [
+                                           "Reservar turno online sin llamar",
+                                           "Ver agenda dÃƒÂ­a/semana por sillÃƒÂ³n y profesional",
+                                           "Confirmar/cancelar por WhatsApp",
+                                           "Presupuestar y cobrar (MP/OS)",
+                                           "Verificar cobertura y facturar",
+                                           "Recuperar ausentes"
+                                       ],
+                      "competitors":  [
+                                          {
+                                              "name":  "DentalSaaS",
+                                              "notes_file":  "docs/discovery/sources/dentalsass.md"
+                                          },
+                                          {
+                                              "name":  "DentalSoft",
+                                              "notes_file":  "docs/discovery/sources/dentalsoft.md"
+                                          },
+                                          {
+                                              "name":  "Dentalink",
+                                              "notes_file":  "docs/discovery/sources/dentalink.md"
+                                          },
+                                          {
+                                              "name":  "Doctocliq",
+                                              "notes_file":  "docs/discovery/sources/doctocliq.md"
+                                          },
+                                          {
+                                              "name":  "DentalTec",
+                                              "notes_file":  "docs/discovery/sources/dentaltec.md"
+                                          }
+                                      ],
+                      "created_by":  "discovery-research",
+                      "funcionalidades_necesarias":  [
+                                                         "Agenda multi-profesional y multi-sillÃƒÂ³n con antisolapamiento",
+                                                         "Reserva online 24/7 con link/QR",
+                                                         "ConfirmaciÃƒÂ³n/cancelaciÃƒÂ³n/reprogramaciÃƒÂ³n + recordatorios WhatsApp",
+                                                         "Lista de espera con auto-relleno",
+                                                         "Odontograma + ficha + presupuestos con aprobaciÃƒÂ³n online",
+                                                         "Caja + Mercado Pago link/seÃƒÂ±a (MVP)",
+                                                         "Obras sociales con nomenclador",
+                                                         "Roles/permisos + auditorÃƒÂ­a + exportaciÃƒÂ³n",
+                                                         "Reportes ocupaciÃƒÂ³n/facturaciÃƒÂ³n/ausentismo"
+                                                     ],
+                      "funcionalidades_opcionales":  [
+                                                         "Periodontograma avanzado y fichas de especialidad",
+                                                         "ImÃƒÂ¡genes con visor e IA de segunda opiniÃƒÂ³n",
+                                                         "CampaÃƒÂ±as y recupero de inactivos",
+                                                         "API pÃƒÂºblica + Google Calendar",
+                                                         "Multi-sucursal enterprise",
+                                                         "App mÃƒÂ³vil nativa",
+                                                         "Recepcionista IA 24h"
+                                                     ],
+                      "integraciones":  [
+                                            "WhatsApp Business API (MVP)",
+                                            "Mercado Pago link/seÃƒÂ±a (MVP)",
+                                            "Sitio web/portal propio (MVP)",
+                                            "ARCA factura electrÃƒÂ³nica (fase 2, diseÃƒÂ±o preparado)",
+                                            "Google Calendar (fase 2)",
+                                            "API pÃƒÂºblica (fase 2)"
+                                        ],
+                      "preguntas_abiertas":  [
+                                                 "Segmento dÃƒÂ­a 1: 1 sillÃƒÂ³n vs 2-3 sillones (recomendado) vs multi-sede",
+                                                 "Prioridad exacta de ARCA post-MVP",
+                                                 "Login de paciente vs nombre+DNI+telÃƒÂ©fono"
+                                             ],
+                      "problema":  "Consultorios y clÃƒÂ­nicas odontolÃƒÂ³gicas argentinas coordinan turnos por WhatsApp/papel o sistemas parciales: dobles reservas por sillÃƒÂ³n, ausentismo sin recupero, presupuestos sin cerrar ni cobrar, y conciliaciÃƒÂ³n manual entre caja, Mercado Pago, obras sociales y facturaciÃƒÂ³n.",
+                      "reglas_de_negocio":  [
+                                                "Sin solapamiento por sillÃƒÂ³n ni por profesional",
+                                                "DuraciÃƒÂ³n variable por prestaciÃƒÂ³n",
+                                                "CancelaciÃƒÂ³n con antelaciÃƒÂ³n configurable; seÃƒÂ±a no reembolsable",
+                                                "Trazabilidad total de caja exportable",
+                                                "Consentimiento y acceso por rol (Ley 25.326)"
+                                            ],
+                      "restricciones":  [
+                                            "SaaS nube multi-dispositivo",
+                                            "EspaÃƒÂ±ol rioplatense",
+                                            "Precios en ARS",
+                                            "Modelo de datos con sillÃƒÂ³n desde dÃƒÂ­a 1",
+                                            "ARCA diseÃƒÂ±ado pero diferido a fase 2"
+                                        ],
+                      "riesgos":  [
+                                      "Paciente prefiere WhatsApp manual antes que link (sin validar)",
+                                      "Consultorio no mantiene disponibilidad actualizada",
+                                      "ValidaciÃƒÂ³n OS online fuera de DentalTec es supuesto",
+                                      "Costo WhatsApp por mensaje a escala",
+                                      "Diferir ARCA frena a clÃƒÂ­nicas RI hasta fase 2"
+                                  ],
+                      "sources":  [
+                                      "https://dental.delriotech.com.ar/",
+                                      "https://dentalsoft.com.ar/",
+                                      "https://www.softwaredentalink.com/es/planes",
+                                      "https://www.doctocliq.com/planes-y-precios",
+                                      "https://web.dentaltec.com.ar/",
+                                      "https://doctorya.com.ar/",
+                                      "https://odonthia.com/planes",
+                                      "https://profesionales.docturno.com/",
+                                      "https://agendapro.com/ar/planes",
+                                      "https://tab32.com/pricing",
+                                      "https://opendental.com/site/fees.html",
+                                      "https://www.curvedental.com/",
+                                      "https://www.dentally.com/en-gb/pricing",
+                                      "https://carestack.com/"
+                                  ],
+                      "sources_fetched_at":  "2026-10-01",
+                      "usuarios":  [
+                                       "Paciente",
+                                       "Secretaria/recepciÃƒÂ³n",
+                                       "OdontÃƒÂ³logo",
+                                       "Administrador/dueÃƒÂ±o"
+                                   ]
+                  },
+    "kb":  {
+               "created_by":  "kb-creator",
+               "source":  "interactive",
+               "discovery":  {
+                                 "problem":  "Consultorios y clÃƒÆ’Ã‚Â­nicas odontolÃƒÆ’Ã‚Â³gicas argentinas coordinan turnos por WhatsApp/papel o sistemas parciales: dobles reservas por sillÃƒÆ’Ã‚Â³n, ausentismo sin recupero, presupuestos sin cerrar ni cobrar, y conciliaciÃƒÆ’Ã‚Â³n manual entre caja, Mercado Pago, obras sociales y facturaciÃƒÆ’Ã‚Â³n.",
+                                 "system_type":  "saas_multi_tenant",
+                                 "domain":  "salud digital odontolÃƒÆ’Ã‚Â³gica",
+                                 "scale":  "multi_tenant",
+                                 "stack":  [
+                                               "Python",
+                                               "FastAPI",
+                                               "SQLAlchemy",
+                                               "PostgreSQL",
+                                               "Redis",
+                                               "Docker",
+                                               "React",
+                                               "TypeScript",
+                                               "Vite"
+                                           ],
+                                 "needs_infra":  true
+                             },
+               "files":  [
+                             "knowledge-base/01_vision_y_objetivos.md",
+                             "knowledge-base/02_descripcion_general.md",
+                             "knowledge-base/03_actores_y_roles.md",
+                             "knowledge-base/04_modelo_de_datos.md",
+                             "knowledge-base/05_reglas_de_negocio.md",
+                             "knowledge-base/06_funcionalidades.md",
+                             "knowledge-base/07_flujos_principales.md",
+                             "knowledge-base/08_arquitectura_propuesta.md",
+                             "knowledge-base/09_decisiones_y_supuestos.md",
+                             "knowledge-base/10_preguntas_abiertas.md",
+                             "knowledge-base/README.md"
+                         ]
+           },
+    "owner":  "active-orchestrator",
+    "step":  "done",
+    "version":  4,
+    "skills":  {
+                   "recommended":  [
+                                       {
+                                           "skill":  "vercel-react-best-practices",
+                                           "repo":  "vercel-labs/agent-skills",
+                                           "installs":  "763.2K",
+                                           "url":  "https://skills.sh/vercel-labs/agent-skills/vercel-react-best-practices",
+                                           "why":  "SPA React+TS+Vite: reserva online publica, agenda dia/semana por sillon y calendarios sin solapes en UI"
+                                       },
+                                       {
+                                           "skill":  "frontend-design",
+                                           "repo":  "anthropics/skills",
+                                           "installs":  "945.5K",
+                                           "url":  "https://skills.sh/anthropics/skills/frontend-design",
+                                           "why":  "UX reserva 24/7 con link/QR + odontograma/presupuestos aprobables online en Tailwind"
+                                       },
+                                       {
+                                           "skill":  "web-design-guidelines",
+                                           "repo":  "vercel-labs/agent-skills",
+                                           "installs":  "690K",
+                                           "url":  "https://skills.sh/vercel-labs/agent-skills/web-design-guidelines",
+                                           "why":  "Sistema de diseno consistente para portal paciente + panel recepcion/odontologo/admin"
+                                       },
+                                       {
+                                           "skill":  "tailwind-design-system",
+                                           "repo":  "wshobson/agents",
+                                           "installs":  "66.9K",
+                                           "url":  "https://skills.sh/wshobson/agents/tailwind-design-system",
+                                           "why":  "Design system Tailwind para Zustand SPA multi-rol y multi-dispositivo en espanol rioplatense"
+                                       },
+                                       {
+                                           "skill":  "supabase-postgres-best-practices",
+                                           "repo":  "supabase/agent-skills",
+                                           "installs":  "426.5K",
+                                           "url":  "https://skills.sh/supabase/agent-skills/supabase-postgres-best-practices",
+                                           "why":  "Postgres: antisolapamiento por sillon/profesional, rangos tstzrange + exclusion constraints"
+                                       },
+                                       {
+                                           "skill":  "postgresql-table-design",
+                                           "repo":  "wshobson/agents",
+                                           "installs":  "26.7K",
+                                           "url":  "https://skills.sh/wshobson/agents/postgresql-table-design",
+                                           "why":  "Modelado agenda multi-sillon, duracion variable, nomenclador OS, caja exportable y auditoria"
+                                       },
+                                       {
+                                           "skill":  "postgresql-optimization",
+                                           "repo":  "github/awesome-copilot",
+                                           "installs":  "16K",
+                                           "url":  "https://skills.sh/github/awesome-copilot/postgresql-optimization",
+                                           "why":  "Indices y queries para ocupacion/facturacion/ausentismo y lista de espera con auto-relleno"
+                                       },
+                                       {
+                                           "skill":  "fastapi-templates",
+                                           "repo":  "wshobson/agents",
+                                           "installs":  "25.1K",
+                                           "url":  "https://skills.sh/wshobson/agents/fastapi-templates",
+                                           "why":  "Monolito modular FastAPI: JWT por rol, Alembic, webhooks idempotentes MP/WhatsApp"
+                                       },
+                                       {
+                                           "skill":  "fastapi",
+                                           "repo":  "fastapi/fastapi",
+                                           "installs":  "11.2K",
+                                           "url":  "https://skills.sh/fastapi/fastapi/fastapi",
+                                           "why":  "Fuente oficial FastAPI para endpoints async, validacion y OpenAPI que usara la API publica fase 2"
+                                       },
+                                       {
+                                           "skill":  "async-python-patterns",
+                                           "repo":  "wshobson/agents",
+                                           "installs":  "17.1K",
+                                           "url":  "https://skills.sh/wshobson/agents/async-python-patterns",
+                                           "why":  "Workers Redis para recordatorios/campanas WhatsApp y conciliacion MP sin bloquear API"
+                                       },
+                                       {
+                                           "skill":  "api-and-interface-design",
+                                           "repo":  "addyosmani/agent-skills",
+                                           "installs":  "44K",
+                                           "url":  "https://skills.sh/addyosmani/agent-skills/api-and-interface-design",
+                                           "why":  "Contratos versionados para webhooks MP/WhatsApp, Google Calendar y ARCA fase 2 preparada"
+                                       },
+                                       {
+                                           "skill":  "playwright-cli",
+                                           "repo":  "microsoft/playwright-cli",
+                                           "installs":  "172.1K",
+                                           "url":  "https://skills.sh/microsoft/playwright-cli/playwright-cli",
+                                           "why":  "E2E reserva online, confirmacion/cancelacion y caja+MP antes de cada release"
+                                       },
+                                       {
+                                           "skill":  "webapp-testing",
+                                           "repo":  "anthropics/skills",
+                                           "installs":  "168.5K",
+                                           "url":  "https://skills.sh/anthropics/skills/webapp-testing",
+                                           "why":  "Estrategia de testing backend+frontend para no-solape, sena no reembolsable y Ley 25.326"
+                                       },
+                                       {
+                                           "skill":  "docker-compose-orchestration",
+                                           "repo":  "manutej/luxor-claude-marketplace",
+                                           "installs":  "2.9K",
+                                           "url":  "https://skills.sh/manutej/luxor-claude-marketplace/docker-compose-orchestration",
+                                           "why":  "Compose local/prod FastAPI+Postgres+Redis (autor no oficial: revisar con cautela, \u003c10K installs)"
+                                       }
+                                   ],
+                   "installed":  [
+                                     "vercel-react-best-practices",
+                                     "tailwind-design-system",
+                                     "supabase-postgres-best-practices",
+                                     "postgresql-table-design",
+                                     "fastapi-templates",
+                                     "async-python-patterns",
+                                     "api-and-interface-design",
+                                     "playwright-cli"
+                                 ]
+               },
+    "roadmap":  {
+                    "created_by":  "roadmap-generator",
+                    "source":  "CHANGES.md",
+                    "changes":  [
+                                    "C-01",
+                                    "C-02",
+                                    "C-03",
+                                    "C-04",
+                                    "C-05",
+                                    "C-06",
+                                    "C-07",
+                                    "C-08",
+                                    "C-09",
+                                    "C-10",
+                                    "C-11",
+                                    "C-12",
+                                    "C-13",
+                                    "C-14",
+                                    "C-15",
+                                    "C-16",
+                                    "C-17",
+                                    "C-18",
+                                    "C-19",
+                                    "C-20",
+                                    "C-21",
+                                    "C-22"
+                                ]
+                },
+    "registry":  {
+                     "created_by":  "skill-registry",
+                     "file":  ".atl/skill-registry.md",
+                     "scope":  "project",
+                     "location":  ".agents/skills",
+                     "count":  8,
+                     "skills":  [
+                                    "vercel-react-best-practices",
+                                    "tailwind-design-system",
+                                    "supabase-postgres-best-practices",
+                                    "postgresql-table-design",
+                                    "fastapi-templates",
+                                    "async-python-patterns",
+                                    "api-and-interface-design",
+                                    "playwright-cli"
+                                ],
+                     "project_conventions":  [
+                                                 "AGENTS.md",
+                                                 "CLAUDE.md",
+                                                 "CHANGES.md",
+                                                 "knowledge-base/01_vision_y_objetivos.md",
+                                                 "knowledge-base/02_descripcion_general.md",
+                                                 "knowledge-base/03_actores_y_roles.md",
+                                                 "knowledge-base/04_modelo_de_datos.md",
+                                                 "knowledge-base/05_reglas_de_negocio.md",
+                                                 "knowledge-base/06_funcionalidades.md",
+                                                 "knowledge-base/07_flujos_principales.md",
+                                                 "knowledge-base/08_arquitectura_propuesta.md",
+                                                 "knowledge-base/09_decisiones_y_supuestos.md",
+                                                 "knowledge-base/10_preguntas_abiertas.md"
+                                             ],
+                     "global_skill_paths":  0
+                 },
+    "agents":  {
+                   "created_by":  "agent-instruction",
+                   "files":  [
+                                 "CLAUDE.md",
+                                 "AGENTS.md"
+                             ],
+                   "reglas_applied":  [
+                                          "R1",
+                                          "R2",
+                                          "R3",
+                                          "R4",
+                                          "R5",
+                                          "R6",
+                                          "R7",
+                                          "R8",
+                                          "R9",
+                                          "R10",
+                                          "R11",
+                                          "R12",
+                                          "R13"
+                                      ]
+               }
+}

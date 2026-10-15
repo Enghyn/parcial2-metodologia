@@ -51,5 +51,5 @@ desktop.ini
 pgdata/
 postgres-data/
 
-# Generado local regenerable (no versionado)
-.atl/
+# Registry de skills (versionado: lo lee el orquestador en cada delegacion)
+# (antes ignorado por regenerable; se versiona por decision explicita)
