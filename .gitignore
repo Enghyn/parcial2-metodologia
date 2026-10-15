@@ -53,3 +53,5 @@ postgres-data/
 
 # Registry de skills (versionado: lo lee el orquestador en cada delegacion)
 # (antes ignorado por regenerable; se versiona por decision explicita)
+# Backup local de changes intermedios (fuera de openspec, no versionado)
+.attic/

@@ -21,20 +21,29 @@ con odontograma, caja trazable + Mercado Pago, obras sociales y reportes.
 | Infra      | Docker Compose (api + web + postgres + redis + worker), CI GitHub Actions |
 | Auth       | JWT access corto + refresh rotado, claim `tenant_id` (desde C-03)  |
 
-## Estructura (decisión §5 — única raíz `src/` y `test/`)
+## Estructura (KB 08 literal — lados autocontenidos)
 
 ```text
-src/
-  backend/      # todo el código Python (import root: app.*)
-  frontend/     # todo el código React/TS
-test/
-  backend/      # tests Python (pytest)
-  frontend/     # tests frontend (cuando haya)
+backend/
+  pyproject.toml    # manifiestos + tooling backend (pytest testpaths=test, pythonpath=src)
+  alembic.ini       # script_location = src/app/db/migrations (cwd canónico: backend/)
+  Dockerfile        # contexto: backend/ (COPY src, PYTHONPATH=/srv/src)
+  src/app/**        # todo el código Python (import root: app.*)
+  test/             # tests Python (pytest)
+frontend/
+  package.json      # scripts (lint → eslint src)
+  vite.config.ts    # root: "src"
+  tsconfig.json     # include: ["src", "test"]
+  Dockerfile        # contexto: frontend/ (build vite, nginx desde /srv/src/dist)
+  src/**            # todo el código React/TS (entry: src/index.html)
+  test/             # tests frontend (cuando haya)
+docker-compose.yml  # queda en raíz: orquesta los cinco servicios (contextos por lado)
+.env.example        # queda en raíz: plantilla única (cp .env.example .env)
 ```
 
-No existen carpetas `backend/` ni `frontend/` sueltas: todo el código vive bajo `src/`,
-todos los tests bajo `test/`. Configs y shims quedan en raíz (`pyproject.toml`,
-`package.json`, `vite.config.ts`, `alembic.ini`, `Dockerfile.backend`, `Dockerfile.frontend`).
+Cada lado se opera desde su propio cwd (`backend/`, `frontend/`). Nada de código
+vive en raíz: solo orquestación (`docker-compose.yml`), plantilla de entorno
+(`.env.example`), CI (`.github/`), docs y tooling a nivel repo.
 
 ## Quickstart
 
@@ -53,21 +62,25 @@ curl http://localhost:8000/api/health   # → {"status":"ok"}
 Desarrollo local (sin Docker):
 
 ```bash
-# Backend (desde la raíz)
+# Backend (cwd backend/)
+cd backend
 pip install -e ".[dev]"
-pytest test/backend -q
-ruff check src/backend test/backend
+pytest test -q
+ruff check src test
 
-# Frontend (desde la raíz)
-npm install
+# Frontend (cwd frontend/)
+cd frontend
+npm ci
 npm run dev     # Vite
 npm run build   # tsc + build
-npm run lint    # eslint
+npm run lint    # eslint src
 ```
 
-Migraciones:
+Migraciones (cwd canónico `backend/` — prohibido `alembic -c backend/alembic.ini`
+desde raíz):
 
 ```bash
+cd backend
 alembic upgrade head
 ```
 
@@ -79,13 +92,13 @@ Nunca commitear un `.env` real (ver `.gitignore`).
 
 ## Calidad
 
-| Chequeo | Comando (desde raíz)              |
-|---------|-----------------------------------|
-| Backend tests | `pytest test/backend -q`    |
-| Backend lint  | `ruff check src/backend test/backend` |
-| Frontend tipos | `tsc --noEmit`               |
-| Frontend lint | `npm run lint`                |
-| Todo (CI) | jobs paralelos backend + frontend (`.github/workflows/`) |
+| Chequeo | Comando (cwd canónico)              |
+|---------|---------------------------------------|
+| Backend tests | `pytest test -q` (cwd `backend/`) |
+| Backend lint  | `ruff check src test` (cwd `backend/`) |
+| Frontend tipos | `npx tsc --noEmit` (cwd `frontend/`) |
+| Frontend lint | `npm run lint` (cwd `frontend/`)  |
+| Todo (CI) | jobs paralelos backend + frontend con `working-directory` por lado (`.github/workflows/`) |
 
 ## Documentación
 

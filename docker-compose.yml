@@ -27,8 +27,8 @@ services:
 
   api:
     build:
-      context: .
-      dockerfile: Dockerfile.backend
+      context: backend
+      dockerfile: Dockerfile
     environment:
       DATABASE_URL: postgresql+psycopg://odonto:odonto@postgres:5432/odonto
       REDIS_URL: redis://redis:6379/0
@@ -42,8 +42,8 @@ services:
 
   worker:
     build:
-      context: .
-      dockerfile: Dockerfile.backend
+      context: backend
+      dockerfile: Dockerfile
     command: rq worker --url redis://redis:6379/0
     environment:
       DATABASE_URL: postgresql+psycopg://odonto:odonto@postgres:5432/odonto
@@ -54,8 +54,8 @@ services:
 
   web:
     build:
-      context: .
-      dockerfile: Dockerfile.frontend
+      context: frontend
+      dockerfile: Dockerfile
     ports:
       - "5173:80"
     depends_on:

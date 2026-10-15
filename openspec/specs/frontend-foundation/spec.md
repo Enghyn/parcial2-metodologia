@@ -44,9 +44,22 @@ El sistema SHALL exponer un cliente API tipado bajo `tsconfig` estricto (sin `an
 
 ### Requirement: Layout raíz src/test única del frontend (§5)
 
-El sistema SHALL mantener todo el código frontend bajo `src/frontend/` (raíz `src/` única) y SHALL reservar `test/frontend/` (bajo la raíz `test/` única, singular) como única ubicación para tests frontend. La carpeta suelta `frontend/` como contenedor de código SHALL NOT existir.
+El sistema SHALL mantener todo el código frontend bajo `frontend/src/`
+(con `frontend/src/index.html` como entry) y SHALL reservar
+`frontend/test/` (junto al código del lado, con `.gitkeep` si vacía) como
+única ubicación para tests frontend. Los manifiestos y configs frontend
+SHALL vivir en `frontend/`: `frontend/package.json`
+(+ `package-lock.json`), `frontend/tsconfig.json`
+(`include = ["src", "test"]`), `frontend/tsconfig.node.json`,
+`frontend/vite.config.ts` (`root = "src"`), `frontend/eslint.config.js`
+y `frontend/Dockerfile` (nombre canónico KB 08). Ningún manifiesto
+frontend en raíz (`package.json`, `tsconfig*.json`, `vite.config.ts`,
+`eslint.config.js`, `Dockerfile.frontend`) SHALL existir.
 
 #### Scenario: Árbol frontend canónico
 
 - **WHEN** se inspecciona el árbol del repo
-- **THEN** el código productivo vive bajo `src/frontend/`, cualquier test futuro vive bajo `test/frontend/`, y NO existe `frontend/` suelta con `src/`/`test/` propios ni una segunda ubicación de tests
+- **THEN** el código productivo vive bajo `frontend/src/`, cualquier test
+  futuro vive bajo `frontend/test/`, los manifiestos viven en `frontend/`,
+  y NO existe `src/frontend/`, ni `test/frontend/`, ni manifiesto frontend
+  en raíz, ni una segunda ubicación de tests
