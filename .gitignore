@@ -43,6 +43,9 @@ desktop.ini
 *.swp
 *.swo
 
+# GitHub Actions (config local, no versionada)
+.github/
+
 # Logs y dumps locales
 *.log
 *.sqlite
