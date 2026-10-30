@@ -2,84 +2,83 @@
 
 ## Stack tecnológico
 
-Stack REAL del proyecto (decisiones cerradas del gate; prioridad: velocidad de entrega).
+Stack del proyecto orientado a robustez, tipado estricto y mantenibilidad para el parcial académico:
 
-| Capa | Tecnología | Versión mínima |
-|---|---|---|
-| Lenguaje backend | Python | 3.12 |
-| Framework API | FastAPI | 0.110+ |
-| Auth | JWT (OAuth2 Bearer, `python-jose` o `PyJWT`) | — |
-| ORM | SQLAlchemy | 2.0+ |
-| Base de datos | PostgreSQL | 15+ |
-| Colas / jobs | Redis (RQ o Celery) + Redis | 7+ |
-| Empaquetado / deploy | Docker + Docker Compose | Compose v2 |
-| Lenguaje frontend | TypeScript | 5+ |
-| UI | React (SPA) | 18+ |
-| Build frontend | Vite | 5+ |
-| Tenancy | Columna `tenant_id` en cada tabla (discriminador) + RLS opcional fase 2 | — |
-| Integración WA | WhatsApp Business API (Cloud API, REST + webhooks) | v19+ |
-| Integración cobros | Mercado Pago Checkout Pro / Payment Link + Webhooks IPN (SDK `mercadopago`) | API v1 |
-| Facturación v1 | Registro manual (`Comprobante` + adapter `Facturador` modo `Manual`) | — |
-| Facturación fase 2 | ARCA WSFE (adapter `Facturador` modo `ARCA`) | — |
+| Capa | Tecnología | Versión mínima | Justificación |
+|---|---|---|---|
+| Lenguaje backend | Python | 3.12+ | Tipado estricto, sintaxis moderna, alta productividad |
+| Framework API | FastAPI | 0.110+ | Validación automática con Pydantic, documentación OpenAPI interactiva |
+| ORM | SQLAlchemy | 2.0+ | Mapeo objeto-relacional asíncrono con control explícito de consultas |
+| Base de datos | PostgreSQL | 15+ | Integridad referencial, transacciones ACID y performance |
+| Migraciones | Alembic | 1.13+ | Versionado del esquema de base de datos |
+| Auth | JWT Bearer (`PyJWT` / `python-jose`) | — | Tokens de acceso estándar para roles internos (`admin`, `odontologo`, `recepcion`) |
+| UI Frontend | React + TypeScript | 18+ / TS 5+ | Componentes reactivos fuertemente tipados |
+| Bundler frontend | Vite | 5+ | Tiempos de compilación ultrarrápidos y HMR |
+| Estilos | Tailwind CSS | v4 | Estilos declarativos y diseño responsivo |
+| Despliegue local | Docker Compose | v2 | Entorno reproducible con 3 servicios: `api`, `web`, `postgres` |
 
 ## Arquitectura general
 
-Monolito modular FastAPI + React SPA + Postgres + Redis, multi-tenant por `tenant_id`, desplegado con Docker Compose. Velocidad de entrega antes que microservicios; la modularización interna (agenda / clínica / caja / notificaciones) evita el big-ball-of-mud y deja deuda documentada (ver `08_arquitectura_propuesta.md`).
+El sistema adopta un patrón de **Monolito Modular** estructurado en backend y una **SPA en React** en frontend:
 
 ```
-                    ┌──────────────────────────────────────────────┐
-                    │              Consultorio (tenant)            │
-                    │  link/QR  /reservar/:slug  (portal público) │
-                    └──────┬───────────────────────────────┬───────┘
-                           │                               │
-              ┌────────────▼────────────┐     ┌────────────▼────────────┐
-              │  React SPA + Vite (TS)  │     │  WhatsApp Business API  │
-              │  agenda · clínica · caja│     │  recordatorios/confirm. │
-              └────────────┬────────────┘     └────────────▲────────────┘
-                           │ HTTPS/JWT (JSON)              │ webhook
-              ┌────────────▼───────────────────────────────┴────────────┐
-              │              FastAPI monolito modular                   │
-              │  agenda │ clinica │ caja │ notificaciones │ admin/tenants│
-              │  JWT + RBAC por consultorio · auditoría · exportación   │
-              └──────┬──────────────────────────────┬───────────────────┘
-                     │ SQLAlchemy                   │ RQ/Celery
-          ┌──────────▼──────────┐        ┌──────────▼──────────┐
-          │  PostgreSQL (+tenant│        │  Redis (colas WA,   │
-          │  _id en cada tabla) │        │  confirmaciones,    │
-          └─────────────────────┘        │  auto-relleno)      │
-                                         └─────────────────────┘
-              ┌──────────────────┐     ┌──────────────────┐
-              │  Mercado Pago    │     │  ARCA fase 2     │
-              │  link/seña+webhook│    │  (adapter v1=Manual)│
-              └──────────────────┘     └──────────────────┘
+                  ┌──────────────────────────────────────────────┐
+                  │                 Navegador Web                │
+                  │   Superficie Pública:  /reservar (Turnos)    │
+                  │   Superficie Privada:  /app (Gestión)        │
+                  └───────────────────────┬──────────────────────┘
+                                          │
+                                          │ HTTP / JSON (Axios)
+                                          │ (Bearer JWT en /app)
+                                          ▼
+                  ┌──────────────────────────────────────────────┐
+                  │            FastAPI (Monolito Modular)        │
+                  │                                              │
+                  │  ┌───────────────┬────────────────────────┐  │
+                  │  │ Auth & Users  │ Agenda & Antisolape    │  │
+                  │  ├───────────────┼────────────────────────┤  │
+                  │  │ Pacientes     │ Odontograma FDI        │  │
+                  │  ├───────────────┼────────────────────────┤  │
+                  │  │ Caja & Cobros │ Notificaciones (Mock)  │  │
+                  │  └───────────────┴────────────────────────┘  │
+                  │                                              │
+                  │  - Validación de Schemas (Pydantic v2)       │
+                  │  - Reglas de Negocio en Servicios            │
+                  │  - BackgroundTasks nativas para logs/avisos  │
+                  └───────────────────────┬──────────────────────┘
+                                          │
+                                          │ SQLAlchemy 2.0
+                                          ▼
+                  ┌──────────────────────────────────────────────┐
+                  │            PostgreSQL 15 (Docker)            │
+                  │     Esquema relacional íntegro y testeado    │
+                  └──────────────────────────────────────────────┘
 ```
 
-Justificación: el piloto es chico (1–5 consultorios, <50 usuarios internos + pacientes) y la prioridad es salir rápido; un monolito modular da deploys simples (un Compose), transacciones ACID para antisolapamiento y caja, y colas Redis para lo único realmente asíncrono (recordatorios, confirmaciones, auto-relleno). Postgres con `tenant_id` por tabla aísla consultorios sin el costo operativo de un schema/DB por tenant.
+## Estructura de Módulos de la API
 
-## Integraciones externas
+La API expone sus recursos bajo el prefijo `/api/v1`:
 
-| Servicio | Propósito | Tipo |
-|---|---|---|
-| WhatsApp Business API (Cloud API) | Recordatorios, confirmación/cancelación/reprogramación con botones, aviso de lista de espera | REST (envío + plantillas) + webhook (entrantes/estados) |
-| Mercado Pago | Link de pago y seña online; conciliación de cobros | REST (Checkout Pro / Payment API) + webhook IPN + SDK |
-| Web / portal propio | Reserva online 24/7 por link/QR (`/reservar/:slug`), SEO por consultorio | Frontend propio (SPA pública, sin auth) → REST interno |
-| ARCA (fase 2) | Factura electrónica A/B/C | Adapter `Facturador`: v1 `Manual`, fase 2 `ARCA` (WSFE/SOAP-REST) |
-| Google Calendar (fase 2) | Sincronización bidireccional de agenda | REST (OAuth2 + webhooks de canal) |
-| API pública (fase 2) | Integraciones de terceros | REST + API keys por tenant |
-
-## API REST
-
-Agrupada por recurso; todo bajo `/api/v1` salvo rutas públicas. Autenticación JWT Bearer; tenant derivado del usuario (o del `slug` en rutas públicas).
-
-- **Auth/usuarios**: `POST /auth/login`, `POST /auth/refresh`, `GET /usuarios`, `POST /usuarios`, `PATCH /usuarios/:id`, `GET /roles`.
-- **Tenants**: `POST /tenants`, `GET /tenants/:id`, `PATCH /tenants/:id` (slug, planes, cupo WA).
-- **Profesionales/sillones**: `GET/POST /profesionales`, `GET/POST /sillones`, `GET /disponibilidad?profesional=&sillon=&desde=&hasta=`.
-- **Turnos**: `GET /turnos?dia=&sillon=&profesional=`, `POST /turnos`, `PATCH /turnos/:id` (confirmar/cancelar/reprogramar), `POST /turnos/:id/sobreturno`, `POST /bloqueos`.
-- **Reserva pública**: `GET /public/disponibilidad/:slug`, `POST /public/reservar/:slug` (sin auth, rate-limited + captcha).
-- **Lista de espera**: `GET/POST /lista-espera`, `POST /lista-espera/:id/ofrecer` (dispara WA, expira en N min).
-- **Clínica**: `GET/PUT /pacientes/:id/odontograma`, `GET/POST /fichas`, `GET/POST /presupuestos`, `POST /presupuestos/:id/aprobar`.
-- **Caja**: `GET/POST /movimientos-caja`, `POST /cobros/mp-link`, `POST /webhooks/mercadopago`, `GET /cuentas-corrientes`, `POST /recuperos`.
-- **OS/nomenclador**: `GET /obras-sociales`, `GET /nomenclador?q=`, `POST /coberturas/verificar` (v1: manual/tabla; fase 2: online).
-- **Comprobantes**: `GET/POST /comprobantes` (v1 manual; fase 2 emite vía adapter ARCA).
-- **Notificaciones**: `POST /notificaciones/recordatorio`, `POST /webhooks/whatsapp`.
-- **Reportes/admin**: `GET /reportes/ocupacion`, `GET /reportes/facturacion`, `GET /reportes/ausentismo`, `GET /auditoria`, `GET /export?entidad=`.
+- **Auth & Usuarios** (`/api/v1/auth`, `/api/v1/usuarios`):
+  - `POST /auth/login` (credenciales → Access Token JWT).
+  - `GET /auth/me` (perfil del usuario autenticado).
+  - `GET/POST /usuarios` (gestión de usuarios internos con roles).
+- **Consultorio & Infraestructura** (`/api/v1/sillones`, `/api/v1/profesionales`):
+  - `GET/POST /sillones` (listado y alta de los 2 o 3 sillones físicos).
+  - `GET/POST /profesionales` (odontólogos, matrícula, especialidad).
+- **Agenda & Turnos** (`/api/v1/turnos`):
+  - `GET /turnos?fecha=&sillon_id=&profesional_id=` (calendario diario/semanal).
+  - `POST /turnos` (creación de turno con validación antisolapamiento).
+  - `PATCH /turnos/:id` (cambio de estado: reservado, confirmado, presente, cancelado, atendido).
+  - `POST /bloqueos` (bloqueo de sillón o profesional por horarios/mantenimiento).
+- **Reserva Pública** (`/api/v1/public`):
+  - `GET /public/disponibilidad` (consulta de huecos libres sin login).
+  - `POST /public/reservar` (reserva directa por paciente con nombre, DNI y teléfono).
+  - `GET /public/turnos/:token` (consulta de estado con enlace `wa.me/` para confirmar).
+- **Clínica & Odontograma** (`/api/v1/pacientes`, `/api/v1/odontograma`):
+  - `GET/POST /pacientes` (búsqueda por DNI/nombre y ficha personal).
+  - `GET /pacientes/:id/odontograma` (obtener estado actual de las piezas FDI 11–48).
+  - `PUT /pacientes/:id/odontograma/piezas/:pieza` (actualizar estado y tratamiento de una pieza).
+- **Caja & Cobros** (`/api/v1/caja`):
+  - `GET/POST /caja/movimientos` (ingresos, egresos, medios de pago y conceptos).
+  - `GET /caja/resumen-diario` (balance total por día y por medio de pago).

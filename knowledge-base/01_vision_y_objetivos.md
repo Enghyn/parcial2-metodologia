@@ -2,51 +2,43 @@
 
 ## Propósito del sistema
 
-**Eliminar la coordinación manual de los consultorios odontológicos argentinos (WhatsApp/papel y sistemas parciales) con un SaaS multi-tenant que unifica agenda multi-sillón, clínica, cobros y obras sociales en un solo precio publicado.**
+**Optimizar la gestión integral de un consultorio odontológico con múltiples sillones (2–3 sillones de atención), unificando la agenda con validación de antisolapamiento, reserva pública online, ficha odontológica con odontograma esquemático y control de caja.**
 
-Los consultorios y clínicas AR coordinan turnos por WhatsApp/papel o con sistemas parciales (agenda separada de facturación y obras sociales). Eso genera dobles reservas por sillón, ausentismo sin recupero (30–40% declarado por vendors), presupuestos que no se cierran ni se cobran, y conciliación manual entre caja, Mercado Pago, obras sociales y facturación. Ningún competidor local combina agenda multi-sillón + odontograma + OS/nomenclador + ARCA + Mercado Pago + WhatsApp automático en un solo precio publicado (discovery §§1, 4, C). Este sistema ocupa ese vacío, empezando por el segmento día 1: consultorio de 2–3 sillones.
+El proyecto está diseñado con foco académico en **Metodología de Desarrollo de Sistemas**, priorizando la calidad del software, la separación de capas, el cumplimiento de reglas de negocio centrales y una arquitectura limpia y testeable (FastAPI + React), evitando sobrecostos de infraestructura comercial o dependencias complejas de terceros.
 
 ## Objetivos por actor
 
 | Actor | Objetivo principal | Objetivos secundarios |
 |---|---|---|
-| Paciente | Reservar/confirmar/cancelar sin llamar, 24/7 | Pagar seña online; aprobar presupuestos online; recibir recordatorios |
-| Secretaria / recepción | Operar la agenda del día sin solapamientos ni planillas | Confirmar turnos, cobrar, gestionar lista de espera y ausentes |
-| Odontólogo | Registrar ficha + odontograma + presupuesto en la misma visita | Ver su agenda y su producción |
-| Administrador / dueño | Cerrar caja y medir el negocio sin conciliación manual | Configurar sillones/OS/aranceles; ver ocupación, facturación, ausentismo; exportar |
+| Paciente | Reservar y consultar turnos de forma autónoma (portal online sin login) | Confirmar o cancelar turnos mediante enlaces directos a WhatsApp (`wa.me/`) |
+| Recepción / Secretaría | Gestionar la agenda del día/semana sin solapamientos entre profesionales y sillones | Registrar pacientes, dar turnos, registrar cobros y cierres de caja |
+| Odontólogo | Visualizar su agenda diaria y actualizar la ficha del paciente con odontograma | Registrar hallazgos y tratamientos por pieza dental (nomenclatura FDI) |
+| Administrador | Configurar profesionales, sillones y aranceles; supervisar reportes de ocupación y caja | Gestionar usuarios internos y auditar operaciones clave |
 
-## Alcance v1.0
+## Alcance del MVP Académico
 
-- Agenda multi-profesional y multi-sillón con duración variable por prestación, bloqueos, sobreturnos y antisolapamiento (sillón + profesional).
-- Reserva online 24/7 con link/QR por consultorio, sin login obligatorio en v1 (nombre + DNI + teléfono).
-- Confirmación / cancelación / reprogramación autónoma por el paciente + recordatorios automáticos por WhatsApp Business API.
-- Lista de espera con auto-relleno ante cancelaciones.
-- Odontograma + ficha clínica + presupuestos con aprobación online.
-- Caja + cobro online Mercado Pago (link/seña) + cuenta corriente + recupero de deudas.
-- Obras sociales con nomenclador y copagos.
-- Roles/permisos + auditoría + exportación de datos.
-- Reportes de ocupación, facturación y ausentismo.
-- ARCA: diseño preparado (entidad `Comprobante` + adapter `Facturador` con implementación `Manual` en v1), implementación electrónica en fase 2.
+- **Agenda multi-profesional y multi-sillón (2 a 3 sillones)** con duración variable por prestación y **validación antisolapamiento lógica en backend** (control cruzado: ni el sillón ni el profesional pueden tener turnos superpuestos).
+- **Portal de reserva online pública (24/7)** con link o QR, sin login obligatorio para el paciente (identificación por Nombre, DNI y Teléfono).
+- **Comunicación y confirmación de turnos**: Enlaces directos a WhatsApp (`wa.me/`) generados en la interfaz y servicio de notificaciones simulado (registro en BD/consola).
+- **Ficha clínica y Odontograma esquemático**: Visualización y edición de las piezas dentales (FDI 11–48) para registrar estados clínicos básicos (sano, caries, obturación, corona, extracción).
+- **Caja y Cobros**: Registro de movimientos de caja diaria (ingresos/egresos, medios de pago: efectivo, transferencia, tarjeta), registro de señas y trazabilidad de operaciones.
+- **Seguridad y Roles**: Autenticación JWT Bearer simple para usuarios internos con control de acceso basado en roles (`admin`, `odontologo`, `recepcion`).
 
-## Fuera de alcance
+## Fuera de alcance (simplificaciones deliberadas)
 
-- Periodontograma avanzado y fichas de especialidad (orto/implanto/prótesis).
-- Imágenes con visor y segunda opinión por IA.
-- Campañas y recupero automatizado de inactivos (más allá de lista de espera + recupero de deudas v1).
-- API pública y sincronización bidireccional con Google Calendar.
-- Multi-sucursal enterprise (multi-sede como red; v1 es multi-tenant de consultorios independientes).
-- App móvil nativa; recepcionista virtual IA 24h.
-- Facturación electrónica ARCA automática (fase 2); validación online de OS en tiempo real tipo DentalTec (supuesto, no MVP).
-- Rol Círculo/federación (liquidación institucional).
+- Arquitectura SaaS multi-tenant compleja (el sistema opera para un consultorio único con múltiples sillones y usuarios).
+- Integración directa con Meta Cloud API para WhatsApp (se utiliza simulación y links `wa.me/`).
+- Webhooks de pasarelas de pago externas como Mercado Pago IPN (los cobros y señas se gestionan de forma directa/simulada).
+- Servidor de colas Redis / Celery (se aprovechan las `BackgroundTasks` nativas de FastAPI para procesos en segundo plano).
+- Facturación electrónica legal con ARCA/AFIP (requiere certificados fiscales X.509 fuera del ámbito académico).
+- Visores de imágenes radiográficas con IA o periodontogramas avanzados.
 
-## Métricas de éxito
+## Métricas de éxito del proyecto
 
-| # | Métrica | Meta piloto (1–5 consultorios) | Fuente |
+| # | Métrica | Meta esperada | Verificación |
 |---|---|---|---|
-| M-01 | Dobles reservas por sillón | 0 en 3 meses (antisolapamiento efectivo) | Auditoría + reportes |
-| M-02 | Ausentismo (no-show sin aviso) | −30% vs línea base del consultorio | Reporte ausentismo |
-| M-03 | Huecos cancelados rellenados vía lista de espera | ≥40% de cancelaciones reubicadas | Log lista de espera |
-| M-04 | Presupuestos aprobados online | ≥50% de presupuestos emitidos se aprueban/cobran en 7 días | Estado presupuesto |
-| M-05 | Tiempo de cierre de caja diario | <15 min sin planillas externas | Operación recepción |
-| M-06 | Reserva online autónoma | ≥60% de turnos nuevos entran por link/QR (no por teléfono) | Origen del turno |
-| M-07 | Disponibilidad SaaS piloto | ≥99% mensual | Monitoreo |
+| M-01 | Cero solapamientos en agenda | 100% de solapamientos bloqueados (sillón y profesional) | Tests unitarios y de integración en backend |
+| M-02 | Cobertura de tests en reglas core | ≥ 80% en agenda, caja y permisos | Reporte de pytest |
+| M-03 | Flujo de reserva pública fluido | Creación de turno en < 4 pasos sin login | Prueba E2E en frontend |
+| M-04 | Trazabilidad de caja | Cero inconsistencias en balance diario de caja | Balance de movimientos de caja |
+| M-05 | Experiencia de usuario en odontograma | Carga y actualización ágil de piezas FDI | Validación en interfaz de React |

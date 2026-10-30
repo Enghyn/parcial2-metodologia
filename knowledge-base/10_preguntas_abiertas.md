@@ -1,21 +1,24 @@
-# Preguntas Abiertas
+# Preguntas Abiertas y Resoluciones
 
-## Inconsistencias detectadas
+## Decisiones Fundacionales Cerradas
 
-Ninguna contradicción dura entre discovery.md, las 5 fichas y el gate; solo puntos a cerrar antes de codificar.
+Las inconsistencias e incertidumbres iniciales de la fase de descubrimiento quedaron formalmente resueltas para encuadrar el proyecto en los objetivos académicos:
 
-## Preguntas abiertas (priorizadas)
+| Tema | Estado | Resolución Adoptada |
+|---|---|---|
+| **Acceso del Paciente** | Cerrado | Reserva online pública **sin login** (identificación por Nombre, DNI y Teléfono; consulta por `token_publico`). |
+| **Capacidad de Sillones** | Cerrado | Consultorio con **2 a 3 sillones físicos**, con validación de antisolapamiento lógica en backend. |
+| **Integración con WhatsApp** | Cerrado | **Click-to-Chat (`wa.me/`)** desde la interfaz con mensajes parametrizados + simulación en consola (sin Meta Cloud API). |
+| **Pasarela de Cobros** | Cerrado | Gestión de caja directa (registro de cobros y señas manuales/simuladas, sin webhooks externos de Mercado Pago). |
+| **Infraestructura Asíncrona** | Cerrado | Uso de **`BackgroundTasks` nativas de FastAPI**, descartando Redis y Celery/RQ. |
+| **Facturación Fiscal** | Cerrado | Excluida del alcance del MVP (no se conecta a servicios de ARCA/AFIP). |
 
-| Prioridad | Pregunta | Bloquea | Decisor |
+---
+
+## Puntos Menores a Definir en la Implementación
+
+| Prioridad | Pregunta | Módulo Afectado | Recomendación |
 |---|---|---|---|
-| Alta | ¿Login de paciente o alcanza nombre + DNI + teléfono por turno? (v1 propone sin login + token; login pasaría a fase 2) | Sprint 1 (modelo Paciente + rutas públicas) | Product Owner |
-| Alta | ¿Prioridad exacta de ARCA post-MVP: primera feature fase 2 o después de campañas/API? (afecta a clínicas RI del piloto) | Plan fase 2 / captación RI | Product Owner |
-| Alta | ¿Segmento día 1 cerrado en consultorio 2–3 sillones? (recomendado; UI y pricing por sillón lo asumen) | Sprint 1 (seed + UI agenda) | Product Owner |
-| Media | ¿Validación de OS online en v1 (tabla manual) o integración real-time con alguna OS? (solo DentalTec la evidenció) | Sprint 2 (módulo OS) | Equipo + consultorios piloto |
-| Media | ¿Costo de WhatsApp a escala: cupo incluido por plan y precio del excedente? (~USD 0,026/mensaje) | Pricing / Sprint 2 (jobs WA) | Admin/negocio |
-| Media | ¿Seña no reembolsable por default o configurable por prestación? (RN-CJ-02 la deja configurable) | Sprint 2 (caja/MP) | Product Owner |
-| Baja | ¿Consentimiento digital con qué validez (token+IP vs firma manuscrita)? (v1: token+IP como firma simple) | Antes de operar datos reales | Legal / Product Owner |
-| Baja | ¿Exportación con qué formato y resguardo (CSV + enmascarado de PHI)? | Sprint 3 (auditoría/export) | Tech Lead |
-| Baja | ¿Multi-sucursal como tenant único con sedes o tenants separados? (v1: tenants separados) | Fase 2 | Product Owner |
-
-Supuestos dudosos derivados a este archivo (detalle en `09_decisiones_y_supuestos.md` SU-01–SU-05): preferencia link vs WA manual; consultorio mantiene disponibilidad; validación OS generalizable; costo WA a escala; claims de vendors sin auditoría.
+| **Baja** | ¿Cuál es la granularidad de la grilla de disponibilidad horaria? | Agenda pública y turnero | Slots de 30 minutos por defecto (8:00 a 20:00 hs). |
+| **Baja** | ¿El arqueo de caja requiere exportación a archivo plano? | Módulo de Caja | Generación de resumen visual en pantalla con opción de descarga en CSV simple. |
+| **Baja** | ¿Se contemplan piezas dentales temporales (dientes de leche) en el odontograma? | Odontograma | Solo 32 piezas permanentes (FDI 11–48) para el MVP. |

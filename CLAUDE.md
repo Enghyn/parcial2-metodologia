@@ -11,11 +11,10 @@
 |------|------------|---------|
 | Frontend | React + TypeScript + Vite + Zustand + Tailwind | React 18, TS 5 |
 | Backend | Python + FastAPI + SQLAlchemy + Alembic | Python 3.12+, FastAPI 0.11x |
-| Persistencia | PostgreSQL (con `btree_gist`) | PG 15+ |
-| Colas/Jobs | Redis (RQ/Celery) | Redis 7+ |
-| Infra local | Docker / Docker Compose (api + web + postgres + redis + worker) | — |
-| Auth | JWT (access corto + refresh rotado, claims `tenant_id`) | — |
-| Integraciones | WhatsApp Business API, Mercado Pago (links + webhooks), web/portal propio (MVP); ARCA + Google Calendar (fase 2) | — |
+| Persistencia | PostgreSQL (índices relacionales estándar) | PG 15+ |
+| Infra local | Docker / Docker Compose (api + web + postgres) | Compose v2 |
+| Auth | JWT Bearer estándar con roles (`admin`, `recepcion`, `odontologo`) | — |
+| Comunicación / Cobros | Click-to-Chat WhatsApp (`wa.me/`), cobros y señas directos en caja | — |
 
 Detalle completo: [knowledge-base/02_descripcion_general.md](knowledge-base/02_descripcion_general.md)
 
@@ -27,18 +26,16 @@ La fuente de verdad del dominio vive en `knowledge-base/`. **Leé el archivo rel
 
 | Archivo | Cuándo leerlo |
 |---------|---------------|
-| [01_vision_y_objetivos.md](knowledge-base/01_vision_y_objetivos.md) | Entender propósito y alcance |
-| [03_actores_y_roles.md](knowledge-base/03_actores_y_roles.md) | Auth, RBAC, permisos |
-| [04_modelo_de_datos.md](knowledge-base/04_modelo_de_datos.md) | Entidades, ERD, migraciones |
-| [05_reglas_de_negocio.md](knowledge-base/05_reglas_de_negocio.md) | Reglas codificadas (RN-XX) |
-| [06_funcionalidades.md](knowledge-base/06_funcionalidades.md) | Historias de usuario por épica |
-| [07_flujos_principales.md](knowledge-base/07_flujos_principales.md) | Flujos E2E |
-| [08_arquitectura_propuesta.md](knowledge-base/08_arquitectura_propuesta.md) | Patrones, estructura, env vars |
-| [10_preguntas_abiertas.md](knowledge-base/10_preguntas_abiertas.md) | ⚠️ Inconsistencias a resolver ANTES de codear |
-
-> ⚠️ Resolver las preguntas de prioridad **Alta** de `10_preguntas_abiertas.md` antes de arrancar el primer change.
-
-Discovery previo (mercado, comparativa 17 sistemas, MVP): [docs/discovery/discovery.md](docs/discovery/discovery.md)
+| [01_vision_y_objetivos.md](knowledge-base/01_vision_y_objetivos.md) | Entender propósito, alcance del MVP académico y actores |
+| [02_descripcion_general.md](knowledge-base/02_descripcion_general.md) | Stack, arquitectura modular y endpoints de la API |
+| [03_actores_y_roles.md](knowledge-base/03_actores_y_roles.md) | Auth, RBAC, permisos y rutas públicas |
+| [04_modelo_de_datos.md](knowledge-base/04_modelo_de_datos.md) | Entidades relacionales, atributos, índices y seed |
+| [05_reglas_de_negocio.md](knowledge-base/05_reglas_de_negocio.md) | Reglas codificadas (RN-AG, RN-CL, RN-CJ, RN-SEG, RN-G) |
+| [06_funcionalidades.md](knowledge-base/06_funcionalidades.md) | Historias de usuario por épica y criterios de aceptación |
+| [07_flujos_principales.md](knowledge-base/07_flujos_principales.md) | Flujos E2E de reserva, atención, odontograma y caja |
+| [08_arquitectura_propuesta.md](knowledge-base/08_arquitectura_propuesta.md) | Patrones, estructura de carpetas, seguridad y env vars |
+| [09_decisiones_y_supuestos.md](knowledge-base/09_decisiones_y_supuestos.md) | Decisiones DD-01 a DD-07 y supuestos operativos |
+| [10_preguntas_abiertas.md](knowledge-base/10_preguntas_abiertas.md) | Decisiones fundacionales cerradas y detalles de implementación |
 
 ---
 
@@ -49,22 +46,25 @@ Skills instaladas a nivel proyecto (`.agents/skills/`), mapeadas por rol. Cargá
 | Agente | Rol | Skills que carga |
 |--------|-----|------------------|
 | **Backend Core** | FastAPI modular, JWT, Alembic, Postgres | `fastapi-templates`, `postgresql-table-design`, `supabase-postgres-best-practices`, `async-python-patterns` |
-| **Backend Aux** | Integraciones, contratos, webhooks | `api-and-interface-design`, `async-python-patterns` |
-| **Frontend** | React+Vite, reserva online, agenda, odontograma | `vercel-react-best-practices`, `tailwind-design-system` |
-| **Calidad** | Testing E2E y estrategia | `playwright-cli` |
-
-> Los compact rules de cada skill los resuelve el orquestador desde `.atl/skill-registry.md` (generado por `skill-registry`; no versionado — no está en el repo). Esta tabla solo mapea skill→rol.
+| **Backend Aux** | Contratos de API, endpoints y validaciones | `api-and-interface-design`, `async-python-patterns` |
+| **Frontend** | React+Vite, reserva online, agenda multi-sillón, odontograma | `vercel-react-best-practices`, `tailwind-design-system` |
+| **Calidad** | Testing unitario y E2E | `playwright-cli` |
 
 ---
 
 ## Roadmap de Changes
 
-El plan de implementación completo está en [CHANGES.md](CHANGES.md). Resumen:
+El plan de implementación académico simplificado está en [CHANGES.md](CHANGES.md). Resumen:
 
-- **Total**: 22 changes en 5 fases (0 cimientos, 1 auth/confianza, 2 imprescindibles MVP, 3 diferenciadores v1, 4 fase 2).
-- **Camino crítico** (11): `C-01 → C-02 → C-03 → C-05 → C-06 → C-09 → C-10 → C-11 → C-14 → C-16 → C-17`.
-- **Cierre del MVP**: changes C-01–C-17 + 5 flujos E2E verificables (ver "Cobertura del MVP" en CHANGES.md).
-- **Primer change**: `C-01-foundation-setup` → arrancar con `/opsx:propose C-01-foundation-setup`.
+- **Total**: 8 changes atómicos organizados para desarrollo incremental:
+  - `C-01-foundation-setup` [x] (Completado y archivado)
+  - `C-02-core-models-seed`: Entidades SQLAlchemy, migraciones Alembic y seed inicial (sillones, usuarios y profesionales).
+  - `C-03-auth-jwt-roles`: Login JWT Bearer y dependencias de autorización RBAC (`admin`, `recepcion`, `odontologo`).
+  - `C-04-agenda-servicio-antisolapamiento`: Capa de servicios y endpoints de turnos con validación estricta de solapamiento (sillón y profesional) + tests unitarios.
+  - `C-05-agenda-frontend-interna`: Visualización de agenda en columnas por sillón, creación y cambio de estados de turnos en React.
+  - `C-06-reserva-online-publica`: Portal público `/reservar` sin login, consulta de turnos por token y enlace directo a WhatsApp (`wa.me/`).
+  - `C-07-clinica-odontograma`: Gestión de pacientes, ficha médica y odontograma interactivo esquemático FDI (piezas 11 a 48).
+  - `C-08-caja-movimientos-balance`: Registro de ingresos/egresos, señas vinculadas a turnos y arqueo diario de caja.
 
 **Antes de cualquier `/opsx:propose`**: leé [CHANGES.md](CHANGES.md), identificá las dependencias del change y los archivos de "Leer antes".
 
@@ -72,21 +72,21 @@ El plan de implementación completo está en [CHANGES.md](CHANGES.md). Resumen:
 
 ## Reglas Duras (específicas del proyecto)
 
-No hay `~/.claude/CLAUDE.md` global en este entorno: todo lo de abajo vive acá. Son contrato; romperlas es un defecto. Formato `NUNCA X → hacer Y`:
+Son contrato; romperlas es un defecto. Formato `NUNCA X → hacer Y`:
 
 - **R1**: NUNCA schema Pydantic sin `extra='forbid'` → rechazar campos no declarados.
-- **R2**: NUNCA query sin filtro `tenant_id` → ningún dato cruza de consultorio (RN-SEG-01).
-- **R3**: NUNCA UPDATE/DELETE físico en caja → solo anulación con contra-asiento vinculado (RN-CJ-01).
-- **R4**: NUNCA cambiar estado por callback del frontend (MP) → solo webhook con firma verificada (RN-CJ-03).
+- **R2**: NUNCA modelo ni query con `tenant_id` → el sistema es mono-consultorio enfocado en multi-sillón (2 a 3 sillones físicos).
+- **R3**: NUNCA UPDATE/DELETE físico en caja → trazabilidad obligatoria con movimientos de ingreso/egreso compensatorios (RN-CJ-02).
+- **R4**: NUNCA cobro de turno sin registrar medio de pago y usuario responsable en caja (RN-CJ-01).
 - **R5**: NUNCA código sin type hints + `snake_case`, y NUNCA cambio de schema sin migración Alembic.
-- **R6**: NUNCA turno sin garantía antisolapamiento a nivel DB → `EXCLUDE USING gist` por sillón y profesional + test de conflicto (RN-AG-01).
+- **R6**: NUNCA turno creado o reprogramado sin validación antisolapamiento en la capa de servicios + test de conflicto obligatorio (RN-AG-01).
 - **R7**: NUNCA `any` → tipado estricto (`tsconfig` strict); componentes en `PascalCase`.
-- **R8**: NUNCA confiar en el frontend para permisos → el RBAC se cumple en el backend, la UI solo oculta (cosmético).
-- **R9**: NUNCA datos de salud en logs ni WhatsApp → solo día/hora/profesional (RN-G-03, Ley 25.326).
-- **R10**: Superficies públicas en rioplatense y precios en ARS (RN-G-02).
+- **R8**: NUNCA confiar en el frontend para permisos → el RBAC se cumple en el backend, la UI solo oculta o deshabilita cosméticamente.
+- **R9**: NUNCA datos sensibles de salud en logs ni en parámetros de URL (RN-SEG-01).
+- **R10**: Superficies públicas en español rioplatense y montos en ARS.
 - **R11**: NUNCA commitear ni pushear sin pedido explícito → los cambios quedan en working tree.
 - **R12**: Commits en formato conventional (`feat:`, `fix:`, `chore:`…) sin co-autoría IA.
-- **R13**: NUNCA borrado físico en tablas de negocio → borrado lógico con `deleted_at` + `deleted_by`, restaurable por `admin`; purga solo explícita y auditada (RN-SEG-06).
+- **R13**: NUNCA borrado físico en tablas de negocio (`Paciente`, `Turno`, `Profesional`, `Sillon`) → borrado lógico con `deleted_at`.
 
 ---
 

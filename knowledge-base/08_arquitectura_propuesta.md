@@ -1,82 +1,82 @@
 # Arquitectura Propuesta
 
-Monolito modular FastAPI + React SPA + Postgres + Redis + Docker Compose. Multi-tenant por `tenant_id`. Prioridad velocidad de entrega; deuda documentada al pie.
+Monolito modular FastAPI + React SPA + PostgreSQL + Docker Compose. Arquitectura orientada a la simplicidad, robustez y facilidad de prueba para el entorno académico.
 
-## Patrones aplicados
+---
 
-| Patrón | Dónde se usa | Por qué |
+## Patrones Arquitectónicos Aplicados
+
+| Patrón | Dónde se aplica | Propósito |
 |---|---|---|
-| Monolito modular | Backend `agenda/clinica/caja/notificaciones/admin` como paquetes con fronteras | Deploys simples en piloto; transacciones ACID para antisolapamiento y caja |
-| Adapter (Ports) | `Facturador(manual→arca)`, `Notificador(wa)`, `Cobrador(mp)` | ARCA fase 2 sin tocar caja; WA/MP mockeables en tests |
-| RBAC por tenant | Dependencia FastAPI `require(rol, recurso)` + `tenant_id` en cada query | Aislamiento barato sin schema-por-tenant |
-| Exclusion constraint | Antisolapamiento sillón/profesional en Postgres (`gist`) + chequeo en servicio | Garantía a nivel DB contra carreras (doble reserva) |
-| Jobs/colas | Redis RQ/Celery: recordatorios, confirmaciones, ofertas de lista de espera, webhooks | Lo único asíncrono real; reintentos con backoff |
-| Webhooks idempotentes | WA y MP con tabla de `event_id` procesados | Evita doble cobro / doble confirmación |
-| Token público | Turno/presupuesto/pago con UUID + expiración | Paciente opera sin login en v1 |
+| **Monolito Modular** | Backend en `backend/src/app/modules/` | Mantiene el código organizado por dominio de negocio (agenda, clínica, caja, admin) en un único despliegue simple. |
+| **Capa de Servicios (Service Layer)** | En cada módulo de backend | Aísla la lógica de negocio (validación antisolapamiento, cálculo de horarios, balance de caja) de los controladores HTTP. |
+| **Dependency Injection** | FastAPI `Depends` (`get_db`, `get_current_user`, `require_role`) | Inyección de sesiones de base de datos y autorización declarativa en endpoints. |
+| **Data Transfer Objects (DTO)** | Schemas Pydantic v2 con `extra='forbid'` | Validación estricta de tipos de entrada y serialización segura de respuestas. |
+| **Click-to-Chat Adapter** | Rutas públicas y notificaciones | Generación declarativa de URLs `wa.me/` sin acoplarse a APIs propietarias. |
 
-## Estructura de directorios
+---
+
+## Estructura de Directorios
 
 ```
-proyecto/
-├── docker-compose.yml          # api + web + postgres + redis (+ worker)
+active-or-practica/
+├── docker-compose.yml          # Servicios: api + web + postgres
 ├── backend/
 │   ├── Dockerfile
-│   ├── pyproject.toml          # fastapi, sqlalchemy, alembic, redis/rq, mercadopago-sdk, pydantic-settings
-│   └── app/
-│       ├── main.py             # create_app, routers, middlewares (tenant, auth, audit)
-│       ├── core/               # config, security (JWT), deps (get_tenant, require_role), errors
-│       ├── modules/
-│       │   ├── agenda/         # router, service (antisolapamiento), schemas, models (Turno, Bloqueo, Sillon)
-│       │   ├── lista_espera/   # service auto-relleno + jobs
-│       │   ├── clinica/        # pacientes, odontograma, presupuestos
-│       │   ├── caja/           # movimientos, MP links, cuenta corriente, comprobantes + adapter Facturador
-│       │   ├── os/             # obras sociales + nomenclador
-│       │   ├── notificaciones/ # adapter WA + plantillas + jobs recordatorios
-│       │   └── admin/          # tenants, usuarios, reportes, auditoría, exportación
-│       ├── adapters/           # facturador.py (Manual/Arca), whatsapp.py, mercadopago.py
-│       ├── db/                 # base, session (tenant filter), migrations (alembic)
-│       └── workers/            # rq tasks: recordatorios, ofertas, conciliación
+│   ├── pyproject.toml          # Dependencias: fastapi, sqlalchemy, alembic, pydantic-settings, pyjwt
+│   ├── alembic.ini
+│   ├── src/
+│   │   └── app/
+│   │       ├── main.py         # App factory, CORS, middlewares y router raíz
+│   │       ├── core/           # config.py, security.py (JWT), deps.py, errors.py
+│   │       ├── db/             # base.py, session.py, migrations/ (Alembic)
+│   │       └── modules/
+│   │           ├── auth/       # Login, hash de contraseñas y obtención de perfil
+│   │           ├── agenda/     # Turnos, sillones, profesionales, validación antisolapamiento
+│   │           ├── clinica/    # Pacientes, fichas, odontograma FDI y hallazgos
+│   │           ├── caja/       # Movimientos de caja, cobros, resumen diario
+│   │           └── admin/      # Gestión de usuarios del sistema
+│   └── test/                   # Tests unitarios y de integración (pytest)
 └── frontend/
     ├── Dockerfile
     ├── vite.config.ts
+    ├── package.json
     └── src/
-        ├── app/                # router, auth (JWT), tenant context, layout
+        ├── app/                # Router, AuthProvider, Layouts privado y público
         ├── features/
-        │   ├── agenda/         # día/semana por sillón, crear turno, bloqueos, sobreturnos
-        │   ├── reserva-publica/ # /reservar/:slug (4 pasos, sin auth)
-        │   ├── lista-espera/
-        │   ├── clinica/        # ficha, odontograma SVG, presupuestos
-        │   ├── caja/           # movimientos, cierre, cuenta corriente, MP links
-        │   ├── os/             # buscador nomenclador, cobertura
-        │   └── reportes/       # ocupación, facturación, ausentismo
-        └── shared/             # ui, api client, hooks, utils
+        │   ├── agenda/         # Calendario multi-sillón (columnas por sillón), modales de turno
+        │   ├── reserva-publica/ # Asistente paso a paso para el paciente (/reservar)
+        │   ├── clinica/        # Odontograma interactivo (grilla FDI 11–48) y ficha médica
+        │   └── caja/           # Formulario de cobros y arqueo diario
+        └── shared/             # Cliente API (Axios), componentes UI (Tailwind), hooks
 ```
 
-## Seguridad
+---
 
-- Autenticación: JWT Bearer (access corto + refresh); login solo usuarios internos; paciente con tokens públicos UUID, no JWT.
-- Autorización: RBAC por `(tenant_id, rol)` — matriz de `03_actores_y_roles.md`; enforcement en dependencia FastAPI + chequeo en frontend solo cosmético.
-- Validación de input: schemas Pydantic estrictos (teléfono E.164, DNI, montos>0, rangos temporales); captcha + rate-limit en `/public/*`.
-- Secrets management: solo por variables de entorno / Docker secrets; nunca en repo. Rotación de signing keys JWT documentada.
-- Datos de salud: consentimiento obligatorio (RN-CL-04), acceso por rol, sin PHI en logs/WA (RN-G-03); backups Postgres cifrados; RLS como mejora fase 2.
+## Seguridad y Control de Acceso
 
-## Variables de entorno
+1. **Autenticación:**
+   - JWT estándar (Access Token) firmado mediante HMAC-SHA256 con clave secreta (`JWT_SECRET`).
+   - Expiración configurable (default: 720 minutos / 12 horas para facilitar la jornada de trabajo).
+2. **Autorización (RBAC):**
+   - Resuelta en FastAPI mediante dependencias:
+     ```python
+     @router.post("/turnos", dependencies=[Depends(require_role("admin", "recepcion"))])
+     async def crear_turno(...): ...
+     ```
+3. **Validación de Datos:**
+   - Schemas Pydantic con validación de expresiones regulares (DNI, teléfono), rangos de fechas (`fin > inicio`) y montos positivos.
+4. **Protección de Datos:**
+   - Contraseñas almacenadas exclusivamente como hashes mediante `bcrypt`.
 
-| Variable | Descripción | Ejemplo | Sensible |
-|---|---|---|---|
-| `DATABASE_URL` | DSN Postgres | `postgresql+psycopg://u:p@db:5432/odonto` | Y |
-| `REDIS_URL` | Colas/jobs | `redis://redis:6379/0` | N |
-| `JWT_SECRET` | Firma de tokens | `changeme-32+` | Y |
-| `JWT_EXPIRE_MIN` | Vida del access token | `60` | N |
-| `WA_TOKEN` | WhatsApp Cloud API | `EAAB...` | Y |
-| `WA_PHONE_ID` | ID número emisor | `123456789` | N |
-| `WA_WEBHOOK_VERIFY` | Token verificación Meta | `...` | Y |
-| `MP_ACCESS_TOKEN` | Mercado Pago | `APP-...` | Y |
-| `MP_WEBHOOK_SECRET` | Firma IPN | `...` | Y |
-| `TENANT_DEFAULT_CANCEL_HS` | Antelación cancelación | `12` | N |
-| `LISTA_ESPERA_OFERTA_MIN` | Expiración oferta | `60` | N |
-| `FACTURADOR_MODO` | `manual` en v1, `arca` fase 2 | `manual` | N |
-| `ARCA_*` | CUIT, cert, key, WSFE endpoint (fase 2) | — | Y |
-| `CORS_ORIGINS` | Orígenes SPA + portal | `https://app.x,https://slug.x` | N |
+---
 
-Deuda documentada (velocidad primero): sin RLS en v1 (filtro por `tenant_id` en sesión), sin multi-sede, reportes con SQL directo (sin warehouse), tests e2e mínimos del flujo reserva→cobro; todo listado para roadmap.
+## Variables de Entorno (.env)
+
+| Variable | Descripción | Valor por Defecto / Ejemplo |
+|---|---|---|
+| `DATABASE_URL` | Conexión a PostgreSQL | `postgresql+psycopg://odonto:odonto@postgres:5432/odonto` |
+| `JWT_SECRET` | Clave para firma de tokens | `super-secret-key-32-chars-long-min` |
+| `JWT_EXPIRE_MIN` | Minutos de vida del token | `720` |
+| `CORS_ORIGINS` | Orígenes permitidos para el frontend | `http://localhost:5173,http://localhost:3000` |
+| `APP_ENV` | Entorno de ejecución | `development` |

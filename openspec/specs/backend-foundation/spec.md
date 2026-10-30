@@ -48,7 +48,7 @@ El sistema SHALL emitir logs estructurados que nunca incluyen datos de salud del
 
 ### Requirement: Baseline Alembic con btree_gist
 
-El sistema SHALL proveer Alembic inicializado con una migración baseline vacía que habilita la extensión Postgres `btree_gist`, lista para recibir los modelos multi-tenant de C-02.
+El sistema SHALL proveer Alembic inicializado con una migración baseline vacía que habilita la extensión Postgres `btree_gist`, lista para recibir los modelos de C-02.
 
 #### Scenario: Migración baseline
 

@@ -1,102 +1,141 @@
 # Modelo de Datos
 
-Multi-tenant por discriminador: **toda tabla de negocio lleva `tenant_id`** (aislamiento lógico; RLS opcional en fase 2). Sillón es entidad obligatoria desde día 1 aunque la UI arranque simple.
+## Modelo Relacional Simplificado
 
-## Dominios
+El esquema está diseñado para un consultorio odontológico moderno (2 a 3 sillones físicos), eliminando complejidad innecesaria de multi-inquilinos (multi-tenancy) y restricciones propietarias de bases de datos.
 
-- **Tenancy/identidad**: Tenant, Usuario (roles por consultorio), Profesional.
-- **Agenda**: Sillón, Turno, Bloqueo, ListaEspera.
-- **Clínica**: Paciente, Odontograma (piezas/estados), Ficha/Evolución, Presupuesto.
-- **Caja/cobros**: MovimientoCaja, CobroMP, CuentaCorriente, Comprobante (ARCA-preparado).
-- **OS**: ObraSocial, Nomenclador (práctica + arancel por OS).
-- **Transversal**: Notificación/WA, Auditoría, Consentimiento.
-
-## ERD (textual)
+### Diagrama Entidad-Relación (ERD)
 
 ```
-Tenant 1──* Usuario | 1──* Profesional | 1──* Sillon | 1──* Paciente
-Paciente 1──* Turno *──1 Profesional | Turno *──1 Sillon (obligatorio)
-Sillon 1──* Bloqueo | Profesional 1──* Bloqueo
-Paciente 1──* ListaEspera (→ Turno cuando auto-rellena)
-Paciente 1──1 Odontograma 1──* HallazgoPieza | Paciente 1──* Ficha/Evolucion
-Presupuesto *──1 Paciente | Presupuesto 1──* ItemPresupuesto (→ Nomenclador)
-MovimientoCaja *──1 Turno? | *──1 Presupuesto? | *──1 CobroMP?
-Comprobante *──1 MovimientoCaja? (v1 manual; fase 2 emite ARCA vía adapter)
-ObraSocial 1──* Nomenclador (codigo, practica, arancel, copago)
-Paciente *──* ObraSocial (afiliacion: credencial, plan)
-Notificacion *──1 Turno | *──1 ListaEspera (canal WA, plantilla, estado)
-Auditoria *──1 Usuario (quien/cuando/que/desde_donde)
+[Usuario] 1 ──────── 0..1 [Profesional]
+   │
+   │ registra
+   ▼
+[MovimientoCaja] 0..* ──── 0..1 [Turno]
+                                  │
+                                  ├────── *..1 [Sillon]
+                                  ├────── *..1 [Profesional]
+                                  └────── *..1 [Paciente]
+                                                    │
+                                                    ▼
+                                            [Odontograma] 1 ──── * [HallazgoPieza]
 ```
 
-## Entidades
+---
 
-### Tenant
-- Atributos: `id:uuid PK`, `nombre:text`, `slug:text UNIQUE` (para `/reservar/:slug`), `plan:text` (por_sillon v1), `cupo_wa_mensual:int`, `config_cancelacion:jsonb` (antelación, seña reembolsable), `activo:bool`.
-- Relaciones: 1──* con Usuario, Profesional, Sillón, Paciente y todo lo operativo.
-- Constraints: `slug` único global, formato URL-safe. Índices: `slug`, `activo`.
+## Entidades y Atributos
 
-### Usuario
-- Atributos: `id:uuid PK`, `tenant_id:uuid FK→Tenant NOT NULL`, `nombre:text`, `email:citext UNIQUE por tenant`, `password_hash:text`, `rol:enum(admin,odontologo,recepcion)`, `profesional_id:uuid FK?` (si es odontólogo), `activo:bool`.
-- Relaciones: *──1 Tenant; 1──1 Profesional (opcional); 1──* Auditoría.
-- Constraints: email único por `(tenant_id, email)`; un usuario pertenece a un solo tenant en v1. Índices: `(tenant_id, rol)`, `(tenant_id, email)`.
+### 1. `Usuario`
+Usuarios internos del sistema (personal de la clínica):
+* `id: UUID` (PK)
+* `nombre: String(100)`
+* `email: String(150)` (UNIQUE)
+* `password_hash: String(255)`
+* `rol: Enum('admin', 'recepcion', 'odontologo')`
+* `activo: Boolean` (Default True)
+* `created_at, updated_at: Timestamp`
 
-### Profesional
-- Atributos: `id:uuid PK`, `tenant_id FK NOT NULL`, `nombre:text`, `matricula:text`, `especialidad:text`, `duracion_default_min:int`, `agenda:jsonb` (horarios/sobreturnos), `activo:bool`.
-- Relaciones: 1──* Turno; 1──* Bloqueo.
-- Constraints: matrícula no vacía si atiende OS. Índices: `(tenant_id, activo)`.
+### 2. `Sillon`
+Capacidad física del consultorio (los 2 o 3 sillones de atención):
+* `id: UUID` (PK)
+* `nombre: String(50)` (Ej: "Sillón 1 - Principal", "Sillón 2", "Sillón 3")
+* `descripcion: String(255)` (Opcional)
+* `activo: Boolean` (Default True)
 
-### Sillon
-- Atributos: `id:uuid PK`, `tenant_id FK NOT NULL`, `nombre:text` ("Sillón 1"), `box:text?`, `activo:bool`.
-- Relaciones: 1──* Turno; 1──* Bloqueo.
-- Constraints: **obligatorio en cada Turno** (segmento 2–3 sillones); nombre único por tenant. Índices: `(tenant_id, activo)`.
+### 3. `Profesional`
+Odontólogos que atienden en el consultorio:
+* `id: UUID` (PK)
+* `usuario_id: UUID` (FK opcional → `Usuario.id`)
+* `nombre: String(100)`
+* `matricula: String(50)`
+* `especialidad: String(100)` (Ej: "Odontología General", "Ortodoncia", "Endodoncia")
+* `duracion_default_min: Integer` (Default 30)
+* `activo: Boolean` (Default True)
 
-### Paciente
-- Atributos: `id:uuid PK`, `tenant_id FK NOT NULL`, `nombre:text`, `dni:text`, `telefono:text` (E.164, para WA), `email:text?`, `obra_social_id:uuid FK?`, `nro_afiliado:text?`, `consentimiento:jsonb` (texto, fecha, firma/token), `origen:text` (linkQR/manual), `activo:bool`.
-- Relaciones: 1──* Turno/Ficha/Presupuesto/CuentaCorriente.
-- Constraints: `(tenant_id, dni)` único; teléfono válido para notificar; sin consentimiento no se cargan datos de salud. Índices: `(tenant_id, dni)`, `(tenant_id, telefono)`.
+### 4. `Paciente`
+Ficha de datos básicos de los pacientes:
+* `id: UUID` (PK)
+* `nombre: String(100)`
+* `dni: String(20)` (UNIQUE)
+* `telefono: String(30)` (Contacto para turnos y enlaces WhatsApp)
+* `email: String(150)` (Opcional)
+* `obra_social: String(100)` (Opcional)
+* `nro_afiliado: String(50)` (Opcional)
+* `activo: Boolean` (Default True)
+* `created_at, updated_at: Timestamp`
 
-### Turno
-- Atributos: `id:uuid PK`, `tenant_id FK NOT NULL`, `paciente_id FK NOT NULL`, `profesional_id FK NOT NULL`, `sillon_id FK NOT NULL`, `prestacion:text`, `inicio:timestamptz NOT NULL`, `fin:timestamptz NOT NULL` (= inicio + duración variable), `duracion_min:int`, `estado:enum(reservado,confirmado,presente,en_atencion,realizado,ausente,cancelado,reprogramado)`, `origen:enum(portal,mostrador,telefono,wa)`, `token_publico:uuid UNIQUE` (confirmar/cancelar sin login), `sena_monto:numeric?`, `sena_estado:enum?`, `notas:text?`.
-- Relaciones: *──1 Paciente/Profesional/Sillón; 1──* Notificación/MovimientoCaja.
-- Constraints: **antisolapamiento** — exclusion por `(sillon_id, rango)` y por `(profesional_id, rango)` excluyendo cancelados/reprogramados (Postgres `EXCLUDE USING gist` + chequeo en servicio); `fin > inicio`; sobreturno marcado explícitamente. Índices: `(tenant_id, inicio)`, `(sillon_id, inicio)`, `(profesional_id, inicio)`, `token_publico`.
+### 5. `Turno`
+Registro de citas con duración variable y asignación física:
+* `id: UUID` (PK)
+* `paciente_id: UUID` (FK → `Paciente.id`)
+* `profesional_id: UUID` (FK → `Profesional.id`)
+* `sillon_id: UUID` (FK → `Sillon.id`)
+* `prestacion: String(150)` (Ej: "Consulta diagnóstica", "Limpieza", "Extracción")
+* `inicio: Timestamp with Timezone`
+* `fin: Timestamp with Timezone` (calculado a partir de inicio + duración)
+* `duracion_min: Integer`
+* `estado: Enum('reservado', 'confirmado', 'presente', 'atendido', 'cancelado')`
+* `token_publico: UUID` (UNIQUE, para acceso seguro desde el portal público)
+* `sena_monto: Numeric(10, 2)` (Default 0.0)
+* `notas: Text` (Opcional)
+* `created_at, updated_at: Timestamp`
 
-### Bloqueo
-- Atributos: `id:uuid PK`, `tenant_id FK NOT NULL`, `sillon_id FK?`, `profesional_id FK?`, `desde:timestamptz`, `hasta:timestamptz`, `motivo:text`.
-- Constraints: al menos sillón o profesional; respeta el mismo antisolapamiento (bloquea huecos). Índices: `(tenant_id, desde)`.
+### 6. `Bloqueo`
+Bloqueos temporales de disponibilidad (vacaciones, mantenimiento de sillón, feriados):
+* `id: UUID` (PK)
+* `sillon_id: UUID` (FK opcional → `Sillon.id`)
+* `profesional_id: UUID` (FK opcional → `Profesional.id`)
+* `desde: Timestamp with Timezone`
+* `hasta: Timestamp with Timezone`
+* `motivo: String(255)`
 
-### ListaEspera
-- Atributos: `id:uuid PK`, `tenant_id FK NOT NULL`, `paciente_id FK NOT NULL`, `prestacion:text`, `profesional_id FK?`, `preferencia:jsonb` (días/horarios), `estado:enum(activa,ofrecida,aceptada,vencida,cancelada)`, `oferta_turno_id FK?`, `oferta_expira_at:timestamptz?`.
-- Relaciones: → Turno cuando auto-rellena (se crea el Turno y la oferta expira en N min por WA).
-- Índices: `(tenant_id, estado)`, `(paciente_id, estado)`.
+### 7. `Odontograma` y `HallazgoPieza`
+Representación esquemática de la dentadura del paciente:
+* **`Odontograma`** (Cabecera por paciente):
+  * `id: UUID` (PK)
+  * `paciente_id: UUID` (FK UNIQUE → `Paciente.id`)
+  * `observaciones_generales: Text`
+  * `updated_at: Timestamp`
+* **`HallazgoPieza`** (Detalle por pieza dental):
+  * `id: UUID` (PK)
+  * `odontograma_id: UUID` (FK → `Odontograma.id`)
+  * `pieza: Integer` (Número FDI de 11 a 48, correspondiente a los 32 dientes permanentes)
+  * `estado: Enum('sano', 'caries', 'obturacion', 'corona', 'extraccion', 'tratamiento_conducto')`
+  * `observacion: String(255)` (Opcional)
+  * `fecha: Date`
 
-### Odontograma (+ HallazgoPieza)
-- Atributos cabecera: `id:uuid PK`, `tenant_id FK NOT NULL`, `paciente_id FK UNIQUE NOT NULL`, `updated_by FK→Usuario`, `updated_at:timestamptz`.
-- Hallazgo: `id:uuid PK`, `odontograma_id FK`, `pieza:int` (FDI 11–48), `cara:enum?`, `estado:text` (vocabulario 18 estados tipo DentalSoft: sano, caries, obturación, corona, endodoncia, implante, ...), `fecha:date`, `observacion:text?`.
-- Constraints: pieza válida FDI; solo edita `odontologo`. Índices: `(odontograma_id, pieza)`.
+### 8. `MovimientoCaja`
+Libro diario de ingresos y egresos:
+* `id: UUID` (PK)
+* `fecha: Timestamp with Timezone` (Default `now()`)
+* `tipo: Enum('ingreso', 'egreso')`
+* `medio_pago: Enum('efectivo', 'transferencia', 'debito', 'credito', 'otro')`
+* `monto: Numeric(10, 2)`
+* `concepto: String(255)` (Ej: "Cobro turno - Limpieza dental", "Seña de reserva", "Compra insumos descartables")
+* `turno_id: UUID` (FK opcional → `Turno.id`)
+* `usuario_id: UUID` (FK → `Usuario.id`, personal que registró el movimiento)
 
-### Presupuesto (+ ItemPresupuesto)
-- Atributos: `id:uuid PK`, `tenant_id FK NOT NULL`, `paciente_id FK NOT NULL`, `odontologo_id FK`, `estado:enum(borrador,enviado,aprobado,rechazado,parcialmente_cobrado,cobrado)`, `total:numeric`, `sena_requerida:numeric?`, `token_publico:uuid UNIQUE` (aprobación online), `valido_hasta:date?`.
-- Ítem: `id FK`, `nomenclador_id FK?`, `descripcion:text`, `cantidad:int`, `precio_unit:numeric`, `cobertura_os:numeric?`.
-- Constraints: total = suma de ítems; cambio de estado solo por flujo válido; aprobación online registra quién/cuándo/IP. Índices: `(tenant_id, estado)`, `token_publico`.
+---
 
-### MovimientoCaja
-- Atributos: `id:uuid PK`, `tenant_id FK NOT NULL`, `fecha:timestamptz DEFAULT now()`, `tipo:enum(ingreso,egreso)`, `medio:enum(efectivo,mp_link,mp_terminal,transferencia,os)`, `monto:numeric NOT NULL`, `turno_id FK?`, `presupuesto_id FK?`, `usuario_id FK NOT NULL` (quién), `origen:text` (mostrador/portal/webhook), `concepto:text`, `anulacion_de FK?` (nunca borrado físico).
-- Constraints: **trazabilidad total** — sin UPDATE destructivo (anulación con contra-asiento); monto > 0. Índices: `(tenant_id, fecha)`, `(medio, fecha)`.
+## Índices y Reglas de Integridad
 
-### Comprobante (ARCA-preparado)
-- Atributos: `id:uuid PK`, `tenant_id FK NOT NULL`, `movimiento_id FK?`, `tipo:text` (recibo/factura_manual v1), `numero:text?`, `emisor:enum(manual,arca) DEFAULT manual`, `payload:jsonb` (datos fiscales), `cae:text?`, `estado:enum(pendiente,emitido,anulado)`.
-- Relaciones: el adapter `Facturador.emitir(comprobante)` en v1 lo marca manual; en fase 2 llama a ARCA y completa `cae`. Índices: `(tenant_id, estado)`.
+1. **Agenda y Búsqueda Rápida de Huecos:**
+   * Índices en `Turno(sillon_id, inicio, fin)` y `Turno(profesional_id, inicio, fin)`.
+   * Índice en `Turno(token_publico)` para acceso seguro desde `/p/turno/:token`.
+2. **Pacientes:**
+   * Índice único en `Paciente(dni)`.
+3. **Manejo de Borrado Lógico:**
+   * Campos `deleted_at: Timestamp?` en tablas de negocio (`Paciente`, `Turno`, `Profesional`, `Sillon`) para preservar historial y permitir recuperación administrativa.
 
-### ObraSocial / Nomenclador
-- ObraSocial: `id PK`, `tenant_id FK?` (catálogo global + convenios por tenant), `nombre:text`, `codigo:text`, `activa:bool`.
-- Nomenclador: `id PK`, `obra_social_id FK NOT NULL`, `codigo:text` (p. ej. 01.01), `practica:text`, `arancel:numeric`, `copago:numeric?`, `vigencia_desde:date`.
-- Constraints: `(obra_social_id, codigo, vigencia_desde)` único. Índices: `(obra_social_id, codigo)`, búsqueda trigram en `practica`.
+---
 
-### Borrado lógico (transversal, RN-SEG-06)
-- Todas las tablas de negocio llevan `deleted_at:timestamptz?` + `deleted_by FK→Usuario?` (vía `AuditMixin` en C-02); el borrado es lógico y restaurable por `admin`.
-- El flag `activo:bool` es on/off operativo (profesional que se va, sillón en mantenimiento), distinto del borrado: desactivar no borra, borrar no desactiva.
-- Prohibido el borrado físico salvo purga explícita, auditada y con confirmación; `MovimientoCaja` nunca se purga (append-only, RN-CJ-01).
+## Datos Semilla Iniciales (Seed)
 
-## Seed data inicial
-
-- Tenant demo (`slug=demo`), 1 `admin`, 1 `recepcion`, 2 profesionales, 3 sillones ("Sillón 1–3"), catálogo OS nacional mínimo + 20 prácticas de nomenclador, plantillas WA (recordatorio 24h/2h, confirmación, oferta de lista de espera), aranceles particulares base, usuario paciente de prueba. Migración inicial crea `tenant_id` + índices de antisolapamiento.
+* **Sillones:**
+  * Sillón 1 (Box Principal)
+  * Sillón 2 (Box Secundario)
+  * Sillón 3 (Box Quirúrgico / Endodoncia)
+* **Usuarios:**
+  * 1 Administrador (`admin@consultorio.com`)
+  * 1 Recepcionista (`recepcion@consultorio.com`)
+  * 2 Odontólogos (`dr.perez@consultorio.com`, `dra.gomez@consultorio.com`)

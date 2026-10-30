@@ -1,142 +1,123 @@
-# Funcionalidades
+# Funcionalidades del Sistema
 
-Organizadas por **épica** y luego por **historia de usuario** (`US-NNN`). Marca **[MVP]** vs **[FASE 2]**. Cada US cita sus reglas.
+Organizadas por épicas e historias de usuario (`US-NNN`), con criterios de aceptación verificables mediante tests.
 
-## Épica A: Agenda multi-sillón [MVP]
+---
 
-### US-001 — Ver agenda día/semana por sillón y profesional
-**Como** secretaria **Quiero** ver la agenda del día/semana cruzando sillón × profesional **Para** evitar solapamientos y reubicar sobreturnos.
-**Criterios de aceptación**:
-- [ ] Vista día (default) y semana con columnas por sillón y filtro por profesional.
-- [ ] Bloqueos visibles diferenciados; sobreturnos marcados.
-- [ ] Carga <2 s con 3 sillones × 30 turnos/día.
-**Reglas relacionadas**: RN-AG-01, RN-AG-03, RN-AG-04
+## Épica 1: Agenda Multi-Sillón y Antisolapamiento
 
-### US-002 — Crear turno con duración variable y antisolapamiento
-**Como** secretaria **Quiero** crear un turno eligiendo prestación (duración auto) + sillón + profesional **Para** no reservar de más ni de menos.
-**Criterios de aceptación**:
-- [ ] La duración se propone por prestación/profesional y es editable.
-- [ ] Si hay solapamiento de sillón o profesional, rechazo con mensaje que indica el conflicto.
-- [ ] Sobreturno solo con motivo + auditoría.
-**Reglas relacionadas**: RN-AG-01, RN-AG-02, RN-AG-03, RN-AG-05, RN-SEG-03
+### US-001 — Calendario multi-sillón día/semana
+* **Como** recepcionista u odontólogo
+* **Quiero** visualizar la agenda distribuida en columnas por sillón y filtrar por profesional
+* **Para** coordinar los turnos del día sin confusiones de espacios físicos.
+* **Criterios de Aceptación:**
+  - [ ] Vista diaria con columnas para Sillón 1, Sillón 2 y Sillón 3.
+  - [ ] Cada bloque de turno muestra: horario, paciente, profesional, prestación y estado.
+  - [ ] Los bloques de mantenimiento o feriados aparecen claramente diferenciados.
 
-### US-003 — Bloqueos de agenda
-**Como** admin **Quiero** bloquear sillón/profesional por rango (feriado, licencia) **Para** que no se ofrezcan huecos falsos.
-**Criterios de aceptación**:
-- [ ] El bloqueo ocupa el hueco en disponibilidad pública e interna.
-- [ ] Crear/borrar bloqueo queda auditado.
-**Reglas relacionadas**: RN-AG-04
+### US-002 — Alta de turno con validación de antisolapamiento
+* **Como** recepcionista
+* **Quiero** crear un nuevo turno asignando prestación, profesional, sillón y horario
+* **Para** agendar la atención garantizando que no existan conflictos de horarios.
+* **Criterios de Aceptación:**
+  - [ ] La duración se sugiere automáticamente según la prestación seleccionada.
+  - [ ] Si el sillón elegido ya está ocupado en ese rango, el sistema impide la reserva e informa el conflicto (RN-AG-01).
+  - [ ] Si el profesional elegido ya tiene otro turno asignado en ese rango, el sistema impide la reserva e informa el conflicto (RN-AG-01).
+  - [ ] La reserva exitosa persiste el turno y genera su `token_publico`.
 
-### US-004 — Reserva online 24/7 con link/QR [MVP]
-**Como** paciente **Quiero** reservar en 4 pasos (prestación → profesional/sillón → horario → mis datos) **Para** no llamar ni escribir.
-**Criterios de aceptación**:
-- [ ] Portal `/reservar/:slug` mobile-first, sin login (nombre+DNI+teléfono).
-- [ ] Pre-reserva del hueco 15 min; confirmación inmediata + token por WA/SMS.
-- [ ] Rate-limit + captcha; solo huecos reales (descuenta bloqueos y turnos).
-**Reglas relacionadas**: RN-AG-07, RN-SEG-04, RN-SEG-05
+### US-003 — Bloqueos de disponibilidad
+* **Como** administrador
+* **Quiero** bloquear franjas horarias de un sillón o de un profesional
+* **Para** registrar feriados, licencias médicas o mantenimiento de equipamiento.
+* **Criterios de Aceptación:**
+  - [ ] El bloqueo impide asignar turnos en esa franja horaria.
+  - [ ] Se puede eliminar el bloqueo para restablecer la disponibilidad.
 
-### US-005 — Confirmar / cancelar / reprogramar (autónomo + WA) [MVP]
-**Como** paciente **Quiero** confirmar, cancelar o reprogramar desde el link o por WhatsApp **Para** liberar el horario a tiempo.
-**Criterios de aceptación**:
-- [ ] Botones con token único; reprogramación propone huecos equivalentes.
-- [ ] Respeta antelación configurable; fuera de término deriva a recepción.
-- [ ] Cada cambio dispara RN-AG-09 (auto-relleno) si libera hueco.
-**Reglas relacionadas**: RN-AG-06, RN-AG-08, RN-AG-09, RN-CJ-02
+---
 
-## Épica B: Notificaciones y lista de espera [MVP]
+## Épica 2: Reserva Pública Online y Comunicación
 
-### US-010 — Recordatorios automáticos WhatsApp
-**Como** sistema **Quiero** enviar recordatorio 24 h y 2 h antes con botones Confirmar/Cancelar **Para** bajar el ausentismo.
-**Criterios de aceptación**:
-- [ ] Plantillas aprobadas Meta en rioplatense; estados (enviado/entregado/leído) visibles.
-- [ ] Respuesta por WA cambia el estado del turno (RN-AG-08).
-- [ ] Cupo por plan con alerta al 80% (costo ~USD 0,026/mensaje, discovery §8).
-**Reglas relacionadas**: RN-AG-08, RN-G-01, RN-G-03
+### US-004 — Reserva online sin login (Portal Paciente)
+* **Como** paciente
+* **Quiero** ingresar al portal público (`/reservar`) y agendar mi turno en pasos simples
+* **Para** solicitar atención odontológica las 24 horas sin necesidad de llamar por teléfono.
+* **Criterios de Aceptación:**
+  - [ ] Paso 1: Selección de prestación médica.
+  - [ ] Paso 2: Selección de profesional u opción "Cualquiera disponible".
+  - [ ] Paso 3: Selección de fecha y hora entre los huecos disponibles calculados en tiempo real.
+  - [ ] Paso 4: Carga de datos del paciente (Nombre, DNI, Teléfono).
+  - [ ] Al finalizar, se crea el turno en estado `reservado` y se muestra la pantalla de confirmación.
 
-### US-011 — Lista de espera con auto-relleno
-**Como** secretaria **Quiero** que al cancelarse un turno el sistema ofrezca el hueco por WA al primero compatible **Para** subir ocupación sin llamar uno por uno.
-**Criterios de aceptación**:
-- [ ] Orden por compatibilidad + antigüedad; oferta con expiración (default 60 min).
-- [ ] Si vence/rechaza, pasa al siguiente automáticamente; si acepta, crea el turno.
-- [ ] Log visible de ofrecimientos (diferencial: ningún AR lo evidencia, discovery §C).
-**Reglas relacionadas**: RN-AG-09
+### US-005 — Consulta de turno y enlace a WhatsApp
+* **Como** paciente o recepcionista
+* **Quiero** acceder a la vista del turno (`/p/turno/:token`) con enlace directo a WhatsApp
+* **Para** confirmar la asistencia o comunicarse con el consultorio en un clic.
+* **Criterios de Aceptación:**
+  - [ ] La vista pública muestra los datos del turno sin exponer IDs internos.
+  - [ ] Incluye botón "Contactar por WhatsApp" que genera el enlace `https://wa.me/<telefono>?text=...` con mensaje preformateado.
+  - [ ] Permite al paciente cancelar su turno de manera autónoma, liberando el hueco en la agenda.
 
-## Épica C: Clínica y presupuestos [MVP]
+---
 
-### US-020 — Ficha + odontograma en la visita
-**Como** odontólogo **Quiero** cargar hallazgos por pieza (18 estados) y evolución **Para** que recepción cobre sin re-cargar datos.
-**Criterios de aceptación**:
-- [ ] Odontograma SVG adulto/infantil, piezas FDI, con fecha y autor por hallazgo.
-- [ ] Solo `odontologo` edita; recepción ve resumen operativo.
-**Reglas relacionadas**: RN-CL-01, RN-CL-02, RN-SEG-02
+## Épica 3: Ficha Clínica y Odontograma Interactivo
 
-### US-021 — Presupuesto con aprobación online
-**Como** odontólogo **Quiero** armar el presupuesto desde el odontograma/nomenclador **Para** que el paciente lo apruebe en 1 click.
-**Criterios de aceptación**:
-- [ ] Ítems con precio, cantidad y cobertura OS; total automático; `valido_hasta`.
-- [ ] Link con token: ver/aprobar/rechazar; aprobación registra quién/cuándo/IP.
-- [ ] Al aprobar con seña, genera link MP automáticamente.
-**Reglas relacionadas**: RN-CL-03, RN-CJ-03
+### US-006 — Gestión de pacientes
+* **Como** recepcionista u odontólogo
+* **Quiero** buscar pacientes por DNI o apellido y consultar sus datos de contacto
+* **Para** mantener actualizada la nómina de pacientes atendidos.
+* **Criterios de Aceptación:**
+  - [ ] Búsqueda rápida por DNI con autocompletado.
+  - [ ] Alta de nuevo paciente con validación de DNI único.
+  - [ ] Historial de turnos anteriores del paciente.
 
-## Épica D: Caja, MP y OS [MVP]
+### US-007 — Odontograma esquemático interactivo (FDI)
+* **Como** odontólogo
+* **Quiero** marcar el diagnóstico o tratamiento sobre la grilla interactiva de piezas dentales
+* **Para** registrar visualmente el estado de la dentadura del paciente en su historia clínica.
+* **Criterios de Aceptación:**
+  - [ ] Representación visual de las 32 piezas dentales (FDI 11 a 48) agrupadas en 4 cuadrantes.
+  - [ ] Al hacer clic en un diente, se puede asignar su estado (`sano`, `caries`, `obturacion`, `corona`, `extraccion`, `tratamiento_conducto`) y una nota breve.
+  - [ ] Cada estado cuenta con un color representativo distintivo.
+  - [ ] Los cambios se guardan en la base de datos asociados al paciente.
 
-### US-030 — Caja con trazabilidad + cierre diario
-**Como** secretaria **Quiero** registrar ingresos/egresos y cerrar caja del día **Para** conciliar sin planillas.
-**Criterios de aceptación**:
-- [ ] Medios: efectivo, MP link/terminal, transferencia, OS; sin borrado (solo anulación).
-- [ ] Cierre diario con descuadre visible; exportación CSV.
-**Reglas relacionadas**: RN-CJ-01
+---
 
-### US-031 — Cobro online Mercado Pago (link/seña)
-**Como** paciente **Quiero** pagar la seña o el tratamiento con un link **Para** asegurar mi turno.
-**Criterios de aceptación**:
-- [ ] Link por turno/presupuesto; webhook IPN verificado cambia estado a señado/cobrado.
-- [ ] Seña no reembolsable configurable; devolución solo con rol `admin`.
-**Reglas relacionadas**: RN-CJ-02, RN-CJ-03
+## Épica 4: Caja y Movimientos Diarios
 
-### US-032 — Cuenta corriente y recupero de deudas
-**Como** admin **Quiero** ver quién debe y lanzar recupero **Para** cobrar lo pendiente.
-**Criterios de aceptación**:
-- [ ] Saldo por paciente derivado de movimientos; listado de morosos con antigüedad.
-- [ ] Acción de recupero (WA + link MP) auditada.
-**Reglas relacionadas**: RN-CJ-04
+### US-008 — Registro de cobros y señas
+* **Como** recepcionista
+* **Quiero** registrar el cobro de una atención o una seña anticipada indicando el medio de pago
+* **Para** asentar los ingresos de dinero vinculados al turno o paciente.
+* **Criterios de Aceptación:**
+  - [ ] Formulario de cobro con monto, medio (`efectivo`, `transferencia`, `tarjeta`) y concepto.
+  - [ ] Posibilidad de vincular el cobro a un turno específico.
+  - [ ] El movimiento queda registrado con fecha/hora y usuario responsable.
 
-### US-033 — Obras sociales con nomenclador
-**Como** secretaria **Quiero** aplicar cobertura (código → arancel → copago) **Para** cobrar correcto al paciente y a la OS.
-**Criterios de aceptación**:
-- [ ] Catálogo nacional + convenios por tenant; buscador por código/práctica.
-- [ ] Copago calculado automático en turno/presupuesto. v1 validación manual/tabla (online real-time es supuesto, discovery §9).
-**Reglas relacionadas**: RN-CJ-05
+### US-009 — Resumen diario de caja
+* **Como** administrador o recepcionista
+* **Quiero** consultar el balance del día con el desglose de ingresos por medio de pago
+* **Para** realizar el arqueo de caja al finalizar la jornada laboral.
+* **Criterios de Aceptación:**
+  - [ ] Reporte que lista todos los movimientos del día seleccionado.
+  - [ ] Totales calculados: Total Efectivo, Total Transferencias, Total Tarjetas y Balance Neto.
 
-### US-034 — Comprobante manual ARCA-preparado [MVP diseño / FASE 2 emisión]
-**Como** admin **Quiero** registrar el comprobante (recibo/factura manual) **Para** conciliar hasta que llegue la FE.
-**Criterios de aceptación**:
-- [ ] Entidad `Comprobante` + adapter `Facturador(manual)`; el cambio a `arca` no toca caja.
-- [ ] Conciliación manual visible (pendiente de FE) como mitigación del riesgo fiscal.
-**Reglas relacionadas**: RN-CJ-05
+---
 
-## Épica E: Roles, auditoría y reportes [MVP]
+## Épica 5: Seguridad y Configuración
 
-### US-040 — Roles/permisos + auditoría + exportación
-**Como** admin **Quiero** gestionar usuarios/roles y ver quién hizo qué **Para** dar confianza (Ley 25.326).
-**Criterios de aceptación**:
-- [ ] Matriz de `03_actores_y_roles.md` enforced en API y UI; auditoría exportable.
-- [ ] Exportación CSV de turnos/caja/pacientes (con resguardo de datos sensibles).
-**Reglas relacionadas**: RN-SEG-01, RN-SEG-02, RN-SEG-03
+### US-010 — Autenticación y control de acceso (JWT)
+* **Como** usuario del consultorio
+* **Quiero** iniciar sesión con mis credenciales seguras
+* **Para** acceder a las funciones permitidas según mi rol (`admin`, `recepcion`, `odontologo`).
+* **Criterios de Aceptación:**
+  - [ ] Login contra `/api/v1/auth/login` devuelve un JWT Bearer válido.
+  - [ ] Redirección automática según rol y restricción de vistas protegidas.
+  - [ ] Cierre de sesión seguro con limpieza de token en el cliente.
 
-### US-041 — Reportes ocupación / facturación / ausentismo
-**Como** dueño **Quiero** ver ocupación por sillón, facturación por medio y ausentismo **Para** decidir precios y horarios.
-**Criterios de aceptación**:
-- [ ] 3 reportes con rango de fechas y comparativa semanal; datos exportables.
-**Reglas relacionadas**: RN-CJ-01
-
-## Épica F: Post-MVP [FASE 2]
-
-- **US-050** Periodontograma avanzado + fichas de especialidad (orto/implanto/prótesis). **[FASE 2]**
-- **US-051** Imágenes con visor + segunda opinión por IA. **[FASE 2]**
-- **US-052** Campañas y recupero automatizado de inactivos. **[FASE 2]**
-- **US-053** API pública + Google Calendar bidireccional. **[FASE 2]**
-- **US-054** Multi-sucursal enterprise. **[FASE 2]**
-- **US-055** App móvil nativa. **[FASE 2]**
-- **US-056** Recepcionista virtual IA 24 h (evolución de US-010). **[FASE 2]**
-- **US-057** Facturación electrónica ARCA vía adapter (`Facturador(arca)`) + validación OS online. **[FASE 2, primera candidata post-MVP — a priorizar, ver `10_preguntas_abiertas.md`]**
+### US-011 — Gestión de sillones y profesionales
+* **Como** administrador
+* **Quiero** dar de alta o modificar los sillones y los profesionales odontólogos
+* **Para** configurar la capacidad operativa del consultorio.
+* **Criterios de Aceptación:**
+  - [ ] ABM de sillones (definición de nombre y estado activo).
+  - [ ] ABM de profesionales (matrícula, especialidad y duración habitual de turno).

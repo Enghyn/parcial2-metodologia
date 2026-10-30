@@ -2,42 +2,37 @@
 
 ## Actores del sistema
 
-| Actor | Descripción | Cómo interactúa |
+| Actor | Descripción | Entorno de Interacción |
 |---|---|---|
-| Paciente | Persona que recibe atención; puede no tener cuenta en v1 | Portal público `/reservar/:slug` (reserva sin login: nombre+DNI+teléfono) + WhatsApp (confirma/cancela, aprueba presupuesto, paga link MP) |
-| Secretaria / recepción | Opera agenda, cobra y atiende mostrador/teléfono | SPA autenticada: agenda día/semana por sillón y profesional, turnos, lista de espera, caja, reportes operativos |
-| Odontólogo | Profesional clínico del consultorio | SPA autenticada: su agenda, ficha, odontograma, presupuestos, evolución y producción propia |
-| Administrador / dueño | Gestiona el consultorio (tenant) | SPA autenticada: configuración (sillones, profesionales, OS, aranceles), caja, reportes, auditoría, exportación |
-| Sistema / jobs (actor técnico) | Workers Redis + webhooks | Envía recordatorios WA, expira ofertas de lista de espera, concilia webhooks MP/WA sin intervención |
-| (Fase 2) Círculo / federación | Validador institucional de OS | API/validación externa (modelo DentalTec); no es usuario del SaaS en v1 |
+| **Paciente (Público)** | Usuario que solicita atención médica dental. No requiere credenciales ni login en el sistema. | Portal web público (`/reservar` y `/p/turno/:token`), mobile-friendly. |
+| **Recepcionista / Secretaría** | Personal administrativo encargado de la atención diaria, agenda y cobros. | Aplicación privada (`/app/agenda`, `/app/pacientes`, `/app/caja`). |
+| **Odontólogo** | Profesional de la salud que atiende en los sillones y registra la evolución clínica. | Aplicación privada (`/app/mi-agenda`, `/app/odontograma`). |
+| **Administrador / Dueño** | Responsable de la gestión del consultorio, configuración y métricas. | Aplicación privada (acceso total a configuración, usuarios y reportes). |
 
-Segmento día 1: consultorio de 2–3 sillones (dato obligatorio desde el modelo). Multi-sede enterprise y app nativa quedan fuera de v1.
+## Matriz de Permisos (RBAC)
 
-## RBAC — Matriz de permisos
+La autorización se valida en FastAPI mediante dependencias reutilizables (`require_role(...)`):
 
-Roles por consultorio (tenant): `admin`, `odontologo`, `recepcion`. El paciente NO es rol interno en v1 (actor público). Todo permiso se evalúa con `(tenant_id, rol, recurso)`.
+| Módulo / Recurso | `admin` | `recepcion` | `odontologo` | `publico` (sin login) |
+|---|---|---|---|---|
+| **Agenda (Turnos)** | CRUD completo | CRUD (crear, confirmar, cancelar, reprogramar) | Ver agenda propia + marcar turno atendido | Crear reserva pública / Cancelar con token |
+| **Sillones y Profesionales** | CRUD (alta/baja sillones y profesionales) | Lectura de disponibilidad | Lectura de disponibilidad | Lectura de disponibilidad para reserva |
+| **Bloqueos de Agenda** | Crear / Eliminar bloqueos | Crear / Eliminar bloqueos | Crear bloqueo propio | Solo lectura indirecta (no ve huecos bloqueados) |
+| **Pacientes** | CRUD completo | CRUD (alta, edición de datos de contacto) | Lectura de sus pacientes | Crear ficha inicial al reservar |
+| **Odontograma Clínico** | Lectura completa | Lectura de prestaciones | CRUD (actualizar piezas dentales y tratamientos) | — |
+| **Caja y Movimientos** | CRUD + Cierre diario y balance | Registro de ingresos/egresos y cobro de turnos | — | — |
+| **Usuarios y Roles** | CRUD de usuarios (`admin`, `recepcion`, `odontologo`) | — | — | — |
 
-| Rol → Recurso | Pacientes/Ficha | Odontograma | Turnos/Agenda | Lista de espera | Presupuestos | Caja/MP | OS/Nomenclador | Comprobantes (v1 manual) | Configuración | Reportes | Auditoría/Export |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| `admin` (dueño) | CRUD | CRUD | CRUD | CRUD | CRUD | CRUD + cierre | CRUD | CRUD | CRUD | ver todo | ver + exportar |
-| `recepcion` (secretaria) | CRU (sin borrar; sin ver datos sensibles fuera de rol*) | ver (sin editar) | CRUD (crear/reprogramar/cancelar/sobreturno) | CRUD + ofrecer | crear/ver/cobrar (no cambia plan clínico) | cobrar + movimientos (no anular sin admin) | ver + aplicar cobertura | crear (manual) | ver (no editar) | ver operativos | ver (no exportar sensible) |
-| `odontologo` | CRU (sus pacientes) | CRUD (sus pacientes) | ver + proponer (pide a recepción el sobreturno) | ver | CRUD (plan clínico) | ver (no cobra) | ver | ver | — | ver producción propia | — |
-| público (sin auth) | crear-se (auto-reserva) | — | crear (reserva) / cancelar-reprogramar propia con token | anotarse | aprobar propia con token | pagar link | — | — | — | — | — |
+## Superficies de la Aplicación
 
-\* Datos de salud con consentimiento y acceso por rol (Ley 25.326): la ficha/odontograma solo la edita el odontólogo; recepción ve lo mínimo operativo. Trazabilidad total: cada escritura guarda quién/cuándo/desde dónde.
+### 1. Superficie Pública (sin autenticación)
+* `/reservar`: Asistente interactivo en pasos para reservar turno (selección de prestación, sillón/profesional, fecha/hora y datos del paciente).
+* `/p/turno/:token`: Vista del comprobante de reserva con token UUID seguro, con botón directo para contactar al consultorio por WhatsApp (`wa.me/?text=...`) y opción de cancelación autónoma.
 
-## Rutas públicas
-
-Sin autenticación (rate-limit + captcha + token por turno donde aplique):
-
-- `GET /reservar/:slug` — portal del consultorio (reserva online 24/7, SEO).
-- `GET /api/v1/public/disponibilidad/:slug` — huecos disponibles.
-- `POST /api/v1/public/reservar/:slug` — crea turno (nombre + DNI + teléfono).
-- `GET /p/turno/:token` — detalle de turno (confirmar / cancelar / reprogramar).
-- `POST /api/v1/public/turnos/:token/confirmar|juar|cancelar|reprogramar`.
-- `GET /p/presupuesto/:token` — ver y aprobar presupuesto online.
-- `POST /api/v1/public/presupuestos/:token/aprobar`.
-- `GET /p/pagar/:token` — link/seña Mercado Pago.
-- `POST /api/v1/webhooks/whatsapp` — entrantes y estados WA (firma Meta).
-- `POST /api/v1/webhooks/mercadopago` — IPN de cobros (firma MP).
-- Todo lo demás (`/app/*`, `/api/v1/*` interno) exige JWT + `tenant_id`.
+### 2. Superficie Privada (requiere JWT Bearer)
+* `/app/login`: Formulario de inicio de sesión con email y contraseña.
+* `/app/agenda`: Vista multi-sillón diaria/semanal con discriminación visual de estados y alertas de solapamiento.
+* `/app/pacientes`: Directorio de pacientes, historial de visitas y acceso a la ficha clínica.
+* `/app/odontograma/:pacienteId`: Interfaz interactiva de la dentadura (grilla FDI) para marcar diagnósticos y procedimientos.
+* `/app/caja`: Registro de cobros, señas, gastos y resumen de caja por turno o día.
+* `/app/admin`: Gestión de usuarios, sillones y configuraciones generales del consultorio.
