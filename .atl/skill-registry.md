@@ -16,6 +16,7 @@ Scope: **project-local only** — every skill below lives in `.agents/skills/` i
 | Building async APIs, concurrent systems, or I/O-bound applications requiring non-blocking operations | async-python-patterns | .agents/skills/async-python-patterns/SKILL.md |
 | Designing APIs, module boundaries, or any public interface — REST/GraphQL endpoints, type contracts, frontend/backend boundaries | api-and-interface-design | .agents/skills/api-and-interface-design/SKILL.md |
 | Automating browser interactions, testing web pages, working with Playwright tests | playwright-cli | .agents/skills/playwright-cli/SKILL.md |
+| Auditing coverage of business rules (RN-*) and hard rules (R1–R13) across specs, tasks, tests and code; preparing/reviewing any change; critical review before archiving | business-rule-coverage-auditor | .agents/skills/business-rule-coverage-auditor/SKILL.md |
 
 ## Compact Rules
 
@@ -84,6 +85,15 @@ Pre-digested rules per skill. Delegators copy matching blocks into sub-agent pro
 - Extend, don't break: new fields optional/additive (Hyrum's Law — every observable behavior is a contract); plan deprecation at design time
 - Idempotent state-changing endpoints: client-generated key once per intent; claim atomically via unique constraint (never check-then-insert); same-key+different-body → 422; deliberate in-flight response (409/wait/202); retention ≥ longest retry/DLQ replay
 - No queue gives exactly-once across consumer crash — design at-least-once + idempotent handlers
+
+### business-rule-coverage-auditor
+- Read-only audit: never modify artifacts during the audit; proposals only
+- Catalog every RN-AG/RN-CL/RN-CJ/RN-SEG/RN-G + R1–R13 before auditing; cite source (file + section) for each
+- Mark ✅ only with concrete scenario/test/code evidence; "mentioned in a doc" ≠ covered
+- Never invent domain rules; gaps that imply new rules become open questions (knowledge-base/10_preguntas_abiertas.md)
+- Hard rules R1–R13 prevail over KB in conflicts (per AGENTS.md)
+- Always include "Revisión crítica" section with before/after or a documented edge-case probe
+- Output in Spanish rioplatense; default scope = single change, ask if project-wide
 
 ### playwright-cli
 - Flow: open [url] → snapshot (refs e1, e2…) → click/fill/press/type on refs → snapshot to verify → close; find "text" greps large snapshots

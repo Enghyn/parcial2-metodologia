@@ -49,6 +49,9 @@ Skills instaladas a nivel proyecto (`.agents/skills/`), mapeadas por rol. Cargá
 | **Backend Aux** | Contratos de API, endpoints y validaciones | `api-and-interface-design`, `async-python-patterns` |
 | **Frontend** | React+Vite, reserva online, agenda multi-sillón, odontograma | `vercel-react-best-practices`, `tailwind-design-system` |
 | **Calidad** | Testing unitario y E2E | `playwright-cli` |
+| **Auditoría** | Cobertura de reglas de negocio y reglas duras | `business-rule-coverage-auditor` |
+
+> **Skill propia `business-rule-coverage-auditor`**: audita la cobertura de las reglas RN-* y R1–R13 en specs/tasks/tests/código. Se activa al preparar o revisar cualquier change y antes de archivar. Entradas: KB (05, 04, 06, 07), AGENTS.md, artefactos del change y tests. Salida: matriz de cobertura + ambigüedades + conflictos + propuestas + revisión crítica. La skill es de solo lectura: no modifica artefactos; las propuestas se aplican en un paso posterior. Fuente versionada: `.agents/skills/business-rule-coverage-auditor/SKILL.md`.
 
 ---
 
