@@ -96,11 +96,28 @@ Son contrato; romperlas es un defecto. Formato `NUNCA X → hacer Y`:
 ## Flujo de Trabajo
 
 ```
+0. Tras `git pull`, actualizar la base (ver abajo)  → antes de tests/backend
 1. Leer la KB relevante (knowledge-base/)        → entender el dominio
 2. Identificar el change en CHANGES.md           → respetar dependencias
 3. /opsx:propose C-NN-nombre                     → proposal + design + specs + tasks
 4. Implementar las tasks (cargando skills)       → respetando las reglas duras
 5. /opsx:archive C-NN-nombre + marcar [x]        → cerrar el change
 ```
+
+### Puesta al día del entorno local (obligatorio después de un `git pull`)
+
+Si el pull trae migraciones nuevas (o no sabés si las trae), antes de levantar el backend o correr tests de integración:
+
+```powershell
+cd backend
+alembic upgrade head
+```
+
+- Es idempotente: si la base ya está al día, no hace nada.
+- Datos de demo opcionales (también idempotente): `python -m app.db.seed`.
+- Si falla la conexión, verificá `DATABASE_URL` y que PostgreSQL esté corriendo.
+- No corras `alembic -c backend/alembic.ini` desde la raíz: el cwd canónico es `backend/`.
+
+Un agente NO debe declarar el entorno listo ni correr tests de integración sin haber aplicado `alembic upgrade head` cuando el pull incluyó migraciones.
 
 Aplicar TODAS las reglas duras en cada paso. Ante conflicto entre la KB y este archivo, las reglas duras prevalecen.

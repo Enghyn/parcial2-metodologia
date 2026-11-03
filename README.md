@@ -78,8 +78,20 @@ npm run build   # tsc + build
 npm run lint    # eslint src
 ```
 
-Migraciones (cwd canónico `backend/` — prohibido `alembic -c backend/alembic.ini`
-desde raíz):
+## Después de un `git pull`
+
+El pull trae código y specs, pero **no toca tu PostgreSQL**. Antes de levantar el backend o correr tests de integración:
+
+```bash
+cd backend
+pip install -e ".[dev]"   # solo si cambiaron dependencias
+alembic upgrade head
+python -m app.db.seed     # opcional: datos de demo, idempotente
+```
+
+Si falla la conexión, revisá `DATABASE_URL` y que PostgreSQL esté corriendo. No corras `alembic -c backend/alembic.ini` desde la raíz: el cwd canónico es `backend/`.
+
+Migraciones (cwd canónico `backend/`):
 
 ```bash
 cd backend
