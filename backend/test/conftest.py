@@ -3,3 +3,6 @@ import os
 
 os.environ.setdefault("DATABASE_URL", "postgresql+psycopg://u:p@localhost:5432/odonto_test")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
+# Secret de test compartido por test_auth_* (C-03): evita el default changeme-*
+os.environ.setdefault("JWT_SECRET", "secreto-de-test-de-mas-de-32-caracteres-config")
+os.environ.setdefault("JWT_EXPIRE_MIN", "720")

@@ -20,7 +20,7 @@
 ```
 C-01 foundation-setup [x]
   └── C-02 core-models-seed [x]
-        └── C-03 auth-jwt-roles
+        └── C-03 auth-jwt-roles [x]
               └── C-04 agenda-servicio-antisolapamiento
                     ├── C-05 agenda-frontend-interna
                     │     ├── C-07 clinica-odontograma
@@ -53,7 +53,7 @@ C-01 foundation-setup [x]
 ---
 
 ### C-03: `auth-jwt-roles`
-- **Estado:** `[ ]` (Próximo a implementar)
+- **Estado:** `[x]` (Completado y archivado)
 - **Alcance:**
   - Endpoint `POST /api/v1/auth/login` con validación de credenciales (hash con `bcrypt`).
   - Generación de token JWT Bearer estándar con expiración configurable.

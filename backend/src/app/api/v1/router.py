@@ -1,13 +1,19 @@
-"""Agregador de routers /api/v1 (vacío hasta C-05+).
+"""Agregador de routers /api/v1.
 
 Los routers viven en `app.modules.<dominio>.router` y se montan acá con
-`include_router` en su change dueño.
+`include_router` en su change dueña.
 
-TODO(C-05): primer `include_router` (agenda). Nace vacío a propósito.
+C-03: monta `auth` (login + me).
+
+TODO(C-04): montar agenda (y en C-07 clinica, C-08 caja). El agregador sigue
+siendo el punto único de montaje hasta cerrar todos los módulos.
 """
 
 from fastapi import APIRouter
 
+from app.modules.auth.router import router as auth_router
+
 router = APIRouter()
+router.include_router(auth_router)
 
 __all__ = ["router"]

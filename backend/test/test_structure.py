@@ -29,6 +29,7 @@ BACKEND_SRC_DIRS = [
     "backend/src/app/modules/os",
     "backend/src/app/modules/notificaciones",
     "backend/src/app/modules/admin",
+    "backend/src/app/modules/auth",
     "backend/src/app/adapters",
     "backend/src/app/db",
     "backend/src/app/workers",
@@ -40,11 +41,9 @@ FRONTEND_DIRS = [
     "frontend/src/shared",
 ]
 
-# refactor-arquitectura-08: esqueleto objetivo (stubs rotulados, cero lógica).
-CORE_STUBS = [
-    "backend/src/app/core/security.py",
-    "backend/src/app/core/deps.py",
-]
+# Setup C-02: core stubs security.py y deps.py dejaron de ser stubs: C-03
+# (auth-jwt-roles) los implementa; desde esta change se exige código real.
+CORE_STUBS: list[str] = []
 
 ADAPTER_STUBS = [
     "backend/src/app/adapters/facturador.py",
@@ -62,12 +61,31 @@ MODULOS = [
     "os",
     "notificaciones",
     "admin",
+    "auth",
 ]
 
 MODULO_BARRELS = ["router.py", "service.py", "schemas.py", "models.py"]
 
 # C-02 implementó modelos reales en estos módulos: sus models.py ya no son stubs.
 MODULOS_CON_MODELOS = {"admin", "agenda", "clinica", "caja"}
+
+# Auth (C-03) NO duplica la entidad Usuario: el modelo vive en modules/admin
+# (D4 de design.md), así que auth no tiene models.py ni stubs que implementar
+# (sus barrels son código real de esta misma change).
+MODULOS_SIN_MODELOS = {"auth"}
+MODULOS_SIN_STUBS = {"auth"}
+
+# Routers con rutas reales ya montadas (C-03 monta auth en /auth); el resto
+# nace vacío hasta su change dueño.
+MODULOS_CON_RUTAS = {"auth"}
+
+
+def barrels_de_modulo(modulo: str) -> list[str]:
+    """Barrels esperados de un módulo: sin models.py para auth y módulos con modelos."""
+    if modulo in MODULOS_CON_MODELOS or modulo in MODULOS_SIN_MODELOS:
+        return [b for b in MODULO_BARRELS if b != "models.py"]
+    return MODULO_BARRELS
+
 
 TODOS_LOS_STUBS = (
     CORE_STUBS
@@ -76,8 +94,8 @@ TODOS_LOS_STUBS = (
     + [
         f"backend/src/app/modules/{m}/{b}"
         for m in MODULOS
-        for b in MODULO_BARRELS
-        if not (b == "models.py" and m in MODULOS_CON_MODELOS)
+        if m not in MODULOS_SIN_STUBS
+        for b in barrels_de_modulo(m)
     ]
 )
 
@@ -257,10 +275,17 @@ def test_modulos_tienen_barrels_stub() -> None:
     faltan = [
         f"backend/src/app/modules/{m}/{b}"
         for m in MODULOS
-        for b in MODULO_BARRELS
+        for b in barrels_de_modulo(m)
         if not (ROOT / "backend" / "src" / "app" / "modules" / m / b).is_file()
     ]
     assert faltan == [], f"barrels por módulo faltantes: {faltan}"
+
+
+def test_auth_no_duplica_modelo_usuario() -> None:
+    """D4: el módulo auth importa Usuario (modules/admin), no tiene models.py (R2)."""
+    assert not (ROOT / "backend" / "src" / "app" / "modules" / "auth" / "models.py").exists(), (
+        "auth no debe tener models.py: Usuario vive en modules/admin (C-02)"
+    )
 
 
 def test_api_v1_endpoints_prohibido() -> None:
@@ -303,10 +328,18 @@ def test_stubs_importables_y_routers_vacios() -> None:
         ["app.core.security", "app.core.deps"]
         + ["app.adapters.facturador", "app.adapters.whatsapp", "app.adapters.mercadopago"]
         + ["app.api.v1.router"]
-        + [f"app.modules.{m}.{b[:-3]}" for m in MODULOS for b in MODULO_BARRELS]
+        + [f"app.modules.{m}.{b[:-3]}" for m in MODULOS for b in barrels_de_modulo(m)]
     )
     for nombre in modulos:
         mod = importlib.import_module(nombre)
         if nombre.endswith(".router"):
             assert isinstance(mod.router, APIRouter), f"{nombre} debe exponer `router: APIRouter`"
-            assert mod.router.routes == [], f"{nombre}.router debe nacer vacío (sin include_router todavía)"
+            if nombre == "app.api.v1.router":
+                # C-03: el agregador ya monta auth; ya no nace vacío.
+                assert mod.router.routes != [], "api/v1 debe llevar auth montado (C-03)"
+            elif nombre.endswith(".router"):
+                prefijo = nombre.split(".")[2]
+                if prefijo in MODULOS_CON_RUTAS:
+                    assert mod.router.routes != [], f"{nombre} debe declarar sus rutas (change dueña lista)"
+                else:
+                    assert mod.router.routes == [], f"{nombre}.router debe nacer vacío (sin include_router todavía)"
