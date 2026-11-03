@@ -73,6 +73,7 @@ C-01 foundation-setup [x]
   - Capa de servicios (`TurnoService`) con la lógica central de negocio:
     - Validación de antisolapamiento cruzado (RN-AG-01): rechazar si el sillón está ocupado O si el profesional está ocupado en ese rango horario.
     - Exclusión de turnos cancelados en el cálculo de disponibilidad.
+    - Toda consulta de agenda filtra `deleted_at IS NULL` (R13/RN-SEG-02).
     - Cálculo automático de `fin = inicio + duracion_min` según la prestación (RN-AG-02).
   - Endpoints CRUD de turnos: `GET /api/v1/turnos` (filtros por fecha, profesional, sillón), `POST /api/v1/turnos`, `PATCH /api/v1/turnos/:id/estado`.
   - Endpoint de bloqueos: `POST /api/v1/bloqueos` y `DELETE /api/v1/bloqueos/:id`.
@@ -125,6 +126,7 @@ C-01 foundation-setup [x]
     - `GET /api/v1/pacientes` y `POST /api/v1/pacientes`.
     - `GET /api/v1/pacientes/:id/odontograma`.
     - `PUT /api/v1/pacientes/:id/odontograma/piezas/:pieza` (actualizar estado clínico y nota de una pieza dental).
+    - Toda consulta de pacientes y odontogramas filtra `deleted_at IS NULL` (R13/RN-SEG-02).
   - Vistas en React:
     - Directorio y buscador de pacientes (`/app/pacientes`).
     - Componente de Odontograma interactivo (`/app/odontograma/:pacienteId`): grilla organizada en 4 cuadrantes con los 32 dientes FDI (11 a 48), selección visual de estado (`sano`, `caries`, `obturacion`, `corona`, `extraccion`, `conducto`) y guardado en tiempo real.
@@ -138,7 +140,7 @@ C-01 foundation-setup [x]
 - **Estado:** `[ ]` (Cierre del MVP Académico)
 - **Alcance:**
   - Endpoints de backend:
-    - `POST /api/v1/caja/movimientos` (registro de ingreso/egreso con medio de pago, monto, concepto, `usuario_id` y vínculo opcional a `turno_id`).
+    - `POST /api/v1/caja/movimientos` (registro de ingreso/egreso con medio de pago, monto, concepto, `usuario_id` y vínculo opcional a `turno_id`; el turno vinculado debe estar activo, `deleted_at IS NULL`).
     - `GET /api/v1/caja/movimientos` (listado con filtros de fecha).
     - `GET /api/v1/caja/resumen-diario` (totales agrupados por medio de pago y balance neto).
   - Pantalla en React (`/app/caja`):

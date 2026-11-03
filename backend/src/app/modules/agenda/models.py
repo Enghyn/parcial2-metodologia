@@ -69,7 +69,11 @@ class Profesional(SoftDeleteMixin, TimestampMixin, Base):
 
 
 class Turno(SoftDeleteMixin, TimestampMixin, Base):
-    """Cita con duración variable y asignación física obligatoria (RN-AG-03)."""
+    """Cita con duración variable y asignación física obligatoria (RN-AG-03).
+
+    `fin` se calcula desde `inicio + duracion_min` (RN-AG-02); C-04 debe usar
+    la misma fórmula que exige `ck_turnos_fin_coherente`.
+    """
 
     __tablename__ = "turnos"
     __table_args__ = (
@@ -80,6 +84,9 @@ class Turno(SoftDeleteMixin, TimestampMixin, Base):
             name="estado",
         ),
         CheckConstraint("sena_monto >= 0", name="sena"),
+        CheckConstraint(
+            "fin = inicio + (duracion_min * interval '1 minute')", name="fin_coherente"
+        ),
         UniqueConstraint("token_publico", name="token_publico"),
         Index("ix_turnos_sillon_inicio_fin", "sillon_id", "inicio", "fin"),
         Index("ix_turnos_profesional_inicio_fin", "profesional_id", "inicio", "fin"),
@@ -122,6 +129,7 @@ class Bloqueo(TimestampMixin, Base):
             "sillon_id IS NOT NULL OR profesional_id IS NOT NULL", name="recurso"
         ),
         CheckConstraint("hasta > desde", name="rango"),
+        CheckConstraint("length(btrim(motivo)) > 0", name="motivo_no_vacio"),
     )
 
     id: Mapped[UUID] = mapped_column(

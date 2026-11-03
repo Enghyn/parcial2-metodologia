@@ -3,6 +3,7 @@ from sqlalchemy import CheckConstraint, UniqueConstraint, Uuid
 
 import app.db.registry  # noqa: F401  (registra los nueve modelos)
 from app.db.base import Base
+from app.modules.admin.models import Usuario
 
 TABLAS_ESPERADAS = {
     "usuarios",
@@ -120,8 +121,30 @@ def test_movimientos_caja() -> None:
     assert "ck_movimientos_caja_monto" in checks
     assert "ck_movimientos_caja_tipo" in checks
     assert "ck_movimientos_caja_medio_pago" in checks
-    assert not tabla.c["usuario_id"].nullable
+    for columna in ("fecha", "tipo", "medio_pago", "monto", "concepto", "usuario_id"):
+        assert not tabla.c[columna].nullable, f"movimientos_caja.{columna} es obligatorio (RN-CJ-01)"
     assert "updated_at" not in tabla.c, "el libro append-only no tiene updated_at"
+
+
+def test_email_se_normaliza_y_es_case_insensitive() -> None:
+    usuario = Usuario(
+        nombre="Admin",
+        email="  Admin@Consultorio.COM  ",
+        password_hash="x",
+        rol="admin",
+    )
+    assert usuario.email == "admin@consultorio.com"
+    assert "ck_usuarios_email_normalizado" in _checks(_tabla("usuarios"))
+
+
+def test_bloqueo_rechaza_motivo_vacio() -> None:
+    assert "ck_bloqueos_motivo_no_vacio" in _checks(_tabla("bloqueos"))
+
+
+def test_turno_exige_fin_coherente_con_duracion() -> None:
+    checks = _checks(_tabla("turnos"))
+    assert "ck_turnos_fin_coherente" in checks
+    assert "interval '1 minute'" in checks["ck_turnos_fin_coherente"]
 
 
 def test_borrado_logico_solo_en_entidades_de_negocio() -> None:

@@ -22,3 +22,6 @@ Las inconsistencias e incertidumbres iniciales de la fase de descubrimiento qued
 | **Baja** | ¿Cuál es la granularidad de la grilla de disponibilidad horaria? | Agenda pública y turnero | Slots de 30 minutos por defecto (8:00 a 20:00 hs). |
 | **Baja** | ¿El arqueo de caja requiere exportación a archivo plano? | Módulo de Caja | Generación de resumen visual en pantalla con opción de descarga en CSV simple. |
 | **Baja** | ¿Se contemplan piezas dentales temporales (dientes de leche) en el odontograma? | Odontograma | Solo 32 piezas permanentes (FDI 11–48) para el MVP. |
+| **Media** | ¿La duración del turno se deriva de un catálogo `Prestacion` o se carga manual/por profesional? | Agenda (C-04) | Mantener `duracion_min` manual en C-04; evaluar catálogo de prestaciones en fase 2. |
+| **Media** | ¿En qué estado del turno se devenga o retiene la seña? | Caja (C-08) | Registrar la seña al reservar y deducirla al pasar el turno a `atendido`. |
+| **Baja** | ¿Se aceptan triggers de base para R3/R13 en producción? | Persistencia | Sí: son defensa en profundidad; el ORM mantiene los mensajes amigables. |

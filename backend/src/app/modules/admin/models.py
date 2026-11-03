@@ -4,7 +4,7 @@ from __future__ import annotations
 from uuid import UUID, uuid4
 
 from sqlalchemy import Boolean, CheckConstraint, String, UniqueConstraint, Uuid, text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, validates
 
 from app.db.base import Base, TimestampMixin
 
@@ -18,6 +18,7 @@ class Usuario(TimestampMixin, Base):
     __table_args__ = (
         UniqueConstraint("email", name="email"),
         CheckConstraint("rol IN ('admin', 'recepcion', 'odontologo')", name="rol"),
+        CheckConstraint("email = lower(btrim(email))", name="email_normalizado"),
     )
 
     id: Mapped[UUID] = mapped_column(
@@ -30,3 +31,8 @@ class Usuario(TimestampMixin, Base):
     activo: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True, server_default=text("true")
     )
+
+    @validates("email")
+    def _normalizar_email(self, key: str, value: str) -> str:
+        """Normaliza el email antes de persistirlo (trim + minúsculas)."""
+        return value.strip().lower()

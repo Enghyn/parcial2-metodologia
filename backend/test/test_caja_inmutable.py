@@ -5,7 +5,7 @@ from uuid import uuid4
 import pytest
 
 from app.core.errors import ImmutableLedgerError
-from app.db.base import _reject_ledger_delete, _reject_ledger_update
+from app.db.base import Base, _reject_ledger_delete, _reject_ledger_update
 from app.modules.caja.models import MEDIOS_PAGO, TIPOS_MOVIMIENTO, MovimientoCaja
 
 
@@ -43,3 +43,9 @@ def test_contra_asiento_se_modela_como_movimiento_nuevo() -> None:
     assert contra.tipo == "egreso"
     assert original is not contra
     assert original.monto == contra.monto
+
+
+def test_movimiento_exige_concepto_y_medio_pago() -> None:
+    tabla = Base.metadata.tables["movimientos_caja"]
+    assert not tabla.c["concepto"].nullable
+    assert not tabla.c["medio_pago"].nullable

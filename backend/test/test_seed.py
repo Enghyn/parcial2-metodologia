@@ -1,8 +1,10 @@
 """Seed idempotente de demostración (C-02)."""
 import bcrypt
 import pytest
+from sqlalchemy.exc import OperationalError
 
-from app.db.seed import SeedReport, apply_seed, build_seed_plan
+import app.db.seed as seed_module
+from app.db.seed import SeedPlan, SeedReport, apply_seed, build_seed_plan
 from app.modules.admin.models import Usuario
 from app.modules.agenda.models import Profesional, Sillon
 from app.modules.clinica.models import Paciente
@@ -122,3 +124,52 @@ def test_guarda_de_produccion_con_force_permite_cargar() -> None:
     repo = FakeRepo()
     report = apply_seed(repo, build_seed_plan(rounds=4), app_env="production", force=True)
     assert report.usuarios == 4
+
+
+class _SesionQueFalla:
+    """Sesión falsa que falla al primer acceso a la base y registra el cierre."""
+
+    def __init__(self) -> None:
+        self.rolled = False
+        self.closed = False
+
+    def scalar(self, statement: object) -> object:
+        raise OperationalError("SELECT 1", {}, Exception("sin conexión"))
+
+    def add(self, entidad: object) -> None:
+        pass
+
+    def commit(self) -> None:
+        pass
+
+    def rollback(self) -> None:
+        self.rolled = True
+
+    def close(self) -> None:
+        self.closed = True
+
+
+def test_main_sin_base_devuelve_1_y_mensaje_claro(monkeypatch, capsys) -> None:
+    def fabrica_que_falla():
+        raise OperationalError("SELECT 1", {}, Exception("sin conexión"))
+
+    monkeypatch.setattr(seed_module, "get_session_factory", fabrica_que_falla)
+    monkeypatch.setattr(seed_module, "build_seed_plan", lambda **_: SeedPlan((), (), (), ()))
+
+    assert seed_module.main([]) == 1
+    assert "DATABASE_URL" in capsys.readouterr().err
+
+
+def test_main_hace_rollback_y_cierra_si_falla_a_mitad(monkeypatch, capsys) -> None:
+    sesion = _SesionQueFalla()
+    monkeypatch.setattr(seed_module, "get_session_factory", lambda: lambda: sesion)
+    monkeypatch.setattr(
+        seed_module,
+        "build_seed_plan",
+        lambda **_: SeedPlan(({"nombre": "Sillón 1"},), (), (), ()),
+    )
+
+    assert seed_module.main([]) == 1
+    assert sesion.rolled is True
+    assert sesion.closed is True
+    assert "DATABASE_URL" in capsys.readouterr().err

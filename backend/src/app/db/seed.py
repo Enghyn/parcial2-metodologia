@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import sys
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Protocol
@@ -15,6 +16,7 @@ from uuid import uuid4
 
 import bcrypt
 from sqlalchemy import func, select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
@@ -209,8 +211,9 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     settings = get_settings()
     plan = build_seed_plan(default_password=os.environ.get("SEED_DEFAULT_PASSWORD"))
-    session = get_session_factory()()
+    session = None
     try:
+        session = get_session_factory()()
         report = apply_seed(
             SqlAlchemySeedRepository(session),
             plan,
@@ -218,11 +221,23 @@ def main(argv: Sequence[str] | None = None) -> int:
             force=args.force,
         )
         session.commit()
+    except SQLAlchemyError as exc:
+        if session is not None:
+            session.rollback()
+        print(
+            "Seed falló: no se pudo conectar o escribir en la base "
+            f"({type(exc).__name__}). Verificá DATABASE_URL y ejecutá "
+            "'alembic upgrade head'.",
+            file=sys.stderr,
+        )
+        return 1
     except Exception:
-        session.rollback()
+        if session is not None:
+            session.rollback()
         raise
     finally:
-        session.close()
+        if session is not None:
+            session.close()
 
     print(
         "Seed OK: "
