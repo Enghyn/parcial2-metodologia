@@ -21,12 +21,22 @@ El sistema SHALL crear las tablas de dominio mediante una migración Alembic enc
 
 ### Requirement: Identidad única de usuarios
 
-El sistema SHALL garantizar que el `email` de cada usuario sea único y no nulo, y SHALL normalizar el email a minúsculas antes de persistirlo.
+El sistema SHALL garantizar que el `email` de cada usuario sea único y no nulo, SHALL normalizarlo con `btrim` + minúsculas antes de persistirlo y SHALL rechazar en base cualquier email que no cumpla esa forma canónica.
 
 #### Scenario: Email duplicado rechazado
 
 - **WHEN** se intenta registrar un segundo usuario con un email ya existente, ignorando mayúsculas y minúsculas
 - **THEN** la persistencia rechaza la operación por violación de unicidad
+
+#### Scenario: Email con mayúsculas o espacios se normaliza
+
+- **WHEN** se registra un usuario con `email = "  Admin@Consultorio.COM  "`
+- **THEN** el email persistido es `admin@consultorio.com`
+
+#### Scenario: Email no canónico rechazado por la base
+
+- **WHEN** se intenta insertar por SQL directo un email con mayúsculas o espacios
+- **THEN** la base rechaza la operación por `ck_usuarios_email_normalizado`
 
 #### Scenario: Rol fuera del catálogo rechazado
 
@@ -35,7 +45,7 @@ El sistema SHALL garantizar que el `email` de cada usuario sea único y no nulo,
 
 ### Requirement: Profesionales vinculados opcionalmente a un usuario
 
-El sistema SHALL permitir que un profesional exista sin usuario asociado, SHALL impedir que dos profesionales compartan el mismo `usuario_id` y SHALL exigir `nombre` y `matricula` únicos.
+El sistema SHALL permitir que un profesional exista sin usuario asociado, SHALL impedir que dos profesionales compartan el mismo `usuario_id`, SHALL exigir `nombre` obligatorio y SHALL garantizar que `matricula` sea única. El `nombre` NO es único: dos profesionales pueden ser homónimos.
 
 #### Scenario: Profesional sin usuario
 
@@ -46,6 +56,11 @@ El sistema SHALL permitir que un profesional exista sin usuario asociado, SHALL 
 
 - **WHEN** se intenta asignar a un segundo profesional un `usuario_id` ya vinculado
 - **THEN** la persistencia rechaza la operación por violación de unicidad
+
+#### Scenario: Dos profesionales homónimos con matrículas distintas
+
+- **WHEN** se crean dos profesionales con el mismo `nombre` y matrículas diferentes
+- **THEN** la persistencia acepta ambos registros
 
 ### Requirement: Ficha de paciente con identificador único
 
@@ -63,12 +78,17 @@ El sistema SHALL exigir `nombre`, `dni` y `telefono` para todo paciente, SHALL g
 
 ### Requirement: Integridad temporal y asignación de turnos
 
-El sistema SHALL exigir que todo turno tenga paciente, profesional y sillón asignados, que `fin` sea posterior a `inicio`, que `duracion_min` sea mayor que cero y que `estado` pertenezca al catálogo de turnos.
+El sistema SHALL exigir que todo turno tenga paciente, profesional y sillón asignados, que `fin` sea igual a `inicio + duracion_min` minutos, que `fin` sea posterior a `inicio`, que `duracion_min` sea mayor que cero y que `estado` pertenezca al catálogo de turnos.
 
 #### Scenario: Turno con fin anterior al inicio
 
 - **WHEN** se intenta persistir un turno con `fin` menor o igual a `inicio`
 - **THEN** la persistencia rechaza la operación por violación de integridad
+
+#### Scenario: Fin incoherente con la duración
+
+- **WHEN** se intenta persistir un turno con `inicio = 10:00`, `duracion_min = 30` y `fin = 10:45`
+- **THEN** la persistencia rechaza la operación por `ck_turnos_fin_coherente`
 
 #### Scenario: Turno sin sillón
 
@@ -91,7 +111,7 @@ El sistema SHALL proveer índices sobre `turnos(sillon_id, inicio, fin)` y `turn
 
 ### Requirement: Bloqueos de disponibilidad consistentes
 
-El sistema SHALL exigir que todo bloqueo declare al menos un recurso afectado (sillón o profesional), que `hasta` sea posterior a `desde` y SHALL registrar un motivo no vacío.
+El sistema SHALL exigir que todo bloqueo declare al menos un recurso afectado (sillón o profesional), que `hasta` sea posterior a `desde` y SHALL registrar un motivo con al menos un carácter no blanco.
 
 #### Scenario: Bloqueo sin recurso
 
@@ -102,6 +122,11 @@ El sistema SHALL exigir que todo bloqueo declare al menos un recurso afectado (s
 
 - **WHEN** se intenta persistir un bloqueo con `hasta` anterior o igual a `desde`
 - **THEN** la persistencia rechaza la operación
+
+#### Scenario: Bloqueo con motivo vacío o solo espacios
+
+- **WHEN** se intenta persistir un bloqueo con `motivo = ""` o `motivo = "   "`
+- **THEN** la persistencia rechaza la operación por `ck_bloqueos_motivo_no_vacio`
 
 ### Requirement: Odontograma FDI por paciente
 
@@ -124,7 +149,7 @@ El sistema SHALL mantener como máximo un odontograma por paciente, SHALL acepta
 
 ### Requirement: Libro de caja append-only
 
-El sistema SHALL tratar `movimientos_caja` como un libro inmutable: SHALL registrar monto positivo, medio de pago del catálogo y usuario responsable, y SHALL impedir actualizaciones y borrados físicos de movimientos ya persistidos. Las correcciones SHALL registrarse como un movimiento compensatorio nuevo.
+El sistema SHALL tratar `movimientos_caja` como un libro inmutable: SHALL registrar monto positivo, medio de pago del catálogo y usuario responsable, y SHALL impedir actualizaciones y borrados físicos de movimientos ya persistidos, incluso por SQL directo. Las correcciones SHALL registrarse como un movimiento compensatorio nuevo.
 
 #### Scenario: Movimiento con monto no positivo
 
@@ -136,6 +161,11 @@ El sistema SHALL tratar `movimientos_caja` como un libro inmutable: SHALL regist
 - **WHEN** se intenta actualizar o eliminar un movimiento de caja ya persistido
 - **THEN** el sistema rechaza la operación y conserva el registro original intacto
 
+#### Scenario: UPDATE o DELETE por SQL directo
+
+- **WHEN** se ejecuta `UPDATE` o `DELETE` sobre `movimientos_caja` sin pasar por el ORM
+- **THEN** el trigger de base rechaza la operación
+
 #### Scenario: Corrección por contra-asiento
 
 - **WHEN** se detecta un error en un movimiento y se registra el movimiento compensatorio con tipo opuesto y concepto aclaratorio
@@ -143,7 +173,7 @@ El sistema SHALL tratar `movimientos_caja` como un libro inmutable: SHALL regist
 
 ### Requirement: Borrado lógico de entidades de negocio
 
-El sistema SHALL exponer `deleted_at` en `pacientes`, `turnos`, `profesionales` y `sillones`, SHALL inicializarlo en nulo y SHALL impedir el borrado físico de esas entidades. Las consultas activas SHALL poder filtrar por `deleted_at IS NULL`.
+El sistema SHALL exponer `deleted_at` en `pacientes`, `turnos`, `profesionales` y `sillones`, SHALL inicializarlo en nulo y SHALL impedir el borrado físico de esas entidades, incluso por SQL directo. Las consultas activas SHALL filtrar por `deleted_at IS NULL`.
 
 #### Scenario: Borrado lógico de un paciente
 
@@ -154,6 +184,11 @@ El sistema SHALL exponer `deleted_at` en `pacientes`, `turnos`, `profesionales` 
 
 - **WHEN** se intenta eliminar físicamente un turno o un sillón
 - **THEN** el sistema rechaza la operación y el registro permanece
+
+#### Scenario: DELETE por SQL directo
+
+- **WHEN** se ejecuta `DELETE` sobre una de las cuatro entidades de negocio sin pasar por el ORM
+- **THEN** el trigger de base rechaza la operación
 
 ### Requirement: Seed idempotente de demostración
 
