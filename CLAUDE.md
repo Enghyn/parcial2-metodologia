@@ -61,7 +61,7 @@ El plan de implementación académico simplificado está en [CHANGES.md](CHANGES
 
 - **Total**: 8 changes atómicos organizados para desarrollo incremental:
   - `C-01-foundation-setup` [x] (Completado y archivado)
-  - `C-02-core-models-seed`: Entidades SQLAlchemy, migraciones Alembic y seed inicial (sillones, usuarios y profesionales).
+  - `C-02-core-models-seed` [x] (Completado y archivado): Entidades SQLAlchemy, migraciones Alembic y seed inicial (sillones, usuarios y profesionales).
   - `C-03-auth-jwt-roles`: Login JWT Bearer y dependencias de autorización RBAC (`admin`, `recepcion`, `odontologo`).
   - `C-04-agenda-servicio-antisolapamiento`: Capa de servicios y endpoints de turnos con validación estricta de solapamiento (sillón y profesional) + tests unitarios.
   - `C-05-agenda-frontend-interna`: Visualización de agenda en columnas por sillón, creación y cambio de estados de turnos en React.

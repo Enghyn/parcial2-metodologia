@@ -66,8 +66,19 @@ MODULOS = [
 
 MODULO_BARRELS = ["router.py", "service.py", "schemas.py", "models.py"]
 
+# C-02 implementó modelos reales en estos módulos: sus models.py ya no son stubs.
+MODULOS_CON_MODELOS = {"admin", "agenda", "clinica", "caja"}
+
 TODOS_LOS_STUBS = (
-    CORE_STUBS + ADAPTER_STUBS + [API_V1_ROUTER] + [f"backend/src/app/modules/{m}/{b}" for m in MODULOS for b in MODULO_BARRELS]
+    CORE_STUBS
+    + ADAPTER_STUBS
+    + [API_V1_ROUTER]
+    + [
+        f"backend/src/app/modules/{m}/{b}"
+        for m in MODULOS
+        for b in MODULO_BARRELS
+        if not (b == "models.py" and m in MODULOS_CON_MODELOS)
+    ]
 )
 
 BACKEND_MANIFESTS = [

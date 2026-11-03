@@ -1,7 +1,32 @@
-"""Modelos admin (stub; dueño: C-02 core-models-tenancy).
+"""Modelos de identidad y acceso (C-02 core-models-seed)."""
+from __future__ import annotations
 
-TODO(C-02): definir modelos SQLAlchemy + migración Alembic. Sin modelos
-reales en este stub.
-"""
+from uuid import UUID, uuid4
 
-__all__: list[str] = []
+from sqlalchemy import Boolean, CheckConstraint, String, UniqueConstraint, Uuid, text
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.db.base import Base, TimestampMixin
+
+ROLES_USUARIO: tuple[str, ...] = ("admin", "recepcion", "odontologo")
+
+
+class Usuario(TimestampMixin, Base):
+    """Personal interno del consultorio (DD-02: mono-tenant, sin tenant_id)."""
+
+    __tablename__ = "usuarios"
+    __table_args__ = (
+        UniqueConstraint("email", name="email"),
+        CheckConstraint("rol IN ('admin', 'recepcion', 'odontologo')", name="rol"),
+    )
+
+    id: Mapped[UUID] = mapped_column(
+        Uuid, primary_key=True, default=uuid4, server_default=text("gen_random_uuid()")
+    )
+    nombre: Mapped[str] = mapped_column(String(100), nullable=False)
+    email: Mapped[str] = mapped_column(String(150), nullable=False)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    rol: Mapped[str] = mapped_column(String(20), nullable=False)
+    activo: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default=text("true")
+    )

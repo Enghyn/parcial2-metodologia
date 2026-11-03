@@ -1,13 +1,15 @@
 # Sistema Odontológico Multi-Sillón (AR)
 
-SaaS multi-tenant para consultorios y clínicas odontológicas argentinas: agenda multi-sillón
-con antisolapamiento, reserva online 24/7 con link/QR, recordatorios por WhatsApp, ficha clínica
-con odontograma, caja trazable + Mercado Pago, obras sociales y reportes.
+Sistema odontológico mono-consultorio con múltiples sillones (2 a 3) para el mercado argentino:
+agenda con antisolapamiento, reserva online con link/QR, contacto por WhatsApp, ficha clínica
+con odontograma, caja trazable y obras sociales.
 
 ## Estado actual
 
 - ✅ `C-01 foundation-setup` archivado (scaffolding + compose + CI).
-- ▶ Siguiente: `C-02 core-models-tenancy` (ver `CHANGES.md`, GATE 1).
+- ✅ `C-02 core-models-seed` archivado: nueve modelos SQLAlchemy, migración `0002_core_models`
+  y seed idempotente, verificados contra PostgreSQL 17.
+- ▶ Siguiente: `C-03 auth-jwt-roles` (ver `CHANGES.md`).
 - Fuente de verdad del dominio: `knowledge-base/`. Plan de implementación: `CHANGES.md`.
   Reglas del proyecto: `AGENTS.md`.
 
@@ -19,7 +21,7 @@ con odontograma, caja trazable + Mercado Pago, obras sociales y reportes.
 | Backend    | Python 3.12+ + FastAPI + SQLAlchemy + Alembic                     |
 | DB / Colas | PostgreSQL 15 (`btree_gist`) / Redis 7 (RQ)                       |
 | Infra      | Docker Compose (api + web + postgres + redis + worker), CI GitHub Actions |
-| Auth       | JWT access corto + refresh rotado, claim `tenant_id` (desde C-03)  |
+| Auth       | JWT Bearer con roles `admin`, `recepcion`, `odontologo` (desde C-03)  |
 
 ## Estructura (KB 08 literal — lados autocontenidos)
 
@@ -84,6 +86,20 @@ cd backend
 alembic upgrade head
 ```
 
+Datos de demostración (idempotente; no corre al arrancar la app):
+
+```bash
+cd backend
+python -m app.db.seed --help
+python -m app.db.seed
+```
+
+Crea 3 sillones, 4 usuarios (1 admin, 1 recepción, 2 odontólogos), 2 profesionales y 2 pacientes.
+Credenciales de demo: `admin@consultorio.com` / `admin123`, `recepcion@consultorio.com` /
+`recepcion123`, `dr.perez@consultorio.com` y `dra.gomez@consultorio.com` / `odontologo123`.
+Se puede forzar otra contraseña con `SEED_DEFAULT_PASSWORD`; el seed se bloquea con
+`APP_ENV=production` salvo `--force`.
+
 ## Variables de entorno
 
 Ver `.env.example` (15 variables): `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, `WA_*`,
@@ -104,6 +120,6 @@ Nunca commitear un `.env` real (ver `.gitignore`).
 
 - `knowledge-base/` — dominio (leer el archivo relevante antes de implementar).
 - `docs/discovery/` — discovery de mercado y competidores.
-- `CHANGES.md` — roadmap de 22 changes en 5 fases + cobertura del MVP (C-01–C-17).
+- `CHANGES.md` — roadmap de 8 changes académicos (C-01 a C-08).
 - `openspec/specs/` — especificaciones sincronizadas (fuente de verdad técnica).
 - `AGENTS.md` / `CLAUDE.md` — instrucciones y reglas duras para agentes.

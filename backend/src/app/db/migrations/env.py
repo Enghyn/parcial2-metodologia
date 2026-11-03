@@ -9,6 +9,7 @@ from sqlalchemy import engine_from_config, pool
 # Raíz Python: <cwd backend>/src (import root app.* preservada).
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
 
+from app.db import registry  # noqa: F401  (registra las nueve tablas en Base.metadata)
 from app.db.base import Base
 
 config = context.config

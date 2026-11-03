@@ -7,6 +7,7 @@ from app.core.config import get_settings
 from app.core.errors import register_error_handlers
 from app.core.logging import get_logger
 from app.core.middleware import register_middlewares
+from app.db import registry  # noqa: F401  (registra las nueve tablas al arrancar)
 
 logger = get_logger(__name__)
 

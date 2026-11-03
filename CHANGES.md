@@ -19,7 +19,7 @@
 
 ```
 C-01 foundation-setup [x]
-  └── C-02 core-models-seed
+  └── C-02 core-models-seed [x]
         └── C-03 auth-jwt-roles
               └── C-04 agenda-servicio-antisolapamiento
                     ├── C-05 agenda-frontend-interna
@@ -40,7 +40,7 @@ C-01 foundation-setup [x]
 ---
 
 ### C-02: `core-models-seed`
-- **Estado:** `[ ]` (Próximo a implementar)
+- **Estado:** `[x]` (Completado y archivado)
 - **Alcance:**
   - Declaración de modelos SQLAlchemy en `backend/src/app/` (`Usuario`, `Profesional`, `Sillon`, `Paciente`, `Turno`, `Bloqueo`, `Odontograma`, `HallazgoPieza`, `MovimientoCaja`).
   - Migración inicial de Alembic para crear el esquema en PostgreSQL.
@@ -53,7 +53,7 @@ C-01 foundation-setup [x]
 ---
 
 ### C-03: `auth-jwt-roles`
-- **Estado:** `[ ]`
+- **Estado:** `[ ]` (Próximo a implementar)
 - **Alcance:**
   - Endpoint `POST /api/v1/auth/login` con validación de credenciales (hash con `bcrypt`).
   - Generación de token JWT Bearer estándar con expiración configurable.

@@ -10,6 +10,15 @@ from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
+
+class SoftDeleteError(RuntimeError):
+    """Se intentó un DELETE físico sobre una entidad con borrado lógico (R13)."""
+
+
+class ImmutableLedgerError(RuntimeError):
+    """Se intentó modificar o borrar un movimiento de caja ya persistido (R3)."""
+
+
 _STATUS_TO_CODE = {
     400: "bad_request",
     401: "unauthorized",
