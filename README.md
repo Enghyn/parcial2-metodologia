@@ -10,7 +10,7 @@ con odontograma, caja trazable y obras sociales.
 - ✅ `C-02 core-models-seed` archivado: nueve modelos SQLAlchemy, migración `0002_core_models`
   y seed idempotente, verificados contra PostgreSQL 17.
 - ✅ `C-03` a `C-08` archivados (MVP base: auth, agenda, reserva pública, ficha clínica y caja).
-- ▶ MVP base completo; el alcance se expandirá con nuevos changes.
+- ▶ MVP base completo; expansión definida en 15 changes (C-09a a C-21), ver `CHANGES.md`.
 - Fuente de verdad del dominio: `knowledge-base/`. Plan de implementación: `CHANGES.md`.
   Reglas del proyecto: `AGENTS.md`.
 

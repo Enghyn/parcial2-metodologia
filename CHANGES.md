@@ -1,154 +1,307 @@
 # CHANGES — Secuencia de Implementación
 
-> Índice canónico de los changes del proyecto **Sistema Odontológico Multi-Sillón (AR)** adaptado para el parcial académico de **Metodología de Desarrollo de Sistemas**.
-> Cada change es atómico y auto-contenido, diseñado para implementarse con rigor metodológico y pruebas automatizadas (TDD).
+> Índice canónico de los changes del **Sistema Odontológico Multi-Sillón (AR)** para el parcial académico de **Metodología de Desarrollo de Sistemas**.
+> Cada change es atómico, auto-contenido y se implementa con TDD.
+> **MVP base**: C-01 a C-08 (archivados). **Expansión**: C-09a a C-21.
+> Los changes de hardening/calidad (C-02b, C-04b, C-06b, chore-quality, traceability) ya están archivados y no suman al conteo funcional.
 
 ---
 
 ## Cómo usar este documento
 
-1. Identificar el change a implementar (verificar que sus dependencias previas estén marcadas con `[x]`).
+1. Identificar el change y verificar que sus dependencias estén `[x]`.
 2. Leer los documentos de `knowledge-base/` indicados en "Leer antes".
 3. Ejecutar `/opsx:propose <nombre-del-change>`.
-4. Implementar las tareas respetando las Reglas Duras de [`AGENTS.md`](AGENTS.md).
-5. Al finalizar las pruebas, archivar el change con `/opsx:archive <nombre-del-change>` y marcar el checkbox `[x]` en este archivo.
+4. Implementar respetando [`AGENTS.md`](AGENTS.md).
+5. Archivar con `/opsx:archive <nombre-del-change>` y marcar `[x]`.
 
 ---
 
-## Árbol de Dependencias del MVP Académico
+## Reglas de la expansión
+
+- **Mono-consultorio**: sin `tenant_id` ni multi-sucursal (R2).
+- **Sin requisitos externos**: pagos, facturación, notificaciones y QR se resuelven con adapters simulados y datos reales en la base.
+- **Puerta abierta**: `Cobrador`, `Facturador` y `Notificador` son interfaces; un proveedor real se agrega después sin tocar el dominio.
+- **Sin Redis/Celery**: `BackgroundTasks` y ejecución local.
+- **Estados clínicos**: se mantienen los 6 de la KB; no se adoptan los 18 del roadmap viejo.
+- **Numeración de migraciones**: tentativa; cada propose confirma la última versión real.
+
+---
+
+## Fases
+
+| Fase | Changes |
+|---|---|
+| 0 — Base | C-01, C-02 |
+| 1 — Auth | C-03 |
+| 2 — Núcleo MVP base | C-04 a C-08 |
+| 3 — Profundizar núcleo | C-09a, C-09b, C-10, C-11, C-12 |
+| 4 — Facturación y clínica | C-13a, C-13b, C-14, C-15, C-16, C-17 |
+| 5 — Portal y administración | C-18, C-19, C-20, C-21 |
+
+---
+
+## Árbol de dependencias
 
 ```
-C-01 foundation-setup [x]
-  └── C-02 core-models-seed [x]
-        └── C-03 auth-jwt-roles [x]
-              └── C-04 agenda-servicio-antisolapamiento [x]
-                    ├── C-05 agenda-frontend-interna [x]
-                    │     ├── C-07 clinica-odontograma [x]
-                    │     └── C-08 caja-movimientos-balance [x] (MVP base)
-                    └── C-06 reserva-online-publica [x] (Link/QR + WhatsApp)
+C-01 foundation
+└─ C-02 core-models
+   └─ C-03 auth
+      ├─ C-04 agenda-servicio
+      │  └─ C-05 agenda-frontend
+      │     └─ C-09a agenda-dominio
+      │        ├─ C-09b agenda-semanal
+      │        ├─ C-10 reserva-avanzada
+      │        └─ C-14 notificaciones
+      │             └─ C-15 lista-espera
+      ├─ C-06 reserva-publica ── C-10, C-14
+      ├─ C-07 clinica ── C-11 ficha-avanzada
+      ├─ C-08 caja ── C-12 caja-cierre
+      ├─ C-11 + C-12 ── C-13a OS
+      │                 ├─ C-13b comprobante
+      │                 └─ C-16 presupuestos (también C-11/C-12)
+      │                    └─ C-17 pagos (también C-12)
+      │                       └─ C-18 portal (también C-10/C-16)
+      ├─ C-03 ── C-19 admin
+      ├─ C-20 auditoría/export (C-03, C-12, C-13a, C-16, C-18, C-19)
+      └─ C-21 reportes (C-09a, C-12, C-13a, C-16, C-17)
 ```
+
+**Cierre del MVP expandido:** C-01 a C-21. C-20 y C-21 son el cierre transversal (auditoría/export y reportes).
 
 ---
 
 ## Lista de Changes
 
-### C-01: `foundation-setup`
-- **Estado:** `[x]` (Completado y archivado)
-- **Alcance:** Esqueleto del backend FastAPI y frontend Vite + React, Docker Compose base y CI inicial.
-- **Artefactos:** `backend/`, `frontend/`, `docker-compose.yml`.
+### C-01: `foundation-setup` [x]
+Backend FastAPI + frontend Vite/React + Compose + CI inicial. Layout actual `backend/` y `frontend/`.
+
+### C-02: `core-models-seed` [x]
+Nueve modelos SQLAlchemy (mono-tenant), migración `0002`, seed idempotente. Depende C-01.
+
+### C-03: `auth-jwt-roles` [x]
+Login JWT, `/auth/me`, RBAC (`admin`, `recepcion`, `odontologo`). Depende C-02.
+
+### C-04: `agenda-servicio-antisolapamiento` [x]
+Servicio y endpoints de turnos/bloqueos, antisolapamiento en servicio, 409, RBAC. Depende C-03.
+
+### C-05: `agenda-frontend-interna` [x]
+Agenda diaria por sillón, alta de turno, cambio de estado, login/logout. Depende C-04.
+
+### C-06: `reserva-online-publica` [x]
+Portal `/reservar`, disponibilidad, reserva con token, consulta/cancelación, WhatsApp click-to-chat. Depende C-04.
+
+### C-07: `clinica-odontograma` [x]
+Pacientes, odontograma FDI de 6 estados, upsert por pieza, RBAC y UI. Depende C-05.
+
+### C-08: `caja-movimientos-balance` [x]
+Libro append-only, alta de ingreso/egreso con usuario del JWT, listado y resumen diario. Depende C-05.
 
 ---
 
-### C-02: `core-models-seed`
-- **Estado:** `[x]` (Completado y archivado)
+### C-09a: `agenda-dominio-avanzado`
+- **Estado:** `[ ]`
 - **Alcance:**
-  - Declaración de modelos SQLAlchemy en `backend/src/app/` (`Usuario`, `Profesional`, `Sillon`, `Paciente`, `Turno`, `Bloqueo`, `Odontograma`, `HallazgoPieza`, `MovimientoCaja`).
-  - Migración inicial de Alembic para crear el esquema en PostgreSQL.
-  - Script o comando de carga de datos iniciales (`seed.py`): 3 sillones, 1 admin, 1 recepcionista, 2 odontólogos y 2 pacientes de prueba.
-  - Tests de integridad del esquema y carga de semilla.
-- **Dependencias:** C-01.
-- **Leer antes:** `knowledge-base/04_modelo_de_datos.md`.
-- **Comando:** `/opsx:propose C-02-core-models-seed`
+  - Reprogramación de turno con validación de solapamiento (excluyendo el propio turno).
+  - Sobreturnos: flag, motivo obligatorio y autorizador; se permiten solapamientos deliberados.
+  - Ventana mínima de cancelación configurable.
+  - Estado `ausente` (no-show) en el catálogo y en la migración.
+  - Migración `0004`: columnas de sobreturno, autorizador y `CHECK` de estado ampliado.
+  - Tests de reprogramación, sobreturno autorizado, cancelación fuera de ventana y `ausente`.
+- **Dependencias:** C-04, C-05.
+- **Leer antes:** KB 05 (RN-AG-01/05/06), KB 06 (US-002), KB 07 (Flujo 4).
+- **Gobernanza:** MEDIO.
+- **Comando:** `/opsx:propose C-09a-agenda-dominio-avanzado`
 
----
+### C-09b: `agenda-vista-semanal`
+- **Estado:** `[ ]`
+- **Alcance:** grilla semanal 7 días × 3 sillones, filtros por profesional, performance y estados visuales; consume C-09a.
+- **Dependencias:** C-05, C-09a.
+- **Leer antes:** KB 06 (US-001), KB 08 (frontend).
+- **Gobernanza:** MEDIO.
 
-### C-03: `auth-jwt-roles`
-- **Estado:** `[x]` (Completado y archivado)
+### C-10: `reserva-publica-avanzada`
+- **Estado:** `[ ]`
 - **Alcance:**
-  - Endpoint `POST /api/v1/auth/login` con validación de credenciales (hash con `bcrypt`).
-  - Generación de token JWT Bearer estándar con expiración configurable.
-  - Endpoint `GET /api/v1/auth/me` para obtener el perfil y rol del usuario logueado.
-  - Dependencias de seguridad en FastAPI (`get_current_user`, `require_role("admin", "recepcion", "odontologo")`).
-  - Integración básica del AuthContext en el frontend para almacenar token en sesión y proteger rutas.
-  - Tests unitarios de login exitoso, login con contraseña errónea y restricción de roles (401/403).
-- **Dependencias:** C-02.
-- **Leer antes:** `knowledge-base/03_actores_y_roles.md`, `knowledge-base/08_arquitectura_propuesta.md`.
-- **Comando:** `/opsx:propose C-03-auth-jwt-roles`
+  - QR local para `/reservar` y `/p/turno/:token`.
+  - Pre-reserva con expiración y liberación automática.
+  - Reprogramación pública con token y validación de huecos.
+  - Rate-limit local; sin captcha externo.
+  - Migración `0005` para expiración/origen si hace falta.
+- **Dependencias:** C-06, C-09a.
+- **Leer antes:** KB 05 (RN-AG-06/07), KB 07 (Flujo 1).
+- **Gobernanza:** MEDIO.
 
----
-
-### C-04: `agenda-servicio-antisolapamiento`
-- **Estado:** `[x]` (Completado y archivado)
+### C-11: `ficha-clinica-avanzada`
+- **Estado:** `[ ]`
 - **Alcance:**
-  - Capa de servicios (`TurnoService`) con la lógica central de negocio:
-    - Validación de antisolapamiento cruzado (RN-AG-01): rechazar si el sillón está ocupado O si el profesional está ocupado en ese rango horario.
-    - Exclusión de turnos cancelados en el cálculo de disponibilidad.
-    - Toda consulta de agenda filtra `deleted_at IS NULL` (R13/RN-SEG-02).
-    - Cálculo automático de `fin = inicio + duracion_min` según la prestación (RN-AG-02).
-  - Endpoints CRUD de turnos: `GET /api/v1/turnos` (filtros por fecha, profesional, sillón), `POST /api/v1/turnos`, `PATCH /api/v1/turnos/:id/estado`.
-  - Endpoint de bloqueos: `POST /api/v1/bloqueos` y `DELETE /api/v1/bloqueos/:id`.
-  - Suite exhaustiva de pruebas unitarias (`pytest`) que comprueben:
-    - Creación de turno en hueco libre (201).
-    - Rechazo de turno con solapamiento en el mismo sillón (409 Conflict).
-    - Rechazo de turno con solapamiento del mismo profesional en distinto sillón (409 Conflict).
-    - Creación exitosa en el mismo horario si los sillones Y los profesionales son distintos.
-    - Creación exitosa sobre un turno previamente cancelado.
+  - Evolución clínica por paciente (fecha, autor, texto).
+  - Consentimiento informado (versión, fecha, autor).
+  - Autor/fecha por hallazgo y historial de cambios por pieza.
+  - Se mantienen los 6 estados de la KB.
+  - Migración `0006` para evolución/consentimiento/autor.
+- **Dependencias:** C-07.
+- **Leer antes:** KB 04 (Odontograma), KB 05 (RN-CL-01/02), KB 06 (US-020).
+- **Gobernanza:** CRÍTICO.
+
+### C-12: `caja-cierre-cuenta-corriente`
+- **Estado:** `[ ]`
+- **Alcance:**
+  - Cierre diario con aprobación de `admin` y bloqueo del período.
+  - Cuenta corriente por paciente y saldo derivado.
+  - Ajustes auditados; nunca update/delete del libro.
+  - Export CSV del libro/cierre.
+  - Migración `0007` para cierre/cuenta corriente.
+- **Dependencias:** C-08.
+- **Leer antes:** KB 04 (MovimientoCaja), KB 05 (RN-CJ-01/02/04), KB 06 (US-030/032).
+- **Gobernanza:** CRÍTICO.
+
+### C-13a: `os-nomenclador-cobertura`
+- **Estado:** `[ ]`
+- **Alcance:**
+  - Catálogo de obras sociales y convenios.
+  - Nomenclador de prácticas, aranceles y copago.
+  - Afiliación del paciente y cálculo de cobertura.
+  - Datos manuales; sin validación online externa.
+  - Migración `0008`.
+- **Dependencias:** C-11, C-12.
+- **Leer antes:** KB 04 (OS/Nomenclador), KB 05 (RN-CJ-05), KB 06 (US-033).
+- **Gobernanza:** MEDIO.
+
+### C-13b: `comprobante-manual`
+- **Estado:** `[ ]`
+- **Alcance:**
+  - Modelo `Comprobante` vinculado a movimiento/presupuesto.
+  - `Facturador` + `FacturadorManual`; sin ARCA.
+  - Estado pendiente/emitido/anulado; numeración manual.
+  - Migración `0009`.
+- **Dependencias:** C-13a, C-12.
+- **Leer antes:** KB 04 (Comprobante), KB 05 (RN-CJ-05).
+- **Gobernanza:** MEDIO.
+
+### C-14: `notificaciones-simuladas`
+- **Estado:** `[ ]`
+- **Alcance:**
+  - `Notificador` + `NotificadorSimulado` (BD/consola).
+  - Plantillas de confirmación, recordatorio 24 h/2 h y lista de espera.
+  - Link `wa.me`; reintentos locales; sin Meta API.
+  - Migración `0010` para `Notificacion`.
+- **Dependencias:** C-06, C-09a.
+- **Leer antes:** KB 05 (RN-G-01), KB 06 (US-010).
+- **Gobernanza:** MEDIO.
+
+### C-15: `lista-espera`
+- **Estado:** `[ ]`
+- **Alcance:**
+  - Lista de espera con preferencias y orden por compatibilidad/antigüedad.
+  - Al cancelar, oferta automática con expiración y aceptación.
+  - Usa C-14 para notificar; sin workers externos.
+  - Migración `0011`.
+- **Dependencias:** C-09a, C-10, C-14.
+- **Leer antes:** KB 04 (ListaEspera), KB 05 (RN-AG-09), KB 06 (US-011), KB 07 (Flujo 4).
+- **Gobernanza:** MEDIO.
+
+### C-16: `presupuestos`
+- **Estado:** `[ ]`
+- **Alcance:**
+  - `Presupuesto` + ítems, total y cobertura OS/copago.
+  - Estados borrador/enviado/aprobado/rechazado/cobrado.
+  - Aprobación online con token y firma simple.
+  - Migración `0012`.
+- **Dependencias:** C-11, C-12, C-13a.
+- **Leer antes:** KB 04 (Presupuesto), KB 05 (RN-CL-03), KB 06 (US-021), KB 07 (Flujo 3).
+- **Gobernanza:** ALTO.
+
+### C-17: `pagos-simulados`
+- **Estado:** `[ ]`
+- **Alcance:**
+  - `Pago`/`IntentoPago` con estados pendiente/aprobado/rechazado.
+  - `Cobrador` + `CobradorSimulado`; sin Mercado Pago.
+  - Confirmación idempotente: crea **un** `MovimientoCaja` real y actualiza turno/presupuesto.
+  - Conciliación desde caja y confirmación desde el portal (C-18).
+  - Migración `0013`.
+- **Dependencias:** C-12, C-16.
+- **Leer antes:** KB 05 (RN-CJ-01/02/03), KB 07 (Flujo 3).
+- **Gobernanza:** CRÍTICO.
+
+### C-18: `portal-publico`
+- **Estado:** `[ ]`
+- **Alcance:**
+  - `/reservar` con QR (C-10), `/p/turno/:token`, `/p/presupuesto/:token`, `/p/pagar/:token`.
+  - Marca única del consultorio; sin slug ni multi-tenant.
+  - Página de pago simulado y confirmación.
+  - Sin migración.
+- **Dependencias:** C-10, C-16, C-17.
+- **Leer antes:** KB 03 (rutas públicas), KB 07 (Flujo 1/3), KB 10.
+- **Gobernanza:** MEDIO.
+
+### C-19: `admin-crud`
+- **Estado:** `[ ]`
+- **Alcance:**
+  - CRUD de usuarios con roles y activo.
+  - CRUD de sillones.
+  - CRUD de profesionales (matrícula, especialidad, duración, vínculo a usuario).
+  - Baja lógica; no desactivar el último admin.
+  - Sin migración.
 - **Dependencias:** C-03.
-- **Leer antes:** `knowledge-base/05_reglas_de_negocio.md` (RN-AG-01 a RN-AG-06).
-- **Comando:** `/opsx:propose C-04-agenda-servicio-antisolapamiento`
+- **Leer antes:** KB 03 (matriz RBAC), KB 04 (Usuario/Profesional/Sillon).
+- **Gobernanza:** MEDIO/ALTO.
+
+### C-20: `auditoria-export`
+- **Estado:** `[ ]`
+- **Alcance:**
+  - Modelo `Auditoria` (quién, cuándo, recurso, acción, diff).
+  - Hooks en escrituras sensibles (turnos, caja, presupuestos, odontograma).
+  - Visor paginado y export CSV con enmascarado.
+  - Migración `0014`.
+- **Dependencias:** C-03, C-12, C-13a, C-16, C-18, C-19.
+- **Leer antes:** KB 03, KB 05 (RN-SEG), KB 04 (Transversal).
+- **Gobernanza:** CRÍTICO.
+
+### C-21: `reportes`
+- **Estado:** `[ ]`
+- **Alcance:**
+  - Ocupación por sillón/profesional.
+  - Facturación por medio/OS.
+  - Ausentismo y recupero.
+  - Filtros por rango y export CSV.
+  - Sin migración (consultas de lectura).
+- **Dependencias:** C-09a, C-12, C-13a, C-16, C-17.
+- **Leer antes:** KB 06 (US-041), KB 04 (Turno/MovimientoCaja), KB 09.
+- **Gobernanza:** MEDIO.
 
 ---
 
-### C-05: `agenda-frontend-interna`
-- **Estado:** `[x]` (Completado y archivado)
-- **Alcance:**
-  - Interfaz de agenda en React (`/app/agenda`):
-    - Visualización en columnas por sillón físico (Sillón 1, Sillón 2, Sillón 3) para la fecha seleccionada.
-    - Selector de fecha (navegación día actual, anterior, siguiente).
-    - Código de colores visual por estado del turno (`reservado`, `confirmado`, `presente`, `atendido`, `cancelado`).
-  - Modal para agendar nuevo turno con selección de paciente, profesional, prestación, sillón y horario.
-  - Menú contextual o modal rápido para actualizar el estado del turno (ej. marcar como `presente` o `cancelado`).
-- **Dependencias:** C-04.
-- **Leer antes:** `knowledge-base/06_funcionalidades.md` (US-001, US-002), `knowledge-base/07_flujos_principales.md` (Flujo 2).
-- **Comando:** `/opsx:propose C-05-agenda-frontend-interna`
+## Trazabilidad con el roadmap viejo (22 changes)
+
+| Viejo | Nuevo |
+|---|---|
+| C-01 foundation | C-01 |
+| C-02 core-models-tenancy | C-02 (mono-tenant) |
+| C-03 auth-rbac | C-03 |
+| C-04 roles-auditoría-export | C-20 |
+| C-05 agenda-núcleo | C-04 + C-09a |
+| C-06 reserva-online | C-06 + C-10 |
+| C-07 WhatsApp | C-14 (simulado) |
+| C-08 agenda-frontend | C-05 + C-09b |
+| C-09 ficha-odontograma | C-07 + C-11 |
+| C-10 caja-cuenta-corriente | C-08 + C-12 |
+| C-11 OS/nomenclador/comprobante | C-13a + C-13b |
+| C-12 reportes | C-21 |
+| C-13 lista de espera | C-15 |
+| C-14 presupuestos | C-16 |
+| C-15 clínica-frontend | C-11 + C-18 |
+| C-16 Mercado Pago | C-17 (simulado) |
+| C-17 portal público | C-18 |
+| C-18 a C-22 | Fuera de alcance / fase futura |
 
 ---
 
-### C-06: `reserva-online-publica`
-- **Estado:** `[x]` (Completado y archivado)
-- **Alcance:**
-  - Endpoint público `GET /api/v1/public/disponibilidad` (devuelve huecos libres cruzando sillones y odontólogos).
-  - Endpoint público `POST /api/v1/public/reservar` (crea el turno en estado `reservado` y emite `token_publico`).
-  - Endpoint público `GET /api/v1/public/turnos/:token` y `POST /api/v1/public/turnos/:token/cancelar`.
-  - Pantallas en React:
-    - `/reservar`: Asistente paso a paso (1. Prestación → 2. Profesional → 3. Día/Hora libre → 4. Datos del paciente).
-    - `/p/turno/:token`: Vista de confirmación con datos del turno y botón "Enviar aviso por WhatsApp" que abre enlace `https://wa.me/<telefono>?text=...` con el mensaje prearmado (RN-G-01).
-- **Dependencias:** C-04.
-- **Leer antes:** `knowledge-base/06_funcionalidades.md` (US-004, US-005), `knowledge-base/07_flujos_principales.md` (Flujo 1).
-- **Comando:** `/opsx:propose C-06-reserva-online-publica`
+## Definición de terminado (por change)
 
----
-
-### C-07: `clinica-odontograma`
-- **Estado:** `[x]` (Completado y archivado)
-- **Alcance:**
-  - Endpoints de backend:
-    - `GET /api/v1/pacientes` y `POST /api/v1/pacientes`.
-    - `GET /api/v1/pacientes/:id/odontograma`.
-    - `PUT /api/v1/pacientes/:id/odontograma/piezas/:pieza` (actualizar estado clínico y nota de una pieza dental).
-    - Toda consulta de pacientes filtra `deleted_at IS NULL`; los odontogramas se consultan solo para pacientes activos.
-  - Vistas en React:
-    - Directorio y buscador de pacientes (`/app/pacientes`).
-    - Componente de Odontograma interactivo (`/app/odontograma/:pacienteId`): grilla organizada en 4 cuadrantes con los 32 dientes FDI (11 a 48), selección visual de estado (`sano`, `caries`, `obturacion`, `corona`, `extraccion`, `tratamiento_conducto`) y guardado en tiempo real.
-- **Dependencias:** C-05.
-- **Leer antes:** `knowledge-base/04_modelo_de_datos.md` (Odontograma), `knowledge-base/05_reglas_de_negocio.md` (RN-CL-01).
-- **Comando:** `/opsx:propose C-07-clinica-odontograma`
-
----
-
-### C-08: `caja-movimientos-balance`
-- **Estado:** `[x]` (Completado y archivado — MVP base)
-- **Alcance:**
-  - Endpoints de backend:
-    - `POST /api/v1/caja/movimientos` (registro de ingreso/egreso con medio de pago, monto, concepto, `usuario_id` y vínculo opcional a `turno_id`; el turno vinculado debe estar activo, `deleted_at IS NULL`).
-    - `GET /api/v1/caja/movimientos` (listado con filtros de fecha).
-    - `GET /api/v1/caja/resumen-diario` (totales agrupados por medio de pago y balance neto).
-  - Pantalla en React (`/app/caja`):
-    - Formulario modal de cobro rápido desde el turno atendido.
-    - Formulario de egreso de caja.
-    - Tabla del libro diario de movimientos y panel superior con tarjetas de balance (Efectivo, Transferencias, Tarjetas, Total del día).
-- **Dependencias:** C-05.
-- **Leer antes:** `knowledge-base/05_reglas_de_negocio.md` (RN-CJ-01, RN-CJ-02), `knowledge-base/07_flujos_principales.md` (Flujo 3).
-- **Comando:** `/opsx:propose C-08-caja-movimientos-balance`
-
-> **MVP base (C-01 a C-08) completo.** El alcance se expandirá con nuevos changes; no se considera cerrado el MVP definitivo.
+- Tests nuevos en verde y suite completa en verde dos veces seguidas.
+- `ruff check src test` y frontend lint/tsc/build en verde.
+- `openspec validate <change> --strict` y `openspec validate --all`.
+- `business-rule-coverage-auditor` pasado y matriz actualizada.
+- Change archivado y checklist marcado.
+- Sin `git push --force`; commits conventional (R12).

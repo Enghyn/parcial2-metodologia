@@ -59,15 +59,24 @@ Skills instaladas a nivel proyecto (`.agents/skills/`), mapeadas por rol. Cargá
 
 El plan de implementación académico simplificado está en [CHANGES.md](CHANGES.md). Resumen:
 
-- **Total**: 8 changes atómicos organizados para desarrollo incremental:
-  - `C-01-foundation-setup` [x] (Completado y archivado)
-  - `C-02-core-models-seed` [x] (Completado y archivado): Entidades SQLAlchemy, migraciones Alembic y seed inicial (sillones, usuarios y profesionales).
-  - `C-03-auth-jwt-roles` [x] (Completado y archivado): Login JWT Bearer y dependencias de autorización RBAC (`admin`, `recepcion`, `odontologo`).
-  - `C-04-agenda-servicio-antisolapamiento` [x] (Completado y archivado): Capa de servicios y endpoints de turnos con validación estricta de solapamiento (sillón y profesional) + tests unitarios.
-  - `C-05-agenda-frontend-interna` [x] (Completado y archivado): Visualización de agenda en columnas por sillón, creación y cambio de estados de turnos en React.
-  - `C-06-reserva-online-publica` [x] (Completado y archivado): Portal público `/reservar` sin login, consulta de turnos por token y enlace directo a WhatsApp (`wa.me/`).
-  - `C-07-clinica-odontograma` [x] (Completado y archivado): Gestión de pacientes, ficha médica y odontograma interactivo esquemático FDI (piezas 11 a 48).
-  - `C-08-caja-movimientos-balance` [x] (Completado y archivado — MVP base): Registro de ingresos/egresos, señas vinculadas a turnos y arqueo diario de caja.
+- **Total**: 23 changes: 8 de MVP base + 15 de expansión.
+- **MVP base (completado y archivado)**:
+  - `C-01-foundation-setup` [x]
+  - `C-02-core-models-seed` [x]: entidades SQLAlchemy, migraciones y seed inicial.
+  - `C-03-auth-jwt-roles` [x]: login JWT y RBAC (`admin`, `recepcion`, `odontologo`).
+  - `C-04-agenda-servicio-antisolapamiento` [x]: turnos, bloqueos y antisolapamiento en servicio.
+  - `C-05-agenda-frontend-interna` [x]: agenda diaria por sillón en React.
+  - `C-06-reserva-online-publica` [x]: `/reservar`, token y WhatsApp click-to-chat.
+  - `C-07-clinica-odontograma` [x]: pacientes, ficha y odontograma FDI.
+  - `C-08-caja-movimientos-balance` [x]: libro append-only y resumen diario.
+- **Expansión (pendiente)**:
+  - `C-09a-agenda-dominio-avanzado`, `C-09b-agenda-vista-semanal`
+  - `C-10-reserva-publica-avanzada`, `C-11-ficha-clinica-avanzada`, `C-12-caja-cierre-cuenta-corriente`
+  - `C-13a-os-nomenclador-cobertura`, `C-13b-comprobante-manual`
+  - `C-14-notificaciones-simuladas`, `C-15-lista-espera`
+  - `C-16-presupuestos`, `C-17-pagos-simulados`, `C-18-portal-publico`
+  - `C-19-admin-crud`, `C-20-auditoria-export`, `C-21-reportes`
+  - Regla: sin integraciones con requisitos externos; adapters simulados (`Cobrador`, `Facturador`, `Notificador`).
 
 **Antes de cualquier `/opsx:propose`**: leé [CHANGES.md](CHANGES.md), identificá las dependencias del change y los archivos de "Leer antes".
 
