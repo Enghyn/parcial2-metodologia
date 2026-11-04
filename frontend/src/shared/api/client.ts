@@ -18,7 +18,7 @@ export class ApiError extends Error {
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? "";
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const token = useAuthStore.getState().accessToken;
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (token !== null) {

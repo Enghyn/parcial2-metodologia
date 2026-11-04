@@ -21,11 +21,11 @@
 C-01 foundation-setup [x]
   └── C-02 core-models-seed [x]
         └── C-03 auth-jwt-roles [x]
-              └── C-04 agenda-servicio-antisolapamiento
-                    ├── C-05 agenda-frontend-interna
+              └── C-04 agenda-servicio-antisolapamiento [x]
+                    ├── C-05 agenda-frontend-interna [x]
                     │     ├── C-07 clinica-odontograma
                     │     └── C-08 caja-movimientos-balance (Cierra MVP)
-                    └── C-06 reserva-online-publica (Link/QR + WhatsApp)
+                    └── C-06 reserva-online-publica [x] (Link/QR + WhatsApp)
 ```
 
 ---
@@ -68,7 +68,7 @@ C-01 foundation-setup [x]
 ---
 
 ### C-04: `agenda-servicio-antisolapamiento`
-- **Estado:** `[ ]`
+- **Estado:** `[x]` (Completado y archivado)
 - **Alcance:**
   - Capa de servicios (`TurnoService`) con la lógica central de negocio:
     - Validación de antisolapamiento cruzado (RN-AG-01): rechazar si el sillón está ocupado O si el profesional está ocupado en ese rango horario.
@@ -90,7 +90,7 @@ C-01 foundation-setup [x]
 ---
 
 ### C-05: `agenda-frontend-interna`
-- **Estado:** `[ ]`
+- **Estado:** `[x]` (Completado y archivado)
 - **Alcance:**
   - Interfaz de agenda en React (`/app/agenda`):
     - Visualización en columnas por sillón físico (Sillón 1, Sillón 2, Sillón 3) para la fecha seleccionada.
@@ -105,7 +105,7 @@ C-01 foundation-setup [x]
 ---
 
 ### C-06: `reserva-online-publica`
-- **Estado:** `[ ]`
+- **Estado:** `[x]` (Completado y archivado)
 - **Alcance:**
   - Endpoint público `GET /api/v1/public/disponibilidad` (devuelve huecos libres cruzando sillones y odontólogos).
   - Endpoint público `POST /api/v1/public/reservar` (crea el turno en estado `reservado` y emite `token_publico`).

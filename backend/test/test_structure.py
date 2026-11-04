@@ -30,6 +30,7 @@ BACKEND_SRC_DIRS = [
     "backend/src/app/modules/notificaciones",
     "backend/src/app/modules/admin",
     "backend/src/app/modules/auth",
+    "backend/src/app/modules/public",
     "backend/src/app/adapters",
     "backend/src/app/db",
     "backend/src/app/workers",
@@ -62,6 +63,7 @@ MODULOS = [
     "notificaciones",
     "admin",
     "auth",
+    "public",
 ]
 
 MODULO_BARRELS = ["router.py", "service.py", "schemas.py", "models.py"]
@@ -72,12 +74,12 @@ MODULOS_CON_MODELOS = {"admin", "agenda", "clinica", "caja"}
 # Auth (C-03) NO duplica la entidad Usuario: el modelo vive en modules/admin
 # (D4 de design.md), así que auth no tiene models.py ni stubs que implementar
 # (sus barrels son código real de esta misma change).
-MODULOS_SIN_MODELOS = {"auth"}
-MODULOS_SIN_STUBS = {"auth"}
+MODULOS_SIN_MODELOS = {"auth", "public"}
+MODULOS_SIN_STUBS = {"auth", "agenda", "public"}
 
 # Routers con rutas reales ya montadas (C-03 monta auth en /auth); el resto
 # nace vacío hasta su change dueño.
-MODULOS_CON_RUTAS = {"auth"}
+MODULOS_CON_RUTAS = {"auth", "agenda", "public"}
 
 
 def barrels_de_modulo(modulo: str) -> list[str]:

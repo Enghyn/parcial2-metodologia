@@ -11,9 +11,13 @@ siendo el punto único de montaje hasta cerrar todos los módulos.
 
 from fastapi import APIRouter
 
+from app.modules.agenda.router import router as agenda_router
 from app.modules.auth.router import router as auth_router
+from app.modules.public.router import router as public_router
 
 router = APIRouter()
 router.include_router(auth_router)
+router.include_router(agenda_router)
+router.include_router(public_router)
 
 __all__ = ["router"]

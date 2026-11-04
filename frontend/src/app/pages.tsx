@@ -1,42 +1,26 @@
 import type { ReactElement } from "react";
 import { formatArs } from "../shared/utils/format";
+import { AgendaPage } from "../features/agenda/AgendaPage";
+import { LoginForm } from "../features/auth/LoginForm";
+import {
+  ReservarWizard,
+  TurnoPublicoPage as TurnoPublicoDetalle,
+} from "../features/reserva-publica";
 
 export function LoginPage(): ReactElement {
-  return (
-    <section>
-      <h1>Ingresá a tu cuenta</h1>
-      <p>Si sos parte del equipo del consultorio, iniciá sesión para ver la agenda.</p>
-    </section>
-  );
+  return <LoginForm />;
 }
 
 export function AppHomePage(): ReactElement {
-  return (
-    <section>
-      <h1>Agenda del día</h1>
-      <p>Acá vas a ver los turnos de hoy por sillón.</p>
-    </section>
-  );
+  return <AgendaPage />;
 }
 
 export function ReservarPage(): ReactElement {
-  const senaEjemplo = 5000;
-  return (
-    <section>
-      <h1>Reservá tu turno</h1>
-      <p>Elegí el día y la hora que te quede cómoda. Te lo confirmamos por WhatsApp.</p>
-      <p>Seña para reservar: {formatArs(senaEjemplo)}. La seña no es reembolsable si cancelás fuera de término.</p>
-    </section>
-  );
+  return <ReservarWizard />;
 }
 
 export function TurnoPublicoPage(): ReactElement {
-  return (
-    <section>
-      <h1>Tu turno</h1>
-      <p>Acá podés confirmar, cancelar o reprogramar tu turno sin llamar al consultorio.</p>
-    </section>
-  );
+  return <TurnoPublicoDetalle />;
 }
 
 export function PresupuestoPublicoPage(): ReactElement {

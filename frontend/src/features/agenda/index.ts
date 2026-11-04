@@ -1,1 +1,1 @@
-export const FEATURE_NAME = "agenda";
+export { AgendaPage } from "./AgendaPage";

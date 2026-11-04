@@ -1,7 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { AppRouter } from "./app/router";
+import { useAuthStore } from "./app/AuthContext";
 import "./index.css";
+
+useAuthStore.getState().hydrate();
 
 const rootElement = document.getElementById("root");
 

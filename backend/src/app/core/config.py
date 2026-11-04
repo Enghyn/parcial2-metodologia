@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     jwt_expire_min: int = Field(default=60)
     cors_origins: str = Field(default="http://localhost:5173")
     app_env: str = Field(default="local")
+    public_slot_start: str = Field(default="08:00")
+    public_slot_end: str = Field(default="20:00")
+    public_slot_grid_min: int = Field(default=30, gt=0)
 
     @model_validator(mode="after")
     def _rechazar_secreto_jwt_inseguro_en_produccion(self) -> Settings:

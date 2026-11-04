@@ -63,9 +63,9 @@ El plan de implementación académico simplificado está en [CHANGES.md](CHANGES
   - `C-01-foundation-setup` [x] (Completado y archivado)
   - `C-02-core-models-seed` [x] (Completado y archivado): Entidades SQLAlchemy, migraciones Alembic y seed inicial (sillones, usuarios y profesionales).
   - `C-03-auth-jwt-roles` [x] (Completado y archivado): Login JWT Bearer y dependencias de autorización RBAC (`admin`, `recepcion`, `odontologo`).
-  - `C-04-agenda-servicio-antisolapamiento`: Capa de servicios y endpoints de turnos con validación estricta de solapamiento (sillón y profesional) + tests unitarios.
-  - `C-05-agenda-frontend-interna`: Visualización de agenda en columnas por sillón, creación y cambio de estados de turnos en React.
-  - `C-06-reserva-online-publica`: Portal público `/reservar` sin login, consulta de turnos por token y enlace directo a WhatsApp (`wa.me/`).
+  - `C-04-agenda-servicio-antisolapamiento` [x] (Completado y archivado): Capa de servicios y endpoints de turnos con validación estricta de solapamiento (sillón y profesional) + tests unitarios.
+  - `C-05-agenda-frontend-interna` [x] (Completado y archivado): Visualización de agenda en columnas por sillón, creación y cambio de estados de turnos en React.
+  - `C-06-reserva-online-publica` [x] (Completado y archivado): Portal público `/reservar` sin login, consulta de turnos por token y enlace directo a WhatsApp (`wa.me/`).
   - `C-07-clinica-odontograma`: Gestión de pacientes, ficha médica y odontograma interactivo esquemático FDI (piezas 11 a 48).
   - `C-08-caja-movimientos-balance`: Registro de ingresos/egresos, señas vinculadas a turnos y arqueo diario de caja.
 

@@ -1,8 +1,8 @@
 import type { ReactElement } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppLayout, PublicLayout, RequireAuth } from "./layout";
+import { AgendaPage } from "../features/agenda/AgendaPage";
 import {
-  AppHomePage,
   LoginPage,
   PagarPage,
   PresupuestoPublicoPage,
@@ -18,11 +18,11 @@ export function AppRouter(): ReactElement {
         <Route element={<RequireAuth />}>
           <Route path="/app" element={<AppLayout />}>
             <Route index element={<Navigate to="/app/agenda" replace />} />
-            <Route path="agenda" element={<AppHomePage />} />
+            <Route path="agenda" element={<AgendaPage />} />
           </Route>
         </Route>
         <Route element={<PublicLayout />}>
-          <Route path="/reservar/:slug" element={<ReservarPage />} />
+          <Route path="/reservar" element={<ReservarPage />} />
           <Route path="/p/turno/:token" element={<TurnoPublicoPage />} />
           <Route path="/p/presupuesto/:token" element={<PresupuestoPublicoPage />} />
           <Route path="/p/pagar/:token" element={<PagarPage />} />
