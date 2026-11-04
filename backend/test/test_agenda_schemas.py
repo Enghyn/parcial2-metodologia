@@ -1,5 +1,5 @@
 """TDD C-04 grupo 3 — schemas Pydantic de agenda (R1 extra="forbid")."""
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from uuid import uuid4
 
@@ -16,7 +16,7 @@ from app.modules.agenda.schemas import (
 
 
 def _now() -> datetime:
-    return datetime(2026, 11, 3, 10, 0, tzinfo=timezone.utc)
+    return datetime(2026, 11, 3, 10, 0, tzinfo=UTC)
 
 
 def test_turno_create_extra_forbid() -> None:
@@ -105,8 +105,8 @@ def test_turno_estado_update_extra_forbid_y_valores() -> None:
         TurnoEstadoUpdate(estado="no-existe")
 
 
-def test_turno_create_normaliza_naive_a_utc() -> None:
-    naive = datetime(2026, 11, 3, 10, 0)  # sin tz
+def test_turno_create_normaliza_naive_a_art() -> None:
+    naive = datetime(2026, 11, 3, 10, 0)  # noqa: DTZ001  (sin tz a propósito)
     t = TurnoCreate(
         paciente_id=uuid4(),
         profesional_id=uuid4(),
@@ -116,6 +116,8 @@ def test_turno_create_normaliza_naive_a_utc() -> None:
         duracion_min=30,
     )
     assert t.inicio.tzinfo is not None
+    assert t.inicio.utcoffset() == timedelta(hours=-3)
+    assert t.inicio.astimezone(UTC).hour == 13
 
 
 def test_turno_create_sena_monto_default() -> None:

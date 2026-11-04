@@ -5,7 +5,7 @@ from datetime import date
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.deps import require_role
@@ -98,7 +98,6 @@ def eliminar_bloqueo(
 ) -> None:
     servicio = TurnoService(db)
     servicio.eliminar_bloqueo(bloqueo_id)
-    return None
 
 
 __all__ = ["router"]

@@ -4,10 +4,12 @@ R1: TODOS los schemas de API declaran `extra="forbid"`.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from app.core.timezone import normalizar_entrada
 
 
 class PacientePublicoIn(BaseModel):
@@ -36,9 +38,7 @@ class ReservaCreate(BaseModel):
     @field_validator("inicio")
     @classmethod
     def _normalizar_inicio(cls, valor: datetime) -> datetime:
-        if valor.tzinfo is None:
-            return valor.replace(tzinfo=timezone.utc)
-        return valor
+        return normalizar_entrada(valor)
 
 
 class SlotOut(BaseModel):

@@ -1,5 +1,5 @@
 """TDD C-06 grupos 3-5 — endpoints públicos (HTTP real con httpx + ASGI, sin auth)."""
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
@@ -10,6 +10,8 @@ from app.db.session import get_session_factory
 from app.main import create_app
 from app.modules.agenda.models import Profesional, Sillon, Turno
 from app.modules.clinica.models import Paciente
+
+pytestmark = [pytest.mark.integration, pytest.mark.usefixtures("db_disponible")]
 
 BASE = "/api/v1/public"
 
@@ -103,7 +105,7 @@ async def test_reservar_201_sin_datos_sensibles() -> None:
     app = app_fresco()
     ids = _seed_ids()
     dni = _dni_unico()
-    inicio = datetime(2027, 10, 2, 9, 0, tzinfo=timezone.utc)
+    inicio = datetime(2027, 10, 2, 9, 0, tzinfo=UTC)
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         r = await client.post(f"{BASE}/reservar", json=_payload(ids, inicio, dni))
     assert r.status_code == 201, r.text
@@ -120,7 +122,7 @@ async def test_reservar_campo_extra_422() -> None:
     app = app_fresco()
     ids = _seed_ids()
     dni = _dni_unico()
-    payload = _payload(ids, datetime(2027, 10, 3, 9, 0, tzinfo=timezone.utc), dni)
+    payload = _payload(ids, datetime(2027, 10, 3, 9, 0, tzinfo=UTC), dni)
     payload["foo"] = "bar"
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         r = await client.post(f"{BASE}/reservar", json=payload)
@@ -131,7 +133,7 @@ async def test_reservar_campo_extra_422() -> None:
 async def test_reservar_faltan_campos_422() -> None:
     app = app_fresco()
     ids = _seed_ids()
-    payload = _payload(ids, datetime(2027, 10, 4, 9, 0, tzinfo=timezone.utc), _dni_unico())
+    payload = _payload(ids, datetime(2027, 10, 4, 9, 0, tzinfo=UTC), _dni_unico())
     payload["paciente"].pop("telefono")
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         r = await client.post(f"{BASE}/reservar", json=payload)
@@ -143,7 +145,7 @@ async def test_get_turno_por_token_200_y_404() -> None:
     app = app_fresco()
     ids = _seed_ids()
     dni = _dni_unico()
-    inicio = datetime(2027, 10, 5, 9, 0, tzinfo=timezone.utc)
+    inicio = datetime(2027, 10, 5, 9, 0, tzinfo=UTC)
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         r = await client.post(f"{BASE}/reservar", json=_payload(ids, inicio, dni))
         assert r.status_code == 201, r.text
@@ -162,7 +164,7 @@ async def test_cancelar_por_token_200_y_409() -> None:
     app = app_fresco()
     ids = _seed_ids()
     dni = _dni_unico()
-    inicio = datetime(2027, 10, 6, 9, 0, tzinfo=timezone.utc)
+    inicio = datetime(2027, 10, 6, 9, 0, tzinfo=UTC)
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         r = await client.post(f"{BASE}/reservar", json=_payload(ids, inicio, dni))
         assert r.status_code == 201, r.text

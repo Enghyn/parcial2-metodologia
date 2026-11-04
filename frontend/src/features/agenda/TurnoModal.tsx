@@ -3,6 +3,7 @@ import type { ReactElement, FormEvent } from "react";
 import { useEffect, useState } from "react";
 import type { Catalogos } from "./types";
 import type { TurnoCreateInput } from "../../shared/api/agenda";
+import { localInputToUtc } from "./dateUtils";
 
 interface TurnoModalProps {
   open: boolean;
@@ -68,7 +69,7 @@ export function TurnoModal({ open, catalogos, onClose, onCrear }: TurnoModalProp
     }
     setPending(true);
     try {
-      const isoInicio = new Date(form.inicio).toISOString();
+      const isoInicio = localInputToUtc(form.inicio);
       const input: TurnoCreateInput = {
         paciente_id: form.paciente_id,
         profesional_id: form.profesional_id,

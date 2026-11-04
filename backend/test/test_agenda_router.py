@@ -1,24 +1,27 @@
 """TDD C-04 grupo 5 — endpoints de agenda (HTTP real con httpx + ASGI)."""
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import select
 
-from app.core.deps import get_current_user, require_role
+from app.core.deps import get_current_user
+from app.core.timezone import TZ_CONSULTORIO
 from app.db.session import get_session_factory
 from app.main import create_app
 from app.modules.admin.models import Usuario
 from app.modules.agenda.models import Bloqueo, Profesional, Sillon, Turno
 from app.modules.clinica.models import Paciente
 
+pytestmark = [pytest.mark.integration, pytest.mark.usefixtures("db_disponible")]
+
 BASE = "/api/v1"
 
 # Rango de fechas que usan los tests de este módulo. El fixture limpiador
 # borra solo lo que vive acá para no tocar datos de demo ni de otros tests.
-_RANGO_DESDE = datetime(2027, 1, 9, tzinfo=timezone.utc)
-_RANGO_HASTA = datetime(2027, 1, 21, tzinfo=timezone.utc)
+_RANGO_DESDE = datetime(2027, 1, 9, tzinfo=UTC)
+_RANGO_HASTA = datetime(2027, 1, 21, tzinfo=UTC)
 
 
 def _limpiar_datos_de_prueba() -> None:
@@ -90,7 +93,12 @@ def _seed_ids() -> dict:
         session.close()
 
 
-IDS = _seed_ids()
+IDS: dict = {}
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _cargar_ids(db_disponible) -> None:
+    IDS.update(_seed_ids())
 
 
 def _turno_payload(sillon, prof, paciente, inicio, duracion=30) -> dict:
@@ -113,7 +121,7 @@ async def test_crear_hueco_libre_201() -> None:
     app = app_fresco()
     app.dependency_overrides[get_current_user] = lambda: usuario_en_memoria("recepcion")
     ids = IDS
-    inicio = datetime(2027, 1, 10, 9, 0, tzinfo=timezone.utc)
+    inicio = datetime(2027, 1, 10, 9, 0, tzinfo=UTC)
     payload = _turno_payload(ids["sillon_a"], ids["prof_a"], ids["paciente"], inicio)
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         r = await _post_turno(client, payload, {"Authorization": "Bearer t"})
@@ -128,7 +136,7 @@ async def test_conflicto_mismo_sillon_409() -> None:
     app = app_fresco()
     app.dependency_overrides[get_current_user] = lambda: usuario_en_memoria("recepcion")
     ids = IDS
-    inicio = datetime(2027, 1, 11, 9, 0, tzinfo=timezone.utc)
+    inicio = datetime(2027, 1, 11, 9, 0, tzinfo=UTC)
     payload = _turno_payload(ids["sillon_a"], ids["prof_a"], ids["paciente"], inicio)
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         r1 = await _post_turno(client, payload, {"Authorization": "Bearer t"})
@@ -146,7 +154,7 @@ async def test_conflicto_mismo_profesional_distinto_sillon_409() -> None:
     app = app_fresco()
     app.dependency_overrides[get_current_user] = lambda: usuario_en_memoria("recepcion")
     ids = IDS
-    inicio = datetime(2027, 1, 12, 9, 0, tzinfo=timezone.utc)
+    inicio = datetime(2027, 1, 12, 9, 0, tzinfo=UTC)
     payload = _turno_payload(ids["sillon_a"], ids["prof_a"], ids["paciente"], inicio)
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         r1 = await _post_turno(client, payload, {"Authorization": "Bearer t"})
@@ -162,7 +170,7 @@ async def test_mismo_horario_distinto_recurso_ok() -> None:
     app = app_fresco()
     app.dependency_overrides[get_current_user] = lambda: usuario_en_memoria("recepcion")
     ids = IDS
-    inicio = datetime(2027, 1, 13, 9, 0, tzinfo=timezone.utc)
+    inicio = datetime(2027, 1, 13, 9, 0, tzinfo=UTC)
     payload1 = _turno_payload(ids["sillon_a"], ids["prof_a"], ids["paciente"], inicio)
     payload2 = _turno_payload(ids["sillon_b"], ids["prof_b"], ids["paciente"], inicio)
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
@@ -177,7 +185,7 @@ async def test_creacion_sobre_turno_cancelado_ok() -> None:
     app = app_fresco()
     app.dependency_overrides[get_current_user] = lambda: usuario_en_memoria("recepcion")
     ids = IDS
-    inicio = datetime(2027, 1, 14, 9, 0, tzinfo=timezone.utc)
+    inicio = datetime(2027, 1, 14, 9, 0, tzinfo=UTC)
     payload = _turno_payload(ids["sillon_a"], ids["prof_a"], ids["paciente"], inicio)
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         r1 = await _post_turno(client, payload, {"Authorization": "Bearer t"})
@@ -204,7 +212,7 @@ async def test_rol_insuficiente_403() -> None:
     app = app_fresco()
     app.dependency_overrides[get_current_user] = lambda: usuario_en_memoria("odontologo")
     ids = IDS
-    inicio = datetime(2027, 1, 15, 9, 0, tzinfo=timezone.utc)
+    inicio = datetime(2027, 1, 15, 9, 0, tzinfo=UTC)
     payload = _turno_payload(ids["sillon_a"], ids["prof_a"], ids["paciente"], inicio)
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         r = await _post_turno(client, payload, {"Authorization": "Bearer t"})
@@ -217,7 +225,7 @@ async def test_campo_extra_422() -> None:
     app = app_fresco()
     app.dependency_overrides[get_current_user] = lambda: usuario_en_memoria("recepcion")
     ids = IDS
-    inicio = datetime(2027, 1, 16, 9, 0, tzinfo=timezone.utc)
+    inicio = datetime(2027, 1, 16, 9, 0, tzinfo=UTC)
     payload = _turno_payload(ids["sillon_a"], ids["prof_a"], ids["paciente"], inicio)
     payload["foo"] = "bar"
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
@@ -240,7 +248,7 @@ async def test_bloqueo_post_delete() -> None:
     app = app_fresco()
     app.dependency_overrides[get_current_user] = lambda: usuario_en_memoria("recepcion")
     ids = IDS
-    inicio = datetime(2027, 1, 17, 9, 0, tzinfo=timezone.utc)
+    inicio = datetime(2027, 1, 17, 9, 0, tzinfo=UTC)
     fin = inicio + timedelta(minutes=60)
     payload = {
         "sillon_id": str(ids["sillon_a"].id),
@@ -283,7 +291,7 @@ async def test_patch_estado_exitoso() -> None:
     app = app_fresco()
     app.dependency_overrides[get_current_user] = lambda: usuario_en_memoria("recepcion")
     ids = IDS
-    inicio = datetime(2027, 1, 18, 9, 0, tzinfo=timezone.utc)
+    inicio = datetime(2027, 1, 18, 9, 0, tzinfo=UTC)
     payload = _turno_payload(ids["sillon_a"], ids["prof_a"], ids["paciente"], inicio)
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         r1 = await _post_turno(client, payload, {"Authorization": "Bearer t"})
@@ -299,7 +307,7 @@ async def test_bloqueo_turno_conflicto_409() -> None:
     app = app_fresco()
     app.dependency_overrides[get_current_user] = lambda: usuario_en_memoria("recepcion")
     ids = IDS
-    inicio = datetime(2027, 1, 19, 9, 0, tzinfo=timezone.utc)
+    inicio = datetime(2027, 1, 19, 9, 0, tzinfo=UTC)
     fin = inicio + timedelta(minutes=30)
     bloqueo_payload = {
         "sillon_id": str(ids["sillon_a"].id),
@@ -314,3 +322,33 @@ async def test_bloqueo_turno_conflicto_409() -> None:
         rt = await _post_turno(client, turno_payload, {"Authorization": "Bearer t"})
     assert rt.status_code == 409
     assert "bloqueado" in rt.json()["error"]["message"]
+
+
+@pytest.mark.asyncio
+async def test_turno_inicio_pasado_422() -> None:
+    app = app_fresco()
+    app.dependency_overrides[get_current_user] = lambda: usuario_en_memoria("recepcion")
+    ids = IDS
+    inicio = datetime(2020, 1, 1, 9, 0, tzinfo=TZ_CONSULTORIO)
+    payload = _turno_payload(ids["sillon_a"], ids["prof_a"], ids["paciente"], inicio)
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        r = await _post_turno(client, payload, {"Authorization": "Bearer t"})
+    assert r.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_turno_recurso_inexistente_404() -> None:
+    app = app_fresco()
+    app.dependency_overrides[get_current_user] = lambda: usuario_en_memoria("recepcion")
+    ids = IDS
+    payload = {
+        "paciente_id": str(ids["paciente"].id),
+        "profesional_id": str(ids["prof_a"].id),
+        "sillon_id": str(uuid4()),
+        "prestacion": "Consulta",
+        "inicio": datetime(2027, 1, 20, 9, 0, tzinfo=TZ_CONSULTORIO).isoformat(),
+        "duracion_min": 30,
+    }
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        r = await _post_turno(client, payload, {"Authorization": "Bearer t"})
+    assert r.status_code == 404

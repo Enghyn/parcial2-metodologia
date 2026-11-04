@@ -1,5 +1,5 @@
 """TDD C-06 grupo 5 — schemas públicos con extra='forbid' (R1)."""
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
@@ -16,7 +16,7 @@ def _reserva_valida() -> dict:
     return {
         "prestacion": "Consulta",
         "duracion_min": 30,
-        "inicio": datetime(2027, 7, 1, 9, 0, tzinfo=timezone.utc).isoformat(),
+        "inicio": datetime(2027, 7, 1, 9, 0, tzinfo=UTC).isoformat(),
         "profesional_id": str(uuid4()),
         "sillon_id": str(uuid4()),
         "paciente": _paciente_valido(),
@@ -56,9 +56,10 @@ def test_reserva_duracion_no_positiva() -> None:
         ReservaCreate(**datos)
 
 
-def test_reserva_normaliza_inicio_naive_a_utc() -> None:
+def test_reserva_normaliza_inicio_naive_a_art() -> None:
     datos = _reserva_valida()
     datos["inicio"] = "2027-07-01T09:00:00"
     reserva = ReservaCreate(**datos)
     assert reserva.inicio.tzinfo is not None
     assert reserva.inicio.utcoffset() is not None
+    assert reserva.inicio.utcoffset().total_seconds() == -3 * 3600

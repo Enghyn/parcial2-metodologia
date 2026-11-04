@@ -63,15 +63,27 @@ El sistema SHALL exponer `POST /api/v1/public/reservar` que, con datos válidos,
 
 ### Requirement: Find-or-create de paciente por DNI
 
-El sistema SHALL reutilizar un `Paciente` existente cuyo DNI coincida con el de la reserva (sin duplicar), actualizando `telefono` (y `email` si se provee); si no existe, SHALL crearlo. No se exponen datos sensibles en la respuesta.
+El sistema SHALL reutilizar un `Paciente` activo existente cuyo DNI coincida con el de la reserva **sin modificar** sus datos de contacto; SHALL crear uno nuevo solo si no existe; y si el DNI pertenece a una ficha con borrado lógico SHALL responder 409 sin reactivarla ni exponer datos sensibles.
 
 #### Scenario: Paciente existente reutilizado
-- **WHEN** se reserva con un DNI ya registrado
-- **THEN** no se crea un paciente duplicado y el turno se asocia al existente
+
+- **WHEN** se reserva con un DNI ya registrado y un teléfono o email distintos a los almacenados
+- **THEN** el turno se asocia al paciente existente, no se crea un duplicado y sus datos de contacto no cambian
 
 #### Scenario: Paciente nuevo creado
+
 - **WHEN** se reserva con un DNI no registrado
-- **THEN** se crea un nuevo `Paciente` y el turno se asocia a él
+- **THEN** se crea un nuevo `Paciente` con los datos enviados y el turno se asocia a él
+
+#### Scenario: DNI de ficha borrada lógicamente
+
+- **WHEN** se reserva con el DNI de un paciente que tiene `deleted_at` no nulo
+- **THEN** la API responde 409 con un mensaje que invita a contactar al consultorio, sin reactivar la ficha ni modificarla
+
+#### Scenario: Email opcional no borra el existente
+
+- **WHEN** se reserva con un DNI existente sin enviar email
+- **THEN** el email almacenado del paciente permanece intacto
 
 ### Requirement: Vista pública de turno por token
 
@@ -140,3 +152,26 @@ Las superficies públicas SHALL estar en español rioplatense y los montos en AR
 #### Scenario: Idioma de superficie
 - **WHEN** un paciente accede al portal público
 - **THEN** los textos se muestran en español rioplatense
+
+### Requirement: Disponibilidad pública en ART
+
+El sistema SHALL generar los slots de `GET /api/v1/public/disponibilidad` en `America/Argentina/Buenos_Aires`, exponerlos como instantes UTC correctos y SHALL omitir los slots cuyo inicio ya pasó.
+
+#### Scenario: Slot de las 09:00 ART
+
+- **WHEN** se consulta disponibilidad para un día con capacidad a las 09:00 ART
+- **THEN** el slot se serializa como `12:00:00Z` y el portal lo muestra como `09:00`
+
+#### Scenario: Slot pasado excluido
+
+- **WHEN** se consulta la disponibilidad del día actual después de las 09:00 ART
+- **THEN** el slot de las 09:00 no se devuelve
+
+### Requirement: Confirmación pública en ART
+
+La vista `/p/turno/:token` SHALL mostrar la fecha y la hora del turno en `America/Argentina/Buenos_Aires`, independientemente de la zona del navegador.
+
+#### Scenario: Confirmación de las 09:00 ART
+
+- **WHEN** el turno tiene `inicio = 2027-01-10T12:00:00Z`
+- **THEN** la confirmación muestra `09:00` y la fecha del 10 de enero de 2027

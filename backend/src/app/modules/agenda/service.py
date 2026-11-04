@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from datetime import date, datetime, time, timedelta, timezone
+from datetime import date, datetime, timedelta
 from typing import Any
 from uuid import UUID
 
@@ -10,8 +10,10 @@ from fastapi import HTTPException, status
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
-from app.modules.agenda.models import Bloqueo, Turno
+from app.core.timezone import ahora, fin_dia, inicio_dia, normalizar_entrada
+from app.modules.agenda.models import Bloqueo, Profesional, Sillon, Turno
 from app.modules.agenda.schemas import BloqueoCreate, TurnoCreate
+from app.modules.clinica.models import Paciente
 
 
 def solapamiento(inicio_a: datetime, fin_a: datetime, inicio_b: datetime, fin_b: datetime) -> bool:
@@ -74,16 +76,34 @@ class TurnoService:
             if isinstance(fecha, datetime):
                 fecha = fecha.date()
             if isinstance(fecha, date):
-                start = datetime.combine(fecha, time.min, tzinfo=timezone.utc)
-                end = start + timedelta(days=1)
-                stmt = stmt.where(Turno.inicio >= start, Turno.inicio < end)
+                stmt = stmt.where(Turno.inicio >= inicio_dia(fecha), Turno.inicio < fin_dia(fecha))
         stmt = stmt.order_by(Turno.inicio)
         return list(self.db.scalars(stmt))
 
+    def _recurso_vigente(self, modelo: Any, recurso_id: UUID, nombre: str) -> None:
+        recurso = self.db.scalar(
+            select(modelo).where(
+                modelo.id == recurso_id,
+                modelo.deleted_at.is_(None),
+                modelo.activo.is_(True),
+            )
+        )
+        if recurso is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"{nombre} no encontrado o inactivo",
+            )
+
     def crear(self, datos: TurnoCreate) -> Turno:
-        inicio = datos.inicio
-        if inicio.tzinfo is None:
-            inicio = inicio.replace(tzinfo=timezone.utc)
+        inicio = normalizar_entrada(datos.inicio)
+        if inicio <= ahora():
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="El turno debe tener un inicio futuro",
+            )
+        self._recurso_vigente(Sillon, datos.sillon_id, "Sillón")
+        self._recurso_vigente(Profesional, datos.profesional_id, "Profesional")
+        self._recurso_vigente(Paciente, datos.paciente_id, "Paciente")
         fin = inicio + timedelta(minutes=datos.duracion_min)
 
         stmt_turnos = select(Turno).where(
@@ -137,12 +157,8 @@ class TurnoService:
         return turno
 
     def crear_bloqueo(self, datos: BloqueoCreate) -> Bloqueo:
-        desde = datos.desde
-        hasta = datos.hasta
-        if desde.tzinfo is None:
-            desde = desde.replace(tzinfo=timezone.utc)
-        if hasta.tzinfo is None:
-            hasta = hasta.replace(tzinfo=timezone.utc)
+        desde = normalizar_entrada(datos.desde)
+        hasta = normalizar_entrada(datos.hasta)
         bloqueo = Bloqueo(
             sillon_id=datos.sillon_id,
             profesional_id=datos.profesional_id,
@@ -163,4 +179,4 @@ class TurnoService:
         self.db.commit()
 
 
-__all__ = ["solapamiento", "detectar_conflicto", "TurnoService"]
+__all__ = ["TurnoService", "detectar_conflicto", "solapamiento"]

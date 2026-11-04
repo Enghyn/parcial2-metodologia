@@ -7,7 +7,7 @@ antisolapamiento vive en un único lugar. Los helpers `generar_inicios` y
 from __future__ import annotations
 
 from collections.abc import Iterable
-from datetime import date, datetime, time, timedelta, timezone
+from datetime import date, datetime, time, timedelta
 from uuid import UUID
 
 from fastapi import HTTPException, status
@@ -15,6 +15,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
+from app.core.timezone import ahora, combinar, fin_dia, inicio_dia
 from app.modules.agenda.models import Bloqueo, Profesional, Sillon, Turno
 from app.modules.agenda.schemas import TurnoCreate
 from app.modules.agenda.service import TurnoService, solapamiento
@@ -108,8 +109,8 @@ class PublicReservaService:
         grid = settings.public_slot_grid_min if settings.public_slot_grid_min > 0 else 30
         inicios = generar_inicios(start, end, grid, duracion_min)
 
-        day_start = datetime.combine(fecha, time.min, tzinfo=timezone.utc)
-        day_end = day_start + timedelta(days=1)
+        day_start = inicio_dia(fecha)
+        day_end = fin_dia(fecha)
 
         profesionales = list(
             self.db.scalars(
@@ -148,7 +149,9 @@ class PublicReservaService:
         slots: list[SlotOut] = []
         for profesional in profesionales:
             for hora in inicios:
-                inicio = datetime.combine(fecha, hora, tzinfo=timezone.utc)
+                inicio = combinar(fecha, hora)
+                if inicio <= ahora():
+                    continue
                 fin = inicio + timedelta(minutes=duracion_min)
                 for sillon in sillones:
                     if slot_libre(turnos, bloqueos, sillon.id, profesional.id, inicio, fin):
@@ -180,24 +183,24 @@ class PublicReservaService:
                 Paciente.dni == datos.dni, Paciente.deleted_at.is_(None)
             )
         )
-        if paciente is None:
-            # Reactivar un paciente borrado lógicamente con el mismo DNI (R13).
-            paciente = self.db.scalar(select(Paciente).where(Paciente.dni == datos.dni))
-            if paciente is not None:
-                paciente.deleted_at = None
-                paciente.activo = True
-            else:
-                paciente = Paciente(
-                    nombre=datos.nombre,
-                    dni=datos.dni,
-                    telefono=datos.telefono,
-                    email=datos.email,
-                )
-                self.db.add(paciente)
+        if paciente is not None:
+            # R9/privacidad: el portal anónimo no puede sobrescribir datos ajenos.
+            return paciente
 
-        paciente.telefono = datos.telefono
-        if datos.email is not None:
-            paciente.email = datos.email
+        borrado = self.db.scalar(select(Paciente).where(Paciente.dni == datos.dni))
+        if borrado is not None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="El DNI figura en una ficha dada de baja. Contactá al consultorio para actualizarla.",
+            )
+
+        paciente = Paciente(
+            nombre=datos.nombre,
+            dni=datos.dni,
+            telefono=datos.telefono,
+            email=datos.email,
+        )
+        self.db.add(paciente)
         self.db.flush()
         return paciente
 

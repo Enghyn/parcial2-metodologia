@@ -2,7 +2,7 @@
 
 Requiere base migrada + seeded (alembic upgrade head + python -m app.db.seed).
 """
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from uuid import uuid4
 
 import pytest
@@ -10,13 +10,16 @@ from fastapi import HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.core.timezone import TZ_CONSULTORIO
 from app.db.session import get_session_factory
-from app.modules.agenda.models import Bloqueo, Profesional, Sillon, Turno
+from app.modules.agenda.models import Profesional, Sillon, Turno
 from app.modules.agenda.schemas import BloqueoCreate, TurnoCreate
 from app.modules.agenda.service import TurnoService
 from app.modules.clinica.models import Paciente
 from app.modules.public.schemas import PacientePublicoIn, ReservaCreate
 from app.modules.public.service import PublicReservaService
+
+pytestmark = [pytest.mark.integration, pytest.mark.usefixtures("db_disponible")]
 
 
 def _session() -> Session:
@@ -56,6 +59,8 @@ def _reserva(
     dni: str | None = None,
     duracion: int = 30,
     nombre: str = "Paciente Público",
+    telefono: str = "1144556677",
+    email: str | None = None,
 ) -> ReservaCreate:
     return ReservaCreate(
         prestacion="Consulta",
@@ -66,7 +71,8 @@ def _reserva(
         paciente=PacientePublicoIn(
             nombre=nombre,
             dni=dni or _dni_unico(),
-            telefono="1144556677",
+            telefono=telefono,
+            email=email,
         ),
     )
 
@@ -97,7 +103,7 @@ def test_disponibilidad_sin_capacidad() -> None:
     try:
         ids = _seed_ids(session)
         servicio = PublicReservaService(session)
-        day_start = datetime(2027, 9, 2, 0, 0, tzinfo=timezone.utc)
+        day_start = datetime(2027, 9, 2, 0, 0, tzinfo=UTC)
         day_end = day_start + timedelta(days=1)
         agenda = TurnoService(session)
         bloqueos = [
@@ -125,7 +131,7 @@ def test_disponibilidad_excluye_bloqueo_de_sillon() -> None:
     try:
         ids = _seed_ids(session)
         sillon = ids["sillones"][0]
-        inicio = datetime(2027, 9, 3, 9, 0, tzinfo=timezone.utc)
+        inicio = datetime(2027, 9, 3, 9, 0, tzinfo=TZ_CONSULTORIO)
         fin = inicio + timedelta(minutes=30)
         servicio = PublicReservaService(session)
         bloqueo = TurnoService(session).crear_bloqueo(
@@ -149,7 +155,7 @@ def test_turno_cancelado_libera_slot() -> None:
         sillon = ids["sillones"][0]
         prof = ids["profesionales"][0]
         paciente = ids["paciente"]
-        inicio = datetime(2027, 9, 4, 9, 0, tzinfo=timezone.utc)
+        inicio = datetime(2027, 9, 4, 9, 0, tzinfo=TZ_CONSULTORIO)
         agenda = TurnoService(session)
         turno = agenda.crear(
             TurnoCreate(
@@ -184,7 +190,7 @@ def test_find_or_create_paciente_reutiliza_por_dni() -> None:
             _reserva(
                 sillon_id=sillon.id,
                 profesional_id=prof.id,
-                inicio=datetime(2027, 9, 5, 9, 0, tzinfo=timezone.utc),
+                inicio=datetime(2027, 9, 5, 9, 0, tzinfo=UTC),
                 dni=dni,
             )
         )
@@ -192,7 +198,7 @@ def test_find_or_create_paciente_reutiliza_por_dni() -> None:
             _reserva(
                 sillon_id=sillon.id,
                 profesional_id=prof.id,
-                inicio=datetime(2027, 9, 5, 10, 0, tzinfo=timezone.utc),
+                inicio=datetime(2027, 9, 5, 10, 0, tzinfo=UTC),
                 dni=dni,
             )
         )
@@ -223,7 +229,7 @@ def test_reserva_crea_turno_reservado_con_token() -> None:
         sillon = ids["sillones"][0]
         prof = ids["profesionales"][0]
         dni = _dni_unico()
-        inicio = datetime(2027, 9, 6, 9, 0, tzinfo=timezone.utc)
+        inicio = datetime(2027, 9, 6, 9, 0, tzinfo=UTC)
         turno = PublicReservaService(session).reservar(
             _reserva(sillon_id=sillon.id, profesional_id=prof.id, inicio=inicio, dni=dni)
         )
@@ -247,7 +253,7 @@ def test_reserva_en_hueco_ocupado_409() -> None:
         ids = _seed_ids(session)
         sillon = ids["sillones"][0]
         prof = ids["profesionales"][0]
-        inicio = datetime(2027, 9, 7, 9, 0, tzinfo=timezone.utc)
+        inicio = datetime(2027, 9, 7, 9, 0, tzinfo=UTC)
         servicio = PublicReservaService(session)
         dni_ok = _dni_unico()
         dni_conflicto = _dni_unico()
@@ -290,7 +296,7 @@ def test_obtener_por_token_ok_y_404() -> None:
             _reserva(
                 sillon_id=sillon.id,
                 profesional_id=prof.id,
-                inicio=datetime(2027, 9, 8, 9, 0, tzinfo=timezone.utc),
+                inicio=datetime(2027, 9, 8, 9, 0, tzinfo=UTC),
                 dni=dni,
             )
         )
@@ -323,7 +329,7 @@ def test_cancelar_por_token_ok_y_409() -> None:
             _reserva(
                 sillon_id=sillon.id,
                 profesional_id=prof.id,
-                inicio=datetime(2027, 9, 9, 9, 0, tzinfo=timezone.utc),
+                inicio=datetime(2027, 9, 9, 9, 0, tzinfo=UTC),
                 dni=dni,
             )
         )
@@ -358,7 +364,7 @@ def test_cancelar_turno_atendido_409() -> None:
             _reserva(
                 sillon_id=sillon.id,
                 profesional_id=prof.id,
-                inicio=datetime(2027, 9, 10, 9, 0, tzinfo=timezone.utc),
+                inicio=datetime(2027, 9, 10, 9, 0, tzinfo=UTC),
                 dni=dni,
             )
         )
@@ -390,7 +396,7 @@ def test_to_public_no_expone_datos_sensibles() -> None:
             _reserva(
                 sillon_id=sillon.id,
                 profesional_id=prof.id,
-                inicio=datetime(2027, 9, 11, 9, 0, tzinfo=timezone.utc),
+                inicio=datetime(2027, 9, 11, 9, 0, tzinfo=UTC),
                 dni=dni,
             )
         )
@@ -407,5 +413,82 @@ def test_to_public_no_expone_datos_sensibles() -> None:
             if paciente is not None:
                 paciente.soft_delete()
             session.commit()
+    finally:
+        session.close()
+
+
+def test_reserva_existente_no_sobrescribe_contacto() -> None:
+    session = _session()
+    try:
+        ids = _seed_ids(session)
+        sillon = ids["sillones"][0]
+        prof = ids["profesionales"][0]
+        dni = _dni_unico()
+        paciente = Paciente(
+            nombre="Original",
+            dni=dni,
+            telefono="1100000000",
+            email="original@test.com",
+            activo=True,
+        )
+        session.add(paciente)
+        session.commit()
+        servicio = PublicReservaService(session)
+        turno = servicio.reservar(
+            _reserva(
+                sillon_id=sillon.id,
+                profesional_id=prof.id,
+                inicio=datetime(2027, 9, 12, 9, 0, tzinfo=UTC),
+                dni=dni,
+                nombre="Intruso",
+                telefono="1199999999",
+                email="nuevo@test.com",
+            )
+        )
+        try:
+            session.refresh(paciente)
+            assert paciente.nombre == "Original"
+            assert paciente.telefono == "1100000000"
+            assert paciente.email == "original@test.com"
+            assert turno.paciente_id == paciente.id
+        finally:
+            turno.soft_delete()
+            paciente.soft_delete()
+            session.commit()
+    finally:
+        session.close()
+
+
+def test_reserva_dni_borrado_responde_409_sin_reactivar() -> None:
+    session = _session()
+    try:
+        ids = _seed_ids(session)
+        sillon = ids["sillones"][0]
+        prof = ids["profesionales"][0]
+        dni = _dni_unico()
+        paciente = Paciente(nombre="Borrado", dni=dni, telefono="1100000000", activo=True)
+        session.add(paciente)
+        session.commit()
+        paciente.soft_delete()
+        session.commit()
+        servicio = PublicReservaService(session)
+        with pytest.raises(HTTPException) as exc:
+            servicio.reservar(
+                _reserva(
+                    sillon_id=sillon.id,
+                    profesional_id=prof.id,
+                    inicio=datetime(2027, 9, 13, 9, 0, tzinfo=UTC),
+                    dni=dni,
+                )
+            )
+        assert exc.value.status_code == 409
+        session.refresh(paciente)
+        assert paciente.deleted_at is not None
+        assert (
+            session.scalar(
+                select(func.count()).select_from(Turno).where(Turno.paciente_id == paciente.id)
+            )
+            == 0
+        )
     finally:
         session.close()

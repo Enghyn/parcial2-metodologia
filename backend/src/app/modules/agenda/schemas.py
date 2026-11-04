@@ -4,17 +4,19 @@ R1: TODOS los schemas de API declaran `extra="forbid"`.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime
 from decimal import Decimal
 from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from app.core.timezone import normalizar_entrada
 
-def _a_utc(valor: object) -> object:
-    if isinstance(valor, datetime) and valor.tzinfo is None:
-        return valor.replace(tzinfo=timezone.utc)
+
+def _a_art(valor: object) -> object:
+    if isinstance(valor, datetime):
+        return normalizar_entrada(valor)
     return valor
 
 
@@ -38,7 +40,7 @@ class TurnoCreate(BaseModel):
         if isinstance(data, dict):
             data = dict(data)
             if "inicio" in data:
-                data["inicio"] = _a_utc(data["inicio"])
+                data["inicio"] = _a_art(data["inicio"])
         return data
 
 
@@ -88,13 +90,13 @@ class BloqueoCreate(BaseModel):
         if isinstance(data, dict):
             data = dict(data)
             if "desde" in data:
-                data["desde"] = _a_utc(data["desde"])
+                data["desde"] = _a_art(data["desde"])
             if "hasta" in data:
-                data["hasta"] = _a_utc(data["hasta"])
+                data["hasta"] = _a_art(data["hasta"])
         return data
 
     @model_validator(mode="after")
-    def _validar(self) -> "BloqueoCreate":
+    def _validar(self) -> BloqueoCreate:
         if self.sillon_id is None and self.profesional_id is None:
             raise ValueError("Debe indicar sillon_id o profesional_id")
         if self.hasta <= self.desde:

@@ -8,7 +8,7 @@ import {
 } from "../../shared/api/public";
 import type { TurnoPublicoOut } from "../../shared/api/public";
 import { WhatsappButton } from "./WhatsappButton";
-import { formatFechaUtc, formatHoraUtc } from "./types";
+import { formatFecha, formatHora } from "./types";
 
 export function TurnoPublicoPage(): ReactElement {
   const { token } = useParams<{ token: string }>();
@@ -67,7 +67,7 @@ export function TurnoPublicoPage(): ReactElement {
         <div className="space-y-3 rounded border border-border p-4">
           <p className="text-lg font-medium">{turno.prestacion}</p>
           <p className="text-sm">
-            {formatFechaUtc(turno.inicio)} a las {formatHoraUtc(turno.inicio)} hs
+            {formatFecha(turno.inicio)} a las {formatHora(turno.inicio)} hs
           </p>
           <ul className="space-y-1 text-sm text-foreground/80">
             <li>Paciente: {turno.paciente_nombre}</li>

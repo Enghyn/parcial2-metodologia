@@ -1,7 +1,7 @@
 // Botón Click-to-Chat de WhatsApp con mensaje prearmado (RN-G-01, R10).
 import type { ReactElement } from "react";
 import type { TurnoPublicoOut } from "../../shared/api/public";
-import { formatFechaUtc, formatHoraUtc } from "./types";
+import { formatFecha, formatHora } from "./types";
 
 interface WhatsappButtonProps {
   turno: TurnoPublicoOut;
@@ -10,9 +10,9 @@ interface WhatsappButtonProps {
 export function WhatsappButton({ turno }: WhatsappButtonProps): ReactElement {
   const telefono = String(import.meta.env.VITE_WHATSAPP_CONSULTORIO ?? "").replace(/\D/g, "");
   const mensaje = encodeURIComponent(
-    `Hola, confirmo mi turno de ${turno.prestacion} el ${formatFechaUtc(
+    `Hola, confirmo mi turno de ${turno.prestacion} el ${formatFecha(
       turno.inicio,
-    )} a las ${formatHoraUtc(turno.inicio)} con ${turno.profesional_nombre}.`,
+    )} a las ${formatHora(turno.inicio)} con ${turno.profesional_nombre}.`,
   );
 
   if (telefono === "") {

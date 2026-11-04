@@ -3,17 +3,15 @@
 `solapamiento` y `detectar_conflicto` viven en `app.modules.agenda.service` y
 no importan FastAPI ni SQLAlchemy session: se testean con entidades en memoria.
 """
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
-
-import pytest
 
 from app.modules.agenda.models import Bloqueo, Turno
 from app.modules.agenda.service import detectar_conflicto, solapamiento
 
 
 def _dt(hora: int, minuto: int = 0) -> datetime:
-    return datetime(2026, 11, 3, hora, minuto, tzinfo=timezone.utc)
+    return datetime(2026, 11, 3, hora, minuto, tzinfo=UTC)
 
 
 def test_solapamiento_true() -> None:
@@ -59,9 +57,9 @@ def _turno(
         sena_monto=0,
     )
     if deleted:
-        from datetime import datetime as _dt2, timezone as _tz
+        from datetime import datetime as _dt2
 
-        t.deleted_at = _dt2.now(_tz.utc)
+        t.deleted_at = _dt2.now(UTC)
     return t
 
 

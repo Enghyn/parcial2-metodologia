@@ -115,6 +115,8 @@ alembic upgrade head
 
 - Es idempotente: si la base ya está al día, no hace nada.
 - Datos de demo opcionales (también idempotente): `python -m app.db.seed`.
+- Suite rápida sin base: `python -m pytest -m "not integration" -q`.
+- Suite completa (requiere base migrada y sembrada): `python -m pytest -q`.
 - Si falla la conexión, verificá `DATABASE_URL` y que PostgreSQL esté corriendo.
 - No corras `alembic -c backend/alembic.ini` desde la raíz: el cwd canónico es `backend/`.
 

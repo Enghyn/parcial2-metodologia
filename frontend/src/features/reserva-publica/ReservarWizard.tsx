@@ -8,7 +8,7 @@ import { PasoPrestacion } from "./steps/PasoPrestacion";
 import { PasoProfesional } from "./steps/PasoProfesional";
 import { PasoHorario } from "./steps/PasoHorario";
 import { PasoDatos } from "./steps/PasoDatos";
-import { formatFechaUtc, formatHoraUtc } from "./types";
+import { formatFecha, formatHora } from "./types";
 import type { DatosPaciente, Prestacion } from "./types";
 
 export function ReservarWizard(): ReactElement {
@@ -72,7 +72,7 @@ export function ReservarWizard(): ReactElement {
 
   const resumen =
     prestacion !== null && slot !== null
-      ? `${prestacion.nombre} · ${formatFechaUtc(slot.inicio)} a las ${formatHoraUtc(slot.inicio)}`
+      ? `${prestacion.nombre} · ${formatFecha(slot.inicio)} a las ${formatHora(slot.inicio)}`
       : "";
 
   return (

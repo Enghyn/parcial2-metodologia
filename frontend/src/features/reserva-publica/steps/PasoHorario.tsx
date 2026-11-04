@@ -6,7 +6,7 @@ import {
   listarProfesionalesPublicos,
 } from "../../../shared/api/public";
 import type { SlotPublico } from "../../../shared/api/public";
-import { formatHoraUtc, toIsoDate } from "../types";
+import { formatHora, toIsoDate } from "../types";
 
 interface PasoHorarioProps {
   duracionMin: number;
@@ -98,7 +98,7 @@ export function PasoHorario({
               onClick={() => onSelect(slot)}
               className="w-full rounded border border-border p-2 text-left hover:border-primary"
             >
-              <span className="block font-semibold">{formatHoraUtc(slot.inicio)}</span>
+              <span className="block font-semibold">{formatHora(slot.inicio)}</span>
               <span className="text-xs text-foreground/60">
                 {nombres[slot.profesional_id] ?? "Profesional"}
               </span>

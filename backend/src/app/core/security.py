@@ -6,7 +6,7 @@ nunca email, nombre ni `tenant_id` (R2, mono-consultorio, DD-02).
 """
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from typing import Final
 
 import bcrypt

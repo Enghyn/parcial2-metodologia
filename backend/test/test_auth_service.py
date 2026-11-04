@@ -8,7 +8,6 @@ normalización de email (trim + minúsculas) ANTES de la búsqueda.
 from uuid import uuid4
 
 import bcrypt
-import pytest
 
 from app.modules.admin.models import Usuario
 from app.modules.auth import service

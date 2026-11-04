@@ -87,6 +87,8 @@ cd backend
 pip install -e ".[dev]"   # solo si cambiaron dependencias
 alembic upgrade head
 python -m app.db.seed     # opcional: datos de demo, idempotente
+pytest -m "not integration" -q   # rápido, sin base
+pytest -q                        # completo, con base
 ```
 
 Si falla la conexión, revisá `DATABASE_URL` y que PostgreSQL esté corriendo. No corras `alembic -c backend/alembic.ini` desde la raíz: el cwd canónico es `backend/`.
@@ -122,7 +124,8 @@ Nunca commitear un `.env` real (ver `.gitignore`).
 
 | Chequeo | Comando (cwd canónico)              |
 |---------|---------------------------------------|
-| Backend tests | `pytest test -q` (cwd `backend/`) |
+| Backend unit | `pytest -m "not integration" -q` (cwd `backend/`, sin base) |
+| Backend integración | `pytest -q` (cwd `backend/`, requiere `alembic upgrade head` + seed) |
 | Backend lint  | `ruff check src test` (cwd `backend/`) |
 | Frontend tipos | `npx tsc --noEmit` (cwd `frontend/`) |
 | Frontend lint | `npm run lint` (cwd `frontend/`)  |

@@ -8,6 +8,7 @@ overrideado con un `Usuario` en memoria (sin tocar DB).
 Requiere: DATABASE_URL apuntando a una base migrated + seeded
 (`alembic upgrade head` + `python -m app.db.seed` desde `backend/`).
 """
+import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
 
@@ -15,6 +16,8 @@ from app.core.config import get_settings
 from app.core.deps import get_current_user, require_role
 from app.main import create_app
 from app.modules.admin.models import Usuario
+
+pytestmark = [pytest.mark.integration, pytest.mark.usefixtures("db_disponible")]
 
 LOGIN_URL = "/api/v1/auth/login"
 ME_URL = "/api/v1/auth/me"
@@ -188,8 +191,9 @@ async def test_endpoint_protegido_rol_admitido_avanza() -> None:
 
 
 def _pg_viva() -> bool:
-    from sqlalchemy import create_engine
     import os
+
+    from sqlalchemy import create_engine
 
     try:
         engine = create_engine(
@@ -209,8 +213,9 @@ def test_base_de_test_tiene_usuario_de_seed() -> None:
         import pytest as _pytest
 
         _pytest.skip("sin base de test Postgres viva (levantar compose o instancia localhost:5433)")
-    from sqlalchemy import create_engine
     import os
+
+    from sqlalchemy import create_engine
 
     engine = create_engine(os.environ["DATABASE_URL"])
     with engine.connect() as conn:

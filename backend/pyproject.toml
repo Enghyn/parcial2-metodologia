@@ -27,3 +27,4 @@ line-length = 100
 testpaths = ["test"]
 pythonpath = ["src"]
 asyncio_mode = "auto"
+markers = ["integration: requiere PostgreSQL migrado y sembrado"]
