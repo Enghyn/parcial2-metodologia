@@ -2,6 +2,7 @@ import type { ReactElement } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppLayout, PublicLayout, RequireAuth } from "./layout";
 import { AgendaPage } from "../features/agenda/AgendaPage";
+import { OdontogramaPage, PacientesPage } from "../features/clinica";
 import {
   LoginPage,
   PagarPage,
@@ -19,6 +20,8 @@ export function AppRouter(): ReactElement {
           <Route path="/app" element={<AppLayout />}>
             <Route index element={<Navigate to="/app/agenda" replace />} />
             <Route path="agenda" element={<AgendaPage />} />
+            <Route path="pacientes" element={<PacientesPage />} />
+            <Route path="odontograma/:pacienteId" element={<OdontogramaPage />} />
           </Route>
         </Route>
         <Route element={<PublicLayout />}>

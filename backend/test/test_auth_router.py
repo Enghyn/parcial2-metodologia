@@ -8,6 +8,8 @@ overrideado con un `Usuario` en memoria (sin tocar DB).
 Requiere: DATABASE_URL apuntando a una base migrated + seeded
 (`alembic upgrade head` + `python -m app.db.seed` desde `backend/`).
 """
+import logging
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
@@ -223,3 +225,16 @@ def test_base_de_test_tiene_usuario_de_seed() -> None:
             text("SELECT COUNT(*) FROM usuarios WHERE activo = true")
         ).scalar_one()
     assert filas >= 4, "falta seed de usuarios (python -m app.db.seed)"
+
+
+@pytest.mark.asyncio
+async def test_login_fallido_no_loguea_credenciales(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    app = app_fresco()
+    email = "no-existe@test.com"
+    password = "secreto-no-log"
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.post(LOGIN_URL, json={"email": email, "password": password})
+    assert response.status_code == 401
+    propios = [registro.getMessage() for registro in caplog.records if registro.name.startswith("app")]
+    assert all(password not in mensaje and email not in mensaje for mensaje in propios)

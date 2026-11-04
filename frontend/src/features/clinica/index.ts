@@ -1,1 +1,2 @@
-export const FEATURE_NAME = "clinica";
+export { OdontogramaPage } from "./OdontogramaPage";
+export { PacientesPage } from "./PacientesPage";

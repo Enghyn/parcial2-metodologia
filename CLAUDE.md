@@ -66,7 +66,7 @@ El plan de implementación académico simplificado está en [CHANGES.md](CHANGES
   - `C-04-agenda-servicio-antisolapamiento`: Capa de servicios y endpoints de turnos con validación estricta de solapamiento (sillón y profesional) + tests unitarios.
   - `C-05-agenda-frontend-interna`: Visualización de agenda en columnas por sillón, creación y cambio de estados de turnos en React.
   - `C-06-reserva-online-publica`: Portal público `/reservar` sin login, consulta de turnos por token y enlace directo a WhatsApp (`wa.me/`).
-  - `C-07-clinica-odontograma`: Gestión de pacientes, ficha médica y odontograma interactivo esquemático FDI (piezas 11 a 48).
+  - `C-07-clinica-odontograma` [x] (Completado y archivado): Gestión de pacientes, ficha médica y odontograma interactivo esquemático FDI (piezas 11 a 48).
   - `C-08-caja-movimientos-balance`: Registro de ingresos/egresos, señas vinculadas a turnos y arqueo diario de caja.
 
 **Antes de cualquier `/opsx:propose`**: leé [CHANGES.md](CHANGES.md), identificá las dependencias del change y los archivos de "Leer antes".

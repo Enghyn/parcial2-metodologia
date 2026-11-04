@@ -23,7 +23,7 @@ C-01 foundation-setup [x]
         └── C-03 auth-jwt-roles [x]
               └── C-04 agenda-servicio-antisolapamiento [x]
                     ├── C-05 agenda-frontend-interna [x]
-                    │     ├── C-07 clinica-odontograma
+                    │     ├── C-07 clinica-odontograma [x]
                     │     └── C-08 caja-movimientos-balance (Cierra MVP)
                     └── C-06 reserva-online-publica [x] (Link/QR + WhatsApp)
 ```
@@ -120,16 +120,16 @@ C-01 foundation-setup [x]
 ---
 
 ### C-07: `clinica-odontograma`
-- **Estado:** `[ ]`
+- **Estado:** `[x]` (Completado y archivado)
 - **Alcance:**
   - Endpoints de backend:
     - `GET /api/v1/pacientes` y `POST /api/v1/pacientes`.
     - `GET /api/v1/pacientes/:id/odontograma`.
     - `PUT /api/v1/pacientes/:id/odontograma/piezas/:pieza` (actualizar estado clínico y nota de una pieza dental).
-    - Toda consulta de pacientes y odontogramas filtra `deleted_at IS NULL` (R13/RN-SEG-02).
+    - Toda consulta de pacientes filtra `deleted_at IS NULL`; los odontogramas se consultan solo para pacientes activos.
   - Vistas en React:
     - Directorio y buscador de pacientes (`/app/pacientes`).
-    - Componente de Odontograma interactivo (`/app/odontograma/:pacienteId`): grilla organizada en 4 cuadrantes con los 32 dientes FDI (11 a 48), selección visual de estado (`sano`, `caries`, `obturacion`, `corona`, `extraccion`, `conducto`) y guardado en tiempo real.
+    - Componente de Odontograma interactivo (`/app/odontograma/:pacienteId`): grilla organizada en 4 cuadrantes con los 32 dientes FDI (11 a 48), selección visual de estado (`sano`, `caries`, `obturacion`, `corona`, `extraccion`, `tratamiento_conducto`) y guardado en tiempo real.
 - **Dependencias:** C-05.
 - **Leer antes:** `knowledge-base/04_modelo_de_datos.md` (Odontograma), `knowledge-base/05_reglas_de_negocio.md` (RN-CL-01).
 - **Comando:** `/opsx:propose C-07-clinica-odontograma`

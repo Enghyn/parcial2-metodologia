@@ -2,6 +2,7 @@
 
 Requiere base migrada + seeded (alembic upgrade head + python -m app.db.seed).
 """
+import logging
 from datetime import UTC, date, datetime, timedelta
 from uuid import uuid4
 
@@ -490,5 +491,34 @@ def test_reserva_dni_borrado_responde_409_sin_reactivar() -> None:
             )
             == 0
         )
+    finally:
+        session.close()
+
+
+def test_reservar_no_loguea_datos_paciente(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    session = _session()
+    try:
+        ids = _seed_ids(session)
+        dni = _dni_unico()
+        servicio = PublicReservaService(session)
+        turno = servicio.reservar(
+            _reserva(
+                sillon_id=ids["sillones"][0].id,
+                profesional_id=ids["profesionales"][0].id,
+                inicio=datetime(2027, 9, 14, 9, 0, tzinfo=UTC),
+                dni=dni,
+                nombre="Nombre Secreto",
+                telefono="1166667777",
+            )
+        )
+        propios = [registro.getMessage() for registro in caplog.records if registro.name.startswith("app")]
+        assert all("Nombre Secreto" not in mensaje for mensaje in propios)
+        assert all("1166667777" not in mensaje for mensaje in propios)
+        turno.soft_delete()
+        paciente = session.scalar(select(Paciente).where(Paciente.dni == dni))
+        if paciente is not None:
+            paciente.soft_delete()
+        session.commit()
     finally:
         session.close()

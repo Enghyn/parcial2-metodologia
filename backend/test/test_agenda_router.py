@@ -1,4 +1,5 @@
 """TDD C-04 grupo 5 — endpoints de agenda (HTTP real con httpx + ASGI)."""
+import logging
 from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
@@ -352,3 +353,19 @@ async def test_turno_recurso_inexistente_404() -> None:
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         r = await _post_turno(client, payload, {"Authorization": "Bearer t"})
     assert r.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_crear_turno_no_loguea_notas(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    app = app_fresco()
+    app.dependency_overrides[get_current_user] = lambda: usuario_en_memoria("recepcion")
+    ids = IDS
+    inicio = datetime(2027, 1, 20, 11, 0, tzinfo=TZ_CONSULTORIO)
+    payload = _turno_payload(ids["sillon_a"], ids["prof_a"], ids["paciente"], inicio)
+    payload["notas"] = "Dato clínico confidencial"
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        r = await _post_turno(client, payload, {"Authorization": "Bearer t"})
+    assert r.status_code == 201
+    propios = [registro.getMessage() for registro in caplog.records if registro.name.startswith("app")]
+    assert all("Dato clínico confidencial" not in mensaje for mensaje in propios)

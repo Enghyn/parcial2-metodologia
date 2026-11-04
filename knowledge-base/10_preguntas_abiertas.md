@@ -25,3 +25,5 @@ Las inconsistencias e incertidumbres iniciales de la fase de descubrimiento qued
 | **Media** | ¿La duración del turno se deriva de un catálogo `Prestacion` o se carga manual/por profesional? | Agenda (C-04) | Mantener `duracion_min` manual en C-04; evaluar catálogo de prestaciones en fase 2. |
 | **Media** | ¿En qué estado del turno se devenga o retiene la seña? | Caja (C-08) | Registrar la seña al reservar y deducirla al pasar el turno a `atendido`. |
 | **Baja** | ¿Se aceptan triggers de base para R3/R13 en producción? | Persistencia | Sí: son defensa en profundidad; el ORM mantiene los mensajes amigables. |
+| **Media** | ¿Se validan transiciones de estado del turno o solo el catálogo? | Agenda (C-04) | Hoy se acepta cualquier estado del catálogo; si se exige la secuencia de RN-AG-05, agregar test de transición. |
+| **Media** | ¿Se agregan tests de componentes/E2E para C-05/C-06/C-07? | Frontend | Playwright en un change posterior; hoy solo hay tests de helpers puros. |
