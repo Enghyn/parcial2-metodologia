@@ -24,7 +24,7 @@ C-01 foundation-setup [x]
               └── C-04 agenda-servicio-antisolapamiento [x]
                     ├── C-05 agenda-frontend-interna [x]
                     │     ├── C-07 clinica-odontograma [x]
-                    │     └── C-08 caja-movimientos-balance (Cierra MVP)
+                    │     └── C-08 caja-movimientos-balance [x] (MVP base)
                     └── C-06 reserva-online-publica [x] (Link/QR + WhatsApp)
 ```
 
@@ -137,7 +137,7 @@ C-01 foundation-setup [x]
 ---
 
 ### C-08: `caja-movimientos-balance`
-- **Estado:** `[ ]` (Cierre del MVP Académico)
+- **Estado:** `[x]` (Completado y archivado — MVP base)
 - **Alcance:**
   - Endpoints de backend:
     - `POST /api/v1/caja/movimientos` (registro de ingreso/egreso con medio de pago, monto, concepto, `usuario_id` y vínculo opcional a `turno_id`; el turno vinculado debe estar activo, `deleted_at IS NULL`).
@@ -150,3 +150,5 @@ C-01 foundation-setup [x]
 - **Dependencias:** C-05.
 - **Leer antes:** `knowledge-base/05_reglas_de_negocio.md` (RN-CJ-01, RN-CJ-02), `knowledge-base/07_flujos_principales.md` (Flujo 3).
 - **Comando:** `/opsx:propose C-08-caja-movimientos-balance`
+
+> **MVP base (C-01 a C-08) completo.** El alcance se expandirá con nuevos changes; no se considera cerrado el MVP definitivo.

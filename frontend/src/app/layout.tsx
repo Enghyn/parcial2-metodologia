@@ -27,6 +27,12 @@ export function AppLayout(): ReactElement {
           >
             Pacientes
           </NavLink>
+          <NavLink
+            to="/app/caja"
+            className={({ isActive }) => (isActive ? "font-semibold underline" : "underline")}
+          >
+            Caja
+          </NavLink>
         </nav>
       </header>
       <main>

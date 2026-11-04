@@ -1,1 +1,1 @@
-export const FEATURE_NAME = "caja";
+export { CajaPage } from "./CajaPage";
