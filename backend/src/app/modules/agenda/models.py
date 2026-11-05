@@ -100,6 +100,7 @@ class Turno(SoftDeleteMixin, TimestampMixin, Base):
         CheckConstraint(
             "fin = inicio + (duracion_min * interval '1 minute')", name="fin_coherente"
         ),
+        CheckConstraint("origen IN ('interno', 'publico')", name="ck_turnos_origen"),
         UniqueConstraint("token_publico", name="token_publico"),
         Index("ix_turnos_sillon_inicio_fin", "sillon_id", "inicio", "fin"),
         Index("ix_turnos_profesional_inicio_fin", "profesional_id", "inicio", "fin"),
@@ -138,6 +139,9 @@ class Turno(SoftDeleteMixin, TimestampMixin, Base):
     motivo_sobreturno: Mapped[str | None] = mapped_column(String(255), nullable=True)
     autorizado_por: Mapped[UUID | None] = mapped_column(
         ForeignKey("usuarios.id", name="fk_turnos_autorizado_por_usuarios"), nullable=True
+    )
+    origen: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="interno", server_default=text("'interno'")
     )
 
 

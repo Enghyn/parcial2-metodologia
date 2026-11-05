@@ -17,13 +17,16 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.core.timezone import ahora, combinar, fin_dia, inicio_dia
 from app.modules.agenda.models import Bloqueo, Profesional, Sillon, Turno
-from app.modules.agenda.schemas import TurnoCreate
+from app.modules.agenda.schemas import ReprogramarTurno, TurnoCreate
 from app.modules.agenda.service import TurnoService, solapamiento
 from app.modules.clinica.models import Paciente
+from app.modules.public.models import PreReserva
 from app.modules.public.schemas import (
     PacientePublicoIn,
+    PreReservaCreate,
     ProfesionalPublicoOut,
     PublicTurnoOut,
+    ReprogramarPublico,
     ReservaCreate,
     SlotOut,
 )
@@ -61,6 +64,16 @@ def generar_inicios(start: time, end: time, grid_min: int, duracion_min: int) ->
     return inicios
 
 
+def retencion_vigente(retencion: object, ahora_dt: datetime) -> bool:
+    """True si la retención sigue ocupando su hueco (estado vigente y no vencida)."""
+    if getattr(retencion, "estado", None) != "vigente":
+        return False
+    expira_en = getattr(retencion, "expira_en", None)
+    if expira_en is None:
+        return True
+    return expira_en > ahora_dt
+
+
 def slot_libre(
     turnos: Iterable[Turno],
     bloqueos: Iterable[Bloqueo],
@@ -68,14 +81,15 @@ def slot_libre(
     profesional_id: UUID,
     inicio: datetime,
     fin: datetime,
+    retenciones: Iterable[PreReserva] = (),
 ) -> bool:
     """True si el rango está libre para ese sillón y profesional (D3, puro).
 
     Reusa la fórmula RN-AG-01 (`solapamiento`) y excluye turnos cancelados o
-    con borrado lógico (R13).
+    con borrado lógico (R13). Descuenta retenciones vigentes (D5).
     """
     for turno in turnos:
-        if turno.deleted_at is not None or turno.estado == "cancelado":
+        if getattr(turno, "deleted_at", None) is not None or getattr(turno, "estado", None) == "cancelado":
             continue
         if not solapamiento(turno.inicio, turno.fin, inicio, fin):
             continue
@@ -86,6 +100,15 @@ def slot_libre(
         if not solapamiento(bloqueo.desde, bloqueo.hasta, inicio, fin):
             continue
         if bloqueo.sillon_id == sillon_id or bloqueo.profesional_id == profesional_id:
+            return False
+
+    ahora_dt = ahora()
+    for retencion in retenciones:
+        if not retencion_vigente(retencion, ahora_dt):
+            continue
+        if not solapamiento(retencion.inicio, retencion.fin, inicio, fin):
+            continue
+        if retencion.sillon_id == sillon_id or retencion.profesional_id == profesional_id:
             return False
 
     return True
@@ -145,6 +168,16 @@ class PublicReservaService:
                 select(Bloqueo).where(Bloqueo.desde < day_end, Bloqueo.hasta > day_start)
             )
         )
+        retenciones = list(
+            self.db.scalars(
+                select(PreReserva).where(
+                    PreReserva.estado == "vigente",
+                    PreReserva.expira_en > ahora(),
+                    PreReserva.inicio < day_end,
+                    PreReserva.fin > day_start,
+                )
+            )
+        )
 
         slots: list[SlotOut] = []
         for profesional in profesionales:
@@ -154,7 +187,7 @@ class PublicReservaService:
                     continue
                 fin = inicio + timedelta(minutes=duracion_min)
                 for sillon in sillones:
-                    if slot_libre(turnos, bloqueos, sillon.id, profesional.id, inicio, fin):
+                    if slot_libre(turnos, bloqueos, sillon.id, profesional.id, inicio, fin, retenciones=retenciones):
                         slots.append(
                             SlotOut(
                                 inicio=inicio,
@@ -204,24 +237,9 @@ class PublicReservaService:
         self.db.flush()
         return paciente
 
-    def reservar(self, datos: ReservaCreate) -> Turno:
-        paciente = self._find_or_create_paciente(datos.paciente)
-        turno_create = TurnoCreate(
-            paciente_id=paciente.id,
-            profesional_id=datos.profesional_id,
-            sillon_id=datos.sillon_id,
-            prestacion=datos.prestacion,
-            inicio=datos.inicio,
-            duracion_min=datos.duracion_min,
-        )
-        # R6: la validación antisolapamiento vive en TurnoService.
-        return TurnoService(self.db).crear(turno_create)
-
     def obtener_por_token(self, token: UUID) -> Turno:
         turno = self.db.scalar(
-            select(Turno).where(
-                Turno.token_publico == token, Turno.deleted_at.is_(None)
-            )
+            select(Turno).where(Turno.token_publico == token, Turno.deleted_at.is_(None))
         )
         if turno is None:
             raise HTTPException(
@@ -247,6 +265,141 @@ class PublicReservaService:
         self.db.refresh(turno)
         return turno
 
+    def crear_pre_reserva(self, datos: PreReservaCreate) -> PreReserva:
+        inicio = datos.inicio
+        if inicio <= ahora():
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="La pre-reserva debe tener un inicio futuro",
+            )
+        sillon = self.db.scalar(
+            select(Sillon).where(Sillon.id == datos.sillon_id, Sillon.deleted_at.is_(None), Sillon.activo.is_(True))
+        )
+        if sillon is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sillón no encontrado")
+        profesional = self.db.scalar(
+            select(Profesional).where(
+                Profesional.id == datos.profesional_id,
+                Profesional.deleted_at.is_(None),
+                Profesional.activo.is_(True),
+            )
+        )
+        if profesional is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profesional no encontrado")
+
+        fin = inicio + timedelta(minutes=datos.duracion_min)
+
+        stmt_turnos = select(Turno).where(
+            Turno.deleted_at.is_(None),
+            Turno.estado != "cancelado",
+            (Turno.sillon_id == datos.sillon_id) | (Turno.profesional_id == datos.profesional_id),
+            Turno.inicio < fin,
+            Turno.fin > inicio,
+        )
+        turnos = list(self.db.scalars(stmt_turnos))
+        stmt_bloqueos = select(Bloqueo).where(
+            ((Bloqueo.sillon_id == datos.sillon_id) | (Bloqueo.profesional_id == datos.profesional_id)),
+            Bloqueo.desde < fin,
+            Bloqueo.hasta > inicio,
+        )
+        bloqueos = list(self.db.scalars(stmt_bloqueos))
+        retenciones = list(
+            self.db.scalars(
+                select(PreReserva).where(
+                    PreReserva.estado == "vigente",
+                    PreReserva.expira_en > ahora(),
+                    PreReserva.inicio < fin,
+                    PreReserva.fin > inicio,
+                )
+            )
+        )
+        if not slot_libre(
+            turnos, bloqueos, datos.sillon_id, datos.profesional_id, inicio, fin, retenciones=retenciones
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT, detail="El horario no está disponible"
+            )
+
+        ttl = get_settings().pre_reserva_ttl_min
+        pr = PreReserva(
+            sillon_id=datos.sillon_id,
+            profesional_id=datos.profesional_id,
+            prestacion=datos.prestacion,
+            inicio=inicio,
+            fin=fin,
+            duracion_min=datos.duracion_min,
+            expira_en=ahora() + timedelta(minutes=ttl),
+            estado="vigente",
+        )
+        self.db.add(pr)
+        self.db.commit()
+        self.db.refresh(pr)
+        return pr
+
+    def reservar(self, datos: ReservaCreate) -> Turno:
+        pr = None
+        if datos.pre_reserva_token is not None:
+            pr = self.db.scalar(
+                select(PreReserva).where(PreReserva.token == datos.pre_reserva_token)
+            )
+            if pr is None:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pre-reserva no encontrada")
+            if pr.estado != "vigente":
+                raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="La pre-reserva ya fue consumida")
+            if pr.expira_en <= ahora():
+                raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="La pre-reserva venció")
+            if (
+                pr.inicio != datos.inicio
+                or pr.profesional_id != datos.profesional_id
+                or pr.sillon_id != datos.sillon_id
+                or pr.prestacion != datos.prestacion
+                or pr.duracion_min != datos.duracion_min
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT, detail="Los datos no coinciden con la pre-reserva"
+                )
+
+        paciente = self._find_or_create_paciente(datos.paciente)
+        turno_create = TurnoCreate(
+            paciente_id=paciente.id,
+            profesional_id=datos.profesional_id,
+            sillon_id=datos.sillon_id,
+            prestacion=datos.prestacion,
+            inicio=datos.inicio,
+            duracion_min=datos.duracion_min,
+        )
+        # R6: la validación antisolapamiento vive en TurnoService.
+        turno = TurnoService(self.db).crear(turno_create, origen="publico")
+
+        if pr is not None:
+            pr.estado = "consumida"
+            pr.turno_id = turno.id
+            self.db.commit()
+            self.db.refresh(pr)
+
+        return turno
+
+    def reprogramar_por_token(self, token: UUID, datos: ReprogramarPublico) -> Turno:
+        turno = self.obtener_por_token(token)
+        if turno.estado not in ("reservado", "confirmado"):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"No se puede reprogramar un turno en estado {turno.estado}",
+            )
+        ventana = get_settings().reprogramacion_min_horas
+        if turno.inicio - ahora() < timedelta(hours=ventana):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"La reprogramación requiere al menos {ventana} horas de anticipación",
+            )
+        if datos.inicio <= ahora():
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="El turno debe tener un inicio futuro",
+            )
+        reprog = ReprogramarTurno(inicio=datos.inicio)
+        return TurnoService(self.db).reprogramar(turno.id, reprog)
+
     def to_public(self, turno: Turno) -> PublicTurnoOut:
         paciente = self.db.get(Paciente, turno.paciente_id)
         profesional = self.db.get(Profesional, turno.profesional_id)
@@ -264,4 +417,4 @@ class PublicReservaService:
         )
 
 
-__all__ = ["PublicReservaService", "generar_inicios", "slot_libre"]
+__all__ = ["PublicReservaService", "generar_inicios", "retencion_vigente", "slot_libre"]

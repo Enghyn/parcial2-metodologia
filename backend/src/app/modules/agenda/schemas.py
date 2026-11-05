@@ -146,6 +146,7 @@ class TurnoOut(BaseModel):
     es_sobreturno: bool
     motivo_sobreturno: str | None
     autorizado_por: UUID | None
+    origen: str
     created_at: datetime
     updated_at: datetime
 

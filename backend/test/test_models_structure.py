@@ -1,4 +1,4 @@
-"""Contrato de esquema de C-02: nueve tablas, PK UUID, constraints e índices."""
+"""Contrato de esquema de C-02/C-10: diez tablas, PK UUID, constraints e índices."""
 from sqlalchemy import CheckConstraint, UniqueConstraint, Uuid
 
 import app.db.registry  # noqa: F401  (registra los nueve modelos)
@@ -15,6 +15,7 @@ TABLAS_ESPERADAS = {
     "odontogramas",
     "hallazgos_pieza",
     "movimientos_caja",
+    "pre_reservas",
 }
 
 

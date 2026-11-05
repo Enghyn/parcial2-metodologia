@@ -27,8 +27,8 @@ _STATUS_TO_CODE = {
     404: "not_found",
     409: "conflict",
     422: "unprocessable_entity",
-    500: "internal_error",
-}
+    429: "rate_limited",
+    500: "internal_error",}
 
 
 def error_body(status: int, message: str, details: Any = None) -> dict[str, Any]:
@@ -41,7 +41,12 @@ def error_body(status: int, message: str, details: Any = None) -> dict[str, Any]
 def register_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(StarletteHTTPException)
     async def _http_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
-        return JSONResponse(status_code=exc.status_code, content=error_body(exc.status_code, str(exc.detail)))
+        headers = getattr(exc, "headers", None)
+        return JSONResponse(
+            status_code=exc.status_code,
+            content=error_body(exc.status_code, str(exc.detail)),
+            headers=headers,
+        )
 
     @app.exception_handler(RequestValidationError)
     async def _validation_handler(request: Request, exc: RequestValidationError) -> JSONResponse:

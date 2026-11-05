@@ -109,7 +109,7 @@ def test_turno_estado_update_extra_forbid_y_valores() -> None:
 
 
 def test_turno_create_normaliza_naive_a_art() -> None:
-    naive = datetime(2026, 11, 3, 10, 0)  # noqa: DTZ001  (sin tz a propósito)
+    naive = datetime(2026, 11, 3, 10, 0)
     t = TurnoCreate(
         paciente_id=uuid4(),
         profesional_id=uuid4(),
@@ -136,7 +136,7 @@ def test_turno_create_sena_monto_default() -> None:
 
 
 def test_reprogramar_turno_normaliza_naive_y_duracion_opcional() -> None:
-    datos = ReprogramarTurno(inicio=datetime(2027, 1, 10, 9, 0))  # noqa: DTZ001
+    datos = ReprogramarTurno(inicio=datetime(2027, 1, 10, 9, 0))
     assert datos.duracion_min is None
     assert datos.inicio.utcoffset().total_seconds() == -3 * 3600
     with pytest.raises(ValidationError):

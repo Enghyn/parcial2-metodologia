@@ -24,7 +24,13 @@ class Settings(BaseSettings):
     public_slot_end: str = Field(default="20:00")
     public_slot_grid_min: int = Field(default=30, gt=0)
     cancelacion_min_horas: int = Field(default=12, ge=0)
-
+    public_base_url: str = Field(default="http://localhost:5173")
+    pre_reserva_ttl_min: int = Field(default=10, gt=0)
+    reprogramacion_min_horas: int = Field(default=12, ge=0)
+    rate_limit_enabled: bool = Field(default=True)
+    rate_limit_public_window_s: int = Field(default=60, gt=0)
+    rate_limit_public_read_max: int = Field(default=120, gt=0)
+    rate_limit_public_write_max: int = Field(default=10, gt=0)
     @model_validator(mode="after")
     def _rechazar_secreto_jwt_inseguro_en_produccion(self) -> Settings:
         """D5: con APP_ENV=production, un JWT_SECRET con el default inseguro

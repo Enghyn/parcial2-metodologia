@@ -144,7 +144,7 @@ class TurnoService:
                 detail=f"{nombre} no encontrado o inactivo",
             )
 
-    def crear(self, datos: TurnoCreate) -> Turno:
+    def crear(self, datos: TurnoCreate, *, origen: str = "interno") -> Turno:
         inicio = normalizar_entrada(datos.inicio)
         if inicio <= ahora():
             raise HTTPException(
@@ -194,6 +194,7 @@ class TurnoService:
             es_sobreturno=False,
             motivo_sobreturno=None,
             autorizado_por=None,
+            origen=origen,
         )
         self.db.add(turno)
         self.db.commit()
@@ -201,7 +202,7 @@ class TurnoService:
         return turno
 
     def crear_sobreturno(
-        self, datos: SobreturnoCreate, autorizado_por: UUID
+        self, datos: SobreturnoCreate, autorizado_por: UUID, *, origen: str = "interno"
     ) -> Turno:
         inicio = normalizar_entrada(datos.inicio)
         if inicio <= ahora():
@@ -227,6 +228,7 @@ class TurnoService:
             es_sobreturno=True,
             motivo_sobreturno=datos.motivo_sobreturno,
             autorizado_por=autorizado_por,
+            origen=origen,
         )
         self.db.add(turno)
         self.db.commit()

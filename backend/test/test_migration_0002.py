@@ -45,7 +45,8 @@ def test_revision_encadenada_al_baseline() -> None:
 
 def test_crea_las_mismas_tablas_que_la_metadata() -> None:
     creadas = set(re.findall(r'op\.create_table\(\s*"([a-z_]+)"', _texto()))
-    assert creadas == set(Base.metadata.tables)
+    tablas_0002 = set(Base.metadata.tables) - {"pre_reservas"}
+    assert creadas == tablas_0002
 
 
 def test_declara_constraints_e_indices_de_agenda() -> None:

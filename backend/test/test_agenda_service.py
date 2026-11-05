@@ -395,7 +395,7 @@ def test_crear_naive_se_interpreta_como_art() -> None:
                 ids["sillones"][1].id,
                 ids["profesionales"][1].id,
                 ids["paciente"].id,
-                datetime(2027, 2, 12, 9, 0),  # noqa: DTZ001  (naive ART a propósito)
+                datetime(2027, 2, 12, 9, 0),
                 30,
             )
         )

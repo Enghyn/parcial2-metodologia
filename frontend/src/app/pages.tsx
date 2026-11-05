@@ -3,6 +3,7 @@ import { formatArs } from "../shared/utils/format";
 import { AgendaPage } from "../features/agenda/AgendaPage";
 import { LoginForm } from "../features/auth/LoginForm";
 import {
+  ReprogramarPublicoPage as ReprogramarPublicoDetalle,
   ReservarWizard,
   TurnoPublicoPage as TurnoPublicoDetalle,
 } from "../features/reserva-publica";
@@ -21,6 +22,10 @@ export function ReservarPage(): ReactElement {
 
 export function TurnoPublicoPage(): ReactElement {
   return <TurnoPublicoDetalle />;
+}
+
+export function ReprogramarPublicoPage(): ReactElement {
+  return <ReprogramarPublicoDetalle />;
 }
 
 export function PresupuestoPublicoPage(): ReactElement {

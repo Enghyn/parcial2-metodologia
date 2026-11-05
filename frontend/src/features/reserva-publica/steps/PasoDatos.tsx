@@ -8,11 +8,12 @@ interface PasoDatosProps {
   enviando: boolean;
   onBack: () => void;
   onSubmit: (paciente: DatosPaciente) => void;
+  deshabilitado?: boolean;
 }
 
 const VACIO: DatosPaciente = { nombre: "", dni: "", telefono: "", email: "" };
 
-export function PasoDatos({ resumen, enviando, onBack, onSubmit }: PasoDatosProps): ReactElement {
+export function PasoDatos({ resumen, enviando, onBack, onSubmit, deshabilitado = false }: PasoDatosProps): ReactElement {
   const [form, setForm] = useState<DatosPaciente>(VACIO);
 
   function update<K extends keyof DatosPaciente>(key: K, value: DatosPaciente[K]): void {
@@ -78,7 +79,7 @@ export function PasoDatos({ resumen, enviando, onBack, onSubmit }: PasoDatosProp
           </button>
           <button
             type="submit"
-            disabled={enviando}
+            disabled={enviando || deshabilitado}
             className="rounded bg-primary px-4 py-2 text-primary-foreground disabled:opacity-60"
           >
             {enviando ? "Reservando..." : "Confirmar reserva"}

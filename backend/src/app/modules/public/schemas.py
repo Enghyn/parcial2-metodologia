@@ -34,6 +34,7 @@ class ReservaCreate(BaseModel):
     profesional_id: UUID
     sillon_id: UUID
     paciente: PacientePublicoIn
+    pre_reserva_token: UUID | None = None
 
     @field_validator("inicio")
     @classmethod
@@ -76,10 +77,55 @@ class PublicTurnoOut(BaseModel):
     sillon_nombre: str
 
 
+class PreReservaCreate(BaseModel):
+    """Cuerpo de retención de hueco (C-10, D1). Sin datos de paciente (R9)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    prestacion: str = Field(min_length=1, max_length=150)
+    duracion_min: int = Field(gt=0)
+    inicio: datetime
+    profesional_id: UUID
+    sillon_id: UUID
+
+    @field_validator("inicio")
+    @classmethod
+    def _normalizar_inicio(cls, valor: datetime) -> datetime:
+        return normalizar_entrada(valor)
+
+
+class PreReservaOut(BaseModel):
+    """Vista pública de una retención (C-10, D2)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    pre_reserva_token: UUID
+    inicio: datetime
+    fin: datetime
+    duracion_min: int
+    expira_en: datetime
+
+
+class ReprogramarPublico(BaseModel):
+    """Reprogramación pública: solo `inicio` (D6)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    inicio: datetime
+
+    @field_validator("inicio")
+    @classmethod
+    def _normalizar_inicio(cls, valor: datetime) -> datetime:
+        return normalizar_entrada(valor)
+
+
 __all__ = [
     "PacientePublicoIn",
+    "PreReservaCreate",
+    "PreReservaOut",
     "ProfesionalPublicoOut",
     "PublicTurnoOut",
+    "ReprogramarPublico",
     "ReservaCreate",
     "SlotOut",
 ]

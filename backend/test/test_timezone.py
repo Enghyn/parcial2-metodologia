@@ -26,7 +26,7 @@ def test_inicio_y_fin_del_dia_art() -> None:
 
 
 def test_naive_se_interpreta_como_art() -> None:
-    normalizado = normalizar_entrada(datetime(2027, 1, 10, 9, 0))  # noqa: DTZ001
+    normalizado = normalizar_entrada(datetime(2027, 1, 10, 9, 0))
     assert normalizado.tzinfo == TZ_CONSULTORIO
     assert normalizado.astimezone(UTC) == datetime(2027, 1, 10, 12, 0, tzinfo=UTC)
 

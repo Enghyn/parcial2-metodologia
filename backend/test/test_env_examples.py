@@ -17,8 +17,14 @@ REQUERIDAS = [
     "LISTA_ESPERA_OFERTA_MIN",
     "FACTURADOR_MODO",
     "CORS_ORIGINS",
+    "PUBLIC_BASE_URL",
+    "PRE_RESERVA_TTL_MIN",
+    "REPROGRAMACION_MIN_HORAS",
+    "RATE_LIMIT_ENABLED",
+    "RATE_LIMIT_PUBLIC_WINDOW_S",
+    "RATE_LIMIT_PUBLIC_READ_MAX",
+    "RATE_LIMIT_PUBLIC_WRITE_MAX",
 ]
-
 
 def _parse(path: Path) -> dict[str, str]:
     valores: dict[str, str] = {}

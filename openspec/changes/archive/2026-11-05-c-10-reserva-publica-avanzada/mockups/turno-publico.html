@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tu turno · {marca}</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%233b82f6'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="../../../../design-system/tokens.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; background: var(--color-surface-muted); color: var(--color-text); font-family: var(--font-sans); font-size: var(--text-base); line-height: var(--leading-normal); -webkit-font-smoothing: antialiased; }
+    h1, h2, h3, p { margin: 0; }
+    button, input { font: inherit; }
+    :focus-visible { outline: var(--focus-ring-width) solid var(--focus-ring-color); outline-offset: var(--focus-ring-offset); }
+    .sr-only { position: absolute; left: 0; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+    .skip-link { position: absolute; top: -60px; left: 12px; z-index: 100; display: inline-flex; align-items: center; min-height: var(--control-min-size); padding: 0 var(--space-4); background: var(--color-primary); color: var(--color-on-primary); border-radius: var(--radius-control); text-decoration: none; font-weight: var(--font-semibold); }
+    .skip-link:focus { top: 12px; }
+
+    .page { max-width: 42rem; margin: 0 auto; padding: var(--space-4) var(--space-4) var(--space-12); }
+    @media (min-width: 768px) { .page { padding: var(--space-8) var(--space-6) var(--space-12); } }
+
+    .brand { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-4); }
+    .brand__logo { width: 32px; height: 32px; border-radius: var(--radius-sm); }
+    .brand__name { font-size: var(--text-lg); font-weight: var(--font-semibold); }
+
+    .card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: var(--space-5); box-shadow: var(--shadow-sm); }
+    .card + .card { margin-top: var(--space-4); }
+
+    .h1 { font-size: var(--text-2xl); font-weight: var(--font-bold); }
+    .h2 { font-size: var(--text-xl); font-weight: var(--font-semibold); }
+    .muted { color: var(--color-text-muted); font-size: var(--text-sm); }
+
+    .detail { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin: var(--space-4) 0; }
+    .detail__item { background: var(--color-surface-muted); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: var(--space-3); }
+    .detail__label { font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: var(--tracking-caps); }
+    .detail__value { font-weight: var(--font-semibold); color: var(--color-text); margin-top: 2px; }
+
+    .status { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius-full); font-weight: var(--font-semibold); font-size: var(--text-sm); border: 1px solid var(--color-border); }
+    .status--reservado { background: var(--state-reservado-bg); color: var(--state-reservado-text); border-color: var(--state-reservado-border); }
+    .status--confirmado { background: var(--state-confirmado-bg); color: var(--state-confirmado-text); border-color: var(--state-confirmado-border); }
+    .status--cancelado { background: var(--state-cancelado-bg); color: var(--state-cancelado-text); border-color: var(--state-cancelado-border); text-decoration: line-through; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--control-min-size); padding: 0 var(--space-4); border: 1px solid transparent; border-radius: var(--radius-control); font-weight: var(--font-semibold); cursor: pointer; text-decoration: none; }
+    .btn--primary { background: var(--color-primary); color: var(--color-on-primary); }
+    .btn--ghost { background: var(--color-surface); color: var(--color-text); border-color: var(--color-border-strong); }
+    .btn--danger { background: var(--color-danger); color: var(--color-primary-foreground); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .wa-btn { display: inline-flex; align-items: center; gap: var(--space-2); min-height: var(--control-min-size); padding: 0 var(--space-4); border-radius: var(--radius-control); background: #25D366; color: #fff; font-weight: var(--font-semibold); text-decoration: none; }
+
+    .qr { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); padding: var(--space-4); border: 1px dashed var(--color-border-strong); border-radius: var(--radius-card); background: var(--color-surface-sunken); }
+    .qr__box { width: 160px; height: 160px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-sm); display: grid; place-items: center; color: var(--color-text-subtle); font-size: var(--text-xs); }
+    .qr__caption { font-size: var(--text-xs); color: var(--color-text-muted); text-align: center; }
+
+    /* Modal reprogramar */
+    .overlay { position: fixed; inset: 0; background: var(--color-overlay); display: grid; place-items: center; padding: var(--space-4); z-index: var(--z-modal); }
+    .modal { width: 100%; max-width: 28rem; background: var(--color-surface); border-radius: var(--radius-modal); box-shadow: var(--shadow-lg); padding: var(--space-5); }
+    .modal__title { font-size: var(--text-lg); font-weight: var(--font-semibold); margin-bottom: var(--space-2); }
+    .modal__desc { color: var(--color-text-muted); font-size: var(--text-sm); margin-bottom: var(--space-4); }
+    .field { margin-bottom: var(--space-3); }
+    .label { display: block; font-size: var(--text-sm); font-weight: var(--font-medium); margin-bottom: var(--space-1); }
+    .input, .select { width: 100%; min-height: var(--control-min-size); padding: 0 var(--space-3); border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); background: var(--color-surface); color: var(--color-text); }
+    .input:focus, .select:focus { border-color: var(--color-primary); box-shadow: var(--shadow-focus); outline: none; }
+    .modal__actions { display: flex; gap: var(--space-2); justify-content: flex-end; margin-top: var(--space-4); }
+
+    .error-box { border: 1px solid var(--color-danger-border); background: var(--color-danger-soft); color: var(--color-danger); border-radius: var(--radius-card); padding: var(--space-4); }
+    .error-box__title { font-weight: var(--font-semibold); margin-bottom: var(--space-1); }
+
+    .section-title { font-size: var(--text-lg); font-weight: var(--font-semibold); margin: var(--space-6) 0 var(--space-3); }
+    .note { font-size: var(--text-xs); color: var(--color-text-subtle); margin-top: var(--space-2); }
+    .row { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Saltar al contenido</a>
+  <main id="main" class="page">
+    <header class="brand">
+      <img class="brand__logo" src="../../../../design-system/assets/logo.svg" alt="">
+      <span class="brand__name" data-brand-name>Consultorio</span>
+    </header>
+
+    <!-- Estado: reservado -->
+    <section class="card" aria-labelledby="t-reservado">
+      <div class="row" style="justify-content: space-between; align-items: center; margin-bottom: var(--space-3);">
+        <h1 class="h1" id="t-reservado">Tu turno</h1>
+        <span class="status status--reservado">Reservado</span>
+      </div>
+      <div class="detail">
+        <div class="detail__item"><div class="detail__label">Prestación</div><div class="detail__value">Limpieza dental</div></div>
+        <div class="detail__item"><div class="detail__label">Fecha y hora</div><div class="detail__value">Lun 10 nov · 10:00</div></div>
+        <div class="detail__item"><div class="detail__label">Profesional</div><div class="detail__value">Dra. Pérez</div></div>
+        <div class="detail__item"><div class="detail__label">Sillón</div><div class="detail__value">Sillón 2</div></div>
+      </div>
+      <div class="row">
+        <button class="btn btn--primary" type="button">Reprogramar</button>
+        <button class="btn btn--ghost" type="button">Cancelar turno</button>
+        <a class="wa-btn" href="https://wa.me/" target="_blank" rel="noopener">WhatsApp</a>
+      </div>
+      <p class="note">Reprogramación disponible hasta 12 h antes del turno. Cancelación libre hasta 24 h antes.</p>
+    </section>
+
+    <!-- Estado: confirmado -->
+    <section class="card" aria-labelledby="t-confirmado">
+      <div class="row" style="justify-content: space-between; align-items: center; margin-bottom: var(--space-3);">
+        <h2 class="h2" id="t-confirmado">Tu turno (confirmado)</h2>
+        <span class="status status--confirmado">Confirmado</span>
+      </div>
+      <div class="detail">
+        <div class="detail__item"><div class="detail__label">Prestación</div><div class="detail__value">Control</div></div>
+        <div class="detail__item"><div class="detail__label">Fecha y hora</div><div class="detail__value">Mar 11 nov · 09:30</div></div>
+        <div class="detail__item"><div class="detail__label">Profesional</div><div class="detail__value">Dr. Gómez</div></div>
+        <div class="detail__item"><div class="detail__label">Sillón</div><div class="detail__value">Sillón 1</div></div>
+      </div>
+      <div class="row">
+        <button class="btn btn--ghost" type="button" disabled>Reprogramar (no disponible)</button>
+        <button class="btn btn--ghost" type="button">Cancelar turno</button>
+      </div>
+    </section>
+
+    <!-- Estado: cancelado -->
+    <section class="card" aria-labelledby="t-cancelado">
+      <div class="row" style="justify-content: space-between; align-items: center; margin-bottom: var(--space-3);">
+        <h2 class="h2" id="t-cancelado">Tu turno (cancelado)</h2>
+        <span class="status status--cancelado">Cancelado</span>
+      </div>
+      <p class="muted">Este turno fue cancelado. El horario ya se liberó para otros pacientes.</p>
+      <div style="margin-top: var(--space-3);">
+        <a class="btn btn--primary" href="#">Reservar otro turno</a>
+      </div>
+    </section>
+
+    <!-- QR propio del turno -->
+    <section class="card" aria-labelledby="qr-title">
+      <h2 class="h2" id="qr-title">Tu código QR</h2>
+      <p class="muted" style="margin-bottom: var(--space-3);">Mostralo en recepción o compartilo.</p>
+      <div class="qr">
+        <div class="qr__box" aria-label="Código QR del turno">QR (SVG)</div>
+        <p class="qr__caption">Se genera en el servidor, sin conexión externa.</p>
+      </div>
+    </section>
+
+    <!-- Modal reprogramar (abierto sobre la página) -->
+    <div class="overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal">
+        <h3 class="modal__title" id="modal-title">Reprogramar turno</h3>
+        <p class="modal__desc">Turno actual: Limpieza dental · Lun 10 nov · 10:00 · Dra. Pérez.</p>
+        <div class="field">
+          <label class="label" for="nuevo-inicio">Nuevo inicio</label>
+          <input class="input" id="nuevo-inicio" type="datetime-local">
+        </div>
+        <div class="field">
+          <label class="label" for="duracion">Duración (min)</label>
+          <input class="input" id="duracion" type="number" value="30" disabled>
+          <p class="note">La duración la define la prestación y no se puede cambiar desde el portal.</p>
+        </div>
+        <div class="modal__actions">
+          <button class="btn btn--ghost" type="button">Cancelar</button>
+          <button class="btn btn--primary" type="button">Reprogramar</button>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script src="../../../../design-system/brand.js"></script>
+</body>
+</html>

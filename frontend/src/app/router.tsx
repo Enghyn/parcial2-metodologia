@@ -9,6 +9,7 @@ import {
   LoginPage,
   PagarPage,
   PresupuestoPublicoPage,
+  ReprogramarPublicoPage,
   ReservarPage,
   TurnoPublicoPage,
 } from "./pages";
@@ -31,6 +32,7 @@ export function AppRouter(): ReactElement {
         <Route element={<PublicLayout />}>
           <Route path="/reservar" element={<ReservarPage />} />
           <Route path="/p/turno/:token" element={<TurnoPublicoPage />} />
+          <Route path="/p/turno/:token/reprogramar" element={<ReprogramarPublicoPage />} />
           <Route path="/p/presupuesto/:token" element={<PresupuestoPublicoPage />} />
           <Route path="/p/pagar/:token" element={<PagarPage />} />
         </Route>

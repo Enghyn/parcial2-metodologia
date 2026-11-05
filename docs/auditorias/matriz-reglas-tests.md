@@ -6,8 +6,8 @@
 
 | Regla | Evidencia principal | Estado |
 |---|---|---|
-| RN-AG-01 | `test_agenda_conflicts.py`, `test_agenda_router.py` (409), reprogramación en `test_agenda_service.py` | ✅ |
-| RN-AG-02 | `test_agenda_service.py::test_crear_en_hueco_libre_persiste_fin` | ✅ |
+| RN-AG-01 | `test_agenda_conflicts.py`, `test_agenda_router.py` (409), reprogramación en `test_agenda_service.py`; C-10: `test_pre_reserva_service.py` (conflicto turno/bloqueo), `test_public_reprogramar.py` (409 choque) | ✅ |
+| RN-AG-02 | `test_agenda_service.py::test_crear_en_hueco_libre_persiste_fin`; C-10: `test_pre_reserva_service.py` (fin = inicio + duracion_min, CHECK fin_coherente) | ✅ |
 | RN-AG-03 | `test_agenda_schemas.py`, NOT NULL del modelo | ✅ |
 | RN-AG-04 | `test_agenda_service.py::test_bloqueo_conflicto_en_turno` | ✅ |
 | RN-AG-05 | Catálogo con `ausente`; sin matriz de transiciones | ⚠️ |
@@ -17,18 +17,18 @@
 | RN-CJ-01 | `test_caja_router.py` (201/422), `test_caja_schemas.py`, usuario desde JWT | ✅ |
 | RN-CJ-02 | `test_caja_inmutable.py`, `test_pg_hardening.py`, `test_caja_router.py` sin PATCH/DELETE | ✅ |
 | RN-CJ-03 | Seña manual aprobada; no hay deducción de saldo (decisión de C-08) | ⚠️ |
-| RN-SEG-01 | `test_auth_router.py`, `test_agenda_router.py` (401/403) | ✅ |
+| RN-SEG-01 | `test_auth_router.py`, `test_agenda_router.py` (401/403); C-10: `test_public_pre_reserva_router.py` (201 sin auth, 422 campo extra), `test_qr_router.py` (200 SVG, 404 token inexistente) | ✅ |
 | RN-SEG-02 | `test_soft_delete.py`, 404 de paciente borrado | ✅ |
 | RN-G-01 | `frontend/test/whatsapp.test.ts` (constructor de URL) | ✅ |
-| R1 | Tests de schemas auth/agenda/public/clinica | ✅ |
+| R1 | Tests de schemas auth/agenda/public/clinica; C-10: `test_public_pre_reserva_router.py` (campo extra 422), `test_public_reprogramar.py` (sillon_id 422), `test_qr_router.py` (schemas), `test_pre_reserva_schemas.py` | ✅ |
 | R2 | `test_models_structure.py::test_ninguna_tabla_tiene_tenant_id` | ✅ |
 | R3 | `test_caja_inmutable.py`, triggers de `0003`, `test_caja_router.py` sin PATCH/DELETE | ✅ |
 | R4 | `test_caja_router.py` (usuario JWT, body con `usuario_id` 422) | ✅ |
-| R5 | `ruff`, type hints, `test_migration_*` | ✅ |
-| R6 | `test_agenda_conflicts.py`, 409 HTTP, reprogramación con antisolapamiento | ✅ |
+| R5 | `ruff`, type hints, `test_migration_*`; C-10: `test_migration_0006.py` (pre_reservas, columna origen, CHECKs, índices) | ✅ |
+| R6 | `test_agenda_conflicts.py`, 409 HTTP, reprogramación con antisolapamiento; C-10: `test_public_reprogramar.py` (409 choque turno/bloqueo/estado, delega en TurnoService) | ✅ |
 | R7 | `tsc`, `eslint`, `build`; sin tests de componentes | ⚠️ |
-| R8 | `test_auth_deps.py`, RBAC de agenda/clinica, sobreturno/reprogramación admin/recepción | ✅ |
-| R9 | `test_login_fallido_no_loguea_credenciales`, `test_crear_turno_no_loguea_notas`, `test_reservar_no_loguea_datos_paciente`, `test_no_loguea_estado_ni_observacion`, `test_no_loguea_concepto_clinico` | ✅ |
+| R8 | `test_auth_deps.py`, RBAC de agenda/clinica, sobreturno/reprogramación admin/recepción; C-10: `test_qr_router.py` (404 token inexistente), `test_public_reprogramar.py` (404 token inexistente) | ✅ |
+| R9 | `test_login_fallido_no_loguea_credenciales`, `test_crear_turno_no_loguea_notas`, `test_reservar_no_loguea_datos_paciente`, `test_no_loguea_estado_ni_observacion`, `test_no_loguea_concepto_clinico`; C-10: `test_public_pre_reserva_router.py` (respuesta sin dni/telefono/nombre), `test_qr_router.py` (sin red, socket parcheado) | ✅ |
 | R10 | UI es-AR/ARS; sin test automatizado de textos | ⚠️ |
 | R11 | Regla de proceso | ➖ |
 | R12 | Regla de proceso | ➖ |

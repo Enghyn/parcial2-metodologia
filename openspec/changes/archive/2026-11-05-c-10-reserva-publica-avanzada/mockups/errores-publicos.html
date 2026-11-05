@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Estados de error · {marca}</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%233b82f6'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="../../../../design-system/tokens.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; background: var(--color-surface-muted); color: var(--color-text); font-family: var(--font-sans); font-size: var(--text-base); line-height: var(--leading-normal); -webkit-font-smoothing: antialiased; }
+    h1, h2, h3, p { margin: 0; }
+    button { font: inherit; }
+    :focus-visible { outline: var(--focus-ring-width) solid var(--focus-ring-color); outline-offset: var(--focus-ring-offset); }
+    .sr-only { position: absolute; left: 0; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+    .skip-link { position: absolute; top: -60px; left: 12px; z-index: 100; display: inline-flex; align-items: center; min-height: var(--control-min-size); padding: 0 var(--space-4); background: var(--color-primary); color: var(--color-on-primary); border-radius: var(--radius-control); text-decoration: none; font-weight: var(--font-semibold); }
+    .skip-link:focus { top: 12px; }
+
+    .page { max-width: 42rem; margin: 0 auto; padding: var(--space-4) var(--space-4) var(--space-12); }
+    @media (min-width: 768px) { .page { padding: var(--space-8) var(--space-6) var(--space-12); } }
+
+    .brand { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-4); }
+    .brand__logo { width: 32px; height: 32px; border-radius: var(--radius-sm); }
+    .brand__name { font-size: var(--text-lg); font-weight: var(--font-semibold); }
+
+    .card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: var(--space-5); box-shadow: var(--shadow-sm); margin-bottom: var(--space-4); }
+    .h2 { font-size: var(--text-xl); font-weight: var(--font-semibold); margin-bottom: var(--space-2); }
+    .muted { color: var(--color-text-muted); font-size: var(--text-sm); }
+
+    .error-box { border: 1px solid var(--color-danger-border); background: var(--color-danger-soft); color: var(--color-danger); border-radius: var(--radius-card); padding: var(--space-4); }
+    .error-box__title { font-weight: var(--font-semibold); margin-bottom: var(--space-1); }
+    .error-box--warn { border-color: var(--color-warning-border); background: var(--color-warning-soft); color: var(--color-warning); }
+    .error-box--info { border-color: var(--color-info-border); background: var(--color-info-soft); color: var(--color-info); }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--control-min-size); padding: 0 var(--space-4); border: 1px solid transparent; border-radius: var(--radius-control); font-weight: var(--font-semibold); cursor: pointer; text-decoration: none; margin-top: var(--space-3); }
+    .btn--primary { background: var(--color-primary); color: var(--color-on-primary); }
+    .btn--ghost { background: var(--color-surface); color: var(--color-text); border-color: var(--color-border-strong); }
+
+    .rate { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); border: 1px solid var(--color-border-strong); border-radius: var(--radius-card); background: var(--color-surface-sunken); }
+    .rate__num { font-family: var(--font-mono); font-size: var(--text-xl); font-weight: var(--font-bold); color: var(--color-danger); }
+
+    .section-title { font-size: var(--text-lg); font-weight: var(--font-semibold); margin: var(--space-6) 0 var(--space-3); }
+    .note { font-size: var(--text-xs); color: var(--color-text-subtle); margin-top: var(--space-2); }
+    .code { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-muted); }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Saltar al contenido</a>
+  <main id="main" class="page">
+    <header class="brand">
+      <img class="brand__logo" src="../../../../design-system/assets/logo.svg" alt="">
+      <span class="brand__name" data-brand-name>Consultorio</span>
+    </header>
+
+    <h1 class="h2">Estados de error del portal público</h1>
+    <p class="muted" style="margin-bottom: var(--space-4);">Catálogo de respuestas que el paciente puede ver. Los códigos HTTP son 409/429/404; el mensaje siempre explica qué pasó y qué hacer.</p>
+
+    <!-- 409 conflicto de agenda -->
+    <section class="card">
+      <h2 class="h2">409 · El horario se ocupó</h2>
+      <div class="error-box">
+        <div class="error-box__title">Ese horario ya no está disponible</div>
+        <p>Elegí otro horario para continuar con tu reserva.</p>
+        <button class="btn btn--primary" type="button">Elegir otro horario</button>
+      </div>
+      <p class="note code">HTTP 409 · código: conflict</p>
+    </section>
+
+    <!-- 409 retención perdida -->
+    <section class="card">
+      <h2 class="h2">409 · La retención venció</h2>
+      <div class="error-box">
+        <div class="error-box__title">Tu reserva temporal venció</div>
+        <p>El horario se liberó para otros pacientes. Volvé a elegir un turno.</p>
+        <button class="btn btn--primary" type="button">Volver a disponibilidad</button>
+      </div>
+      <p class="note code">HTTP 409 · código: retention_expired · también cuando el token no coincide o ya fue consumido.</p>
+    </section>
+
+    <!-- 429 rate limit -->
+    <section class="card">
+      <h2 class="h2">429 · Demasiadas solicitudes</h2>
+      <div class="error-box error-box--warn">
+        <div class="error-box__title">Estás yendo muy rápido</div>
+        <p>Esperá un momento antes de volver a intentar.</p>
+        <div class="rate" style="margin-top: var(--space-3);">
+          <span class="rate__num">42</span>
+          <div>
+            <strong>segundos restantes</strong>
+            <p class="muted" style="margin: 0;">Se reanuda automáticamente (Retry-After).</p>
+          </div>
+        </div>
+      </div>
+      <p class="note code">HTTP 429 · código: rate_limited · header Retry-After en segundos.</p>
+    </section>
+
+    <!-- 404 token inválido -->
+    <section class="card">
+      <h2 class="h2">404 · Turno no encontrado</h2>
+      <div class="error-box error-box--info">
+        <div class="error-box__title">No encontramos ese turno</div>
+        <p>El enlace puede estar mal copiado o el turno ya no existe. Volvé a reservar.</p>
+        <button class="btn btn--ghost" type="button">Ir a /reservar</button>
+      </div>
+      <p class="note code">HTTP 404 · código: not_found · el token es opaco y no filtra datos del paciente.</p>
+    </section>
+
+    <!-- 422 datos inválidos -->
+    <section class="card">
+      <h2 class="h2">422 · Datos inválidos</h2>
+      <div class="error-box error-box--warn">
+        <div class="error-box__title">Revisá los campos</div>
+        <p>Nombre completo, DNI y teléfono son obligatorios.</p>
+      </div>
+      <p class="note code">HTTP 422 · código: validation_error · extra='forbid' rechaza campos no declarados (R1).</p>
+    </section>
+  </main>
+  <script src="../../../../design-system/brand.js"></script>
+</body>
+</html>

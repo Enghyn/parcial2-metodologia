@@ -121,7 +121,7 @@ Libro append-only, alta de ingreso/egreso con usuario del JWT, listado y resumen
 - **Gobernanza:** MEDIO.
 
 ### C-10: `reserva-publica-avanzada`
-- **Estado:** `[ ]`
+- **Estado:** `[x]` (Completado y archivado)
 - **Alcance:**
   - QR local para `/reservar` y `/p/turno/:token`.
   - Pre-reserva con expiración y liberación automática.

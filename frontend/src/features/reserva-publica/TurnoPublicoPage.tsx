@@ -1,17 +1,19 @@
 // Vista pública de un turno por token (C-06, D6/D9): datos, WhatsApp y cancelación.
 import type { ReactElement } from "react";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   cancelarTurnoPublico,
   getTurnoPublico,
 } from "../../shared/api/public";
 import type { TurnoPublicoOut } from "../../shared/api/public";
+import { QrTurno } from "./QrTurno";
 import { WhatsappButton } from "./WhatsappButton";
 import { formatFecha, formatHora } from "./types";
 
 export function TurnoPublicoPage(): ReactElement {
   const { token } = useParams<{ token: string }>();
+  const navigate = useNavigate();
   const [turno, setTurno] = useState<TurnoPublicoOut | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -77,9 +79,20 @@ export function TurnoPublicoPage(): ReactElement {
             <li className="font-medium uppercase tracking-wide">Estado: {turno.estado}</li>
           </ul>
 
+          <QrTurno token={turno.token} />
+
           {turno.estado !== "cancelado" ? (
             <div className="flex flex-wrap items-center gap-2 pt-2">
               <WhatsappButton turno={turno} />
+              {(turno.estado === "reservado" || turno.estado === "confirmado") && token !== undefined && (
+                <button
+                  type="button"
+                  onClick={() => navigate(`/p/turno/${token}/reprogramar`)}
+                  className="rounded border border-border px-4 py-2 text-sm"
+                >
+                  Reprogramar
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => void handleCancelar()}
