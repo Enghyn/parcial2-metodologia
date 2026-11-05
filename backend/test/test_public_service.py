@@ -11,7 +11,7 @@ from fastapi import HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.core.timezone import TZ_CONSULTORIO
+from app.core.timezone import TZ_CONSULTORIO, ahora
 from app.db.session import get_session_factory
 from app.modules.agenda.models import Profesional, Sillon, Turno
 from app.modules.agenda.schemas import BloqueoCreate, TurnoCreate
@@ -519,6 +519,51 @@ def test_reservar_no_loguea_datos_paciente(caplog) -> None:
         paciente = session.scalar(select(Paciente).where(Paciente.dni == dni))
         if paciente is not None:
             paciente.soft_delete()
+        session.commit()
+    finally:
+        session.close()
+
+
+def test_cancelacion_fuera_de_ventana_409() -> None:
+    session = _session()
+    try:
+        ids = _seed_ids(session)
+        turno = TurnoService(session).crear(
+            TurnoCreate(
+                paciente_id=ids["paciente"].id,
+                profesional_id=ids["profesionales"][0].id,
+                sillon_id=ids["sillones"][0].id,
+                prestacion="Consulta",
+                inicio=ahora() + timedelta(hours=2),
+                duracion_min=30,
+            )
+        )
+        with pytest.raises(HTTPException) as exc:
+            PublicReservaService(session).cancelar_por_token(turno.token_publico)
+        assert exc.value.status_code == 409
+        turno.soft_delete()
+        session.commit()
+    finally:
+        session.close()
+
+
+def test_cancelacion_dentro_de_ventana_200() -> None:
+    session = _session()
+    try:
+        ids = _seed_ids(session)
+        turno = TurnoService(session).crear(
+            TurnoCreate(
+                paciente_id=ids["paciente"].id,
+                profesional_id=ids["profesionales"][1].id,
+                sillon_id=ids["sillones"][1].id,
+                prestacion="Consulta",
+                inicio=ahora() + timedelta(days=2),
+                duracion_min=30,
+            )
+        )
+        cancelado = PublicReservaService(session).cancelar_por_token(turno.token_publico)
+        assert cancelado.estado == "cancelado"
+        turno.soft_delete()
         session.commit()
     finally:
         session.close()

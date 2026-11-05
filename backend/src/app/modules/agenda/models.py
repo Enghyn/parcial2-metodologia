@@ -23,7 +23,14 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, SoftDeleteMixin, TimestampMixin
 
-ESTADOS_TURNO: tuple[str, ...] = ("reservado", "confirmado", "presente", "atendido", "cancelado")
+ESTADOS_TURNO: tuple[str, ...] = (
+    "reservado",
+    "confirmado",
+    "presente",
+    "atendido",
+    "cancelado",
+    "ausente",
+)
 
 
 class Sillon(SoftDeleteMixin, TimestampMixin, Base):
@@ -80,16 +87,23 @@ class Turno(SoftDeleteMixin, TimestampMixin, Base):
         CheckConstraint("fin > inicio", name="rango"),
         CheckConstraint("duracion_min > 0", name="duracion"),
         CheckConstraint(
-            "estado IN ('reservado', 'confirmado', 'presente', 'atendido', 'cancelado')",
+            "estado IN ('reservado', 'confirmado', 'presente', 'atendido', 'cancelado',"
+            " 'ausente')",
             name="estado",
         ),
         CheckConstraint("sena_monto >= 0", name="sena"),
+        CheckConstraint(
+            "NOT es_sobreturno OR (motivo_sobreturno IS NOT NULL"
+            " AND length(btrim(motivo_sobreturno)) > 0)",
+            name="sobreturno_motivo",
+        ),
         CheckConstraint(
             "fin = inicio + (duracion_min * interval '1 minute')", name="fin_coherente"
         ),
         UniqueConstraint("token_publico", name="token_publico"),
         Index("ix_turnos_sillon_inicio_fin", "sillon_id", "inicio", "fin"),
         Index("ix_turnos_profesional_inicio_fin", "profesional_id", "inicio", "fin"),
+        Index("ix_turnos_inicio", "inicio"),
     )
 
     id: Mapped[UUID] = mapped_column(
@@ -118,6 +132,13 @@ class Turno(SoftDeleteMixin, TimestampMixin, Base):
         Numeric(10, 2), nullable=False, default=Decimal("0.00"), server_default=text("0")
     )
     notas: Mapped[str | None] = mapped_column(Text, nullable=True)
+    es_sobreturno: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=text("false")
+    )
+    motivo_sobreturno: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    autorizado_por: Mapped[UUID | None] = mapped_column(
+        ForeignKey("usuarios.id", name="fk_turnos_autorizado_por_usuarios"), nullable=True
+    )
 
 
 class Bloqueo(TimestampMixin, Base):

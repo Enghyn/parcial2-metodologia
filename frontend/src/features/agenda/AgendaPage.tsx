@@ -7,8 +7,11 @@ import { useAgendaStore } from "./useAgendaStore";
 import { DateSelector } from "./DateSelector";
 import { AgendaColumn } from "./AgendaColumn";
 import { TurnoModal } from "./TurnoModal";
+import { ReprogramarModal } from "./ReprogramarModal";
+import { VistaToggle } from "./VistaToggle";
 import { toIsoDate } from "./dateUtils";
 import type { EstadoTurno } from "../../shared/api/agenda";
+import type { TurnoOut } from "../../shared/api/agenda";
 
 export function AgendaPage(): ReactElement {
   const navigate = useNavigate();
@@ -24,10 +27,13 @@ export function AgendaPage(): ReactElement {
     error,
     cargar,
     crear,
+    crearSobreturno,
+    reprogramar,
     cambiarEstado,
   } = useAgendaStore();
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [reprogramando, setReprogramando] = useState<TurnoOut | null>(null);
 
   useEffect(() => {
     const hoy = toIsoDate(new Date());
@@ -54,6 +60,13 @@ export function AgendaPage(): ReactElement {
     await crear(input);
   }
 
+  async function handleCrearSobreturno(
+    input: Parameters<typeof crear>[0],
+    motivo: string,
+  ): Promise<void> {
+    await crearSobreturno(input, motivo);
+  }
+
   function handleLogout(): void {
     logout();
     navigate("/login", { replace: true });
@@ -61,7 +74,7 @@ export function AgendaPage(): ReactElement {
 
   return (
     <section className="p-4">
-      <header className="mb-4 flex flex-wrap items-center justify-between gap-2">
+      <header className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-semibold">Agenda del día</h1>
           {user !== null && (
@@ -70,12 +83,15 @@ export function AgendaPage(): ReactElement {
             </p>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="w-full sm:w-auto">
+            <VistaToggle />
+          </div>
           {canCreate && (
             <button
               type="button"
               onClick={() => setModalOpen(true)}
-              className="rounded bg-primary px-4 py-2 text-primary-foreground"
+              className="inline-flex min-h-11 flex-1 items-center justify-center whitespace-nowrap rounded bg-primary px-4 py-2 text-primary-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:flex-none"
             >
               Nuevo turno
             </button>
@@ -83,7 +99,7 @@ export function AgendaPage(): ReactElement {
           <button
             type="button"
             onClick={handleLogout}
-            className="rounded border border-border px-4 py-2"
+            className="inline-flex min-h-11 flex-1 items-center justify-center whitespace-nowrap rounded border border-border px-4 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:flex-none"
           >
             Cerrar sesión
           </button>
@@ -110,6 +126,7 @@ export function AgendaPage(): ReactElement {
             profesionalNombre={profesionalNombre}
             rol={rol}
             onCambiarEstado={handleCambiarEstado}
+            onReprogramar={setReprogramando}
           />
         ))}
       </div>
@@ -119,6 +136,12 @@ export function AgendaPage(): ReactElement {
         catalogos={{ sillones, profesionales, pacientes }}
         onClose={() => setModalOpen(false)}
         onCrear={handleCrear}
+        onCrearSobreturno={handleCrearSobreturno}
+      />
+      <ReprogramarModal
+        turno={reprogramando}
+        onClose={() => setReprogramando(null)}
+        onReprogramar={reprogramar}
       />
     </section>
   );

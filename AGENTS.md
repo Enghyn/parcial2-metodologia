@@ -70,7 +70,7 @@ El plan de implementación académico simplificado está en [CHANGES.md](CHANGES
   - `C-07-clinica-odontograma` [x]: pacientes, ficha y odontograma FDI.
   - `C-08-caja-movimientos-balance` [x]: libro append-only y resumen diario.
 - **Expansión (pendiente)**:
-  - `C-09a-agenda-dominio-avanzado`, `C-09b-agenda-vista-semanal`
+  - `C-09a-agenda-dominio-avanzado` [x] (Completado y archivado), `C-09b-agenda-vista-semanal` [x] (Completado y archivado)
   - `C-10-reserva-publica-avanzada`, `C-11-ficha-clinica-avanzada`, `C-12-caja-cierre-cuenta-corriente`
   - `C-13a-os-nomenclador-cobertura`, `C-13b-comprobante-manual`
   - `C-14-notificaciones-simuladas`, `C-15-lista-espera`

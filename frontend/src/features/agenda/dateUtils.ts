@@ -7,4 +7,5 @@ export {
   hoy,
   localInputToUtc,
   toIsoDate,
+  toLocalInput,
 } from "../../shared/date";

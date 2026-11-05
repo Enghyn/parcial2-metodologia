@@ -12,6 +12,7 @@ interface TurnoCardProps {
   profesionalNombre: string;
   rol: string;
   onCambiarEstado: (id: string, estado: EstadoTurno) => void;
+  onReprogramar: (turno: TurnoOut) => void;
 }
 
 export function TurnoCard({
@@ -20,6 +21,7 @@ export function TurnoCard({
   profesionalNombre,
   rol,
   onCambiarEstado,
+  onReprogramar,
 }: TurnoCardProps): ReactElement {
   return (
     <div className={`rounded border p-2 text-xs ${estadoClasses(turno.estado as EstadoTurno)}`}>
@@ -33,9 +35,18 @@ export function TurnoCard({
       <EstadoTurnoMenu
         turnoId={turno.id}
         rol={rol}
-        estadoActual={turno.estado as EstadoTurno}
+        estadoActual={turno.estado}
         onCambiarEstado={onCambiarEstado}
       />
+      {(rol === "admin" || rol === "recepcion") && (
+        <button
+          type="button"
+          onClick={() => onReprogramar(turno)}
+          className="mt-1 rounded border border-border px-2 py-0.5 text-[10px] hover:bg-foreground/5"
+        >
+          Reprogramar
+        </button>
+      )}
     </div>
   );
 }

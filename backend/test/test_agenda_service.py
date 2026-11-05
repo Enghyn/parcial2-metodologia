@@ -13,8 +13,14 @@ from sqlalchemy.orm import Session
 from app.core.timezone import TZ_CONSULTORIO
 from app.db import registry  # noqa: F401  (registra usuarios/turnos para las FKs)
 from app.db.session import get_session_factory
+from app.modules.admin.models import Usuario
 from app.modules.agenda.models import Profesional, Sillon
-from app.modules.agenda.schemas import BloqueoCreate, TurnoCreate
+from app.modules.agenda.schemas import (
+    BloqueoCreate,
+    ReprogramarTurno,
+    SobreturnoCreate,
+    TurnoCreate,
+)
 from app.modules.agenda.service import TurnoService
 from app.modules.clinica.models import Paciente
 
@@ -26,8 +32,20 @@ def _session() -> Session:
 
 
 def _seed_ids(session: Session) -> dict:
-    sillones = list(session.scalars(select(Sillon).where(Sillon.deleted_at.is_(None)).order_by(Sillon.nombre)))
-    profesionales = list(session.scalars(select(Profesional).where(Profesional.deleted_at.is_(None)).order_by(Profesional.matricula)))
+    sillones = list(
+        session.scalars(
+            select(Sillon)
+            .where(Sillon.deleted_at.is_(None), Sillon.activo.is_(True))
+            .order_by(Sillon.nombre)
+        )
+    )
+    profesionales = list(
+        session.scalars(
+            select(Profesional)
+            .where(Profesional.deleted_at.is_(None), Profesional.activo.is_(True))
+            .order_by(Profesional.matricula)
+        )
+    )
     pacientes = list(session.scalars(select(Paciente).where(Paciente.deleted_at.is_(None))))
     return {
         "sillones": sillones,
@@ -311,6 +329,9 @@ def test_crear_rechaza_profesional_inactivo() -> None:
                 )
             )
         assert exc.value.status_code == 404
+        # Sin residuos: el profesional temporal no debe alterar las próximas corridas.
+        profesional.soft_delete()
+        session.commit()
     finally:
         session.close()
 
@@ -380,6 +401,163 @@ def test_crear_naive_se_interpreta_como_art() -> None:
         )
         session.commit()
         assert turno.inicio.astimezone(UTC) == datetime(2027, 2, 12, 12, 0, tzinfo=UTC)
+        turno.soft_delete()
+        session.commit()
+    finally:
+        session.close()
+
+
+def test_reprogramar_exitoso() -> None:
+    session = _session()
+    try:
+        ids = _seed_ids(session)
+        servicio = TurnoService(session)
+        turno = servicio.crear(
+            _base_turno(
+                ids["sillones"][0].id,
+                ids["profesionales"][0].id,
+                ids["paciente"].id,
+                datetime(2027, 5, 1, 9, 0, tzinfo=TZ_CONSULTORIO),
+                30,
+            )
+        )
+        session.commit()
+        actualizado = servicio.reprogramar(
+            turno.id,
+            ReprogramarTurno(
+                inicio=datetime(2027, 5, 1, 10, 0, tzinfo=TZ_CONSULTORIO),
+                duracion_min=45,
+            ),
+        )
+        assert actualizado.inicio.hour == 10
+        assert actualizado.duracion_min == 45
+        assert actualizado.fin.hour == 10 and actualizado.fin.minute == 45
+        actualizado.soft_delete()
+        session.commit()
+    finally:
+        session.close()
+
+
+def test_reprogramar_conflicto_409() -> None:
+    session = _session()
+    try:
+        ids = _seed_ids(session)
+        servicio = TurnoService(session)
+        primero = servicio.crear(
+            _base_turno(
+                ids["sillones"][0].id,
+                ids["profesionales"][0].id,
+                ids["paciente"].id,
+                datetime(2027, 5, 2, 9, 0, tzinfo=TZ_CONSULTORIO),
+                30,
+            )
+        )
+        segundo = servicio.crear(
+            _base_turno(
+                ids["sillones"][0].id,
+                ids["profesionales"][0].id,
+                ids["paciente"].id,
+                datetime(2027, 5, 2, 10, 0, tzinfo=TZ_CONSULTORIO),
+                30,
+            )
+        )
+        session.commit()
+        with pytest.raises(HTTPException) as exc:
+            servicio.reprogramar(
+                segundo.id,
+                ReprogramarTurno(inicio=datetime(2027, 5, 2, 9, 15, tzinfo=TZ_CONSULTORIO)),
+            )
+        assert exc.value.status_code == 409
+        primero.soft_delete()
+        segundo.soft_delete()
+        session.commit()
+    finally:
+        session.close()
+
+
+def test_reprogramar_atendido_409() -> None:
+    session = _session()
+    try:
+        ids = _seed_ids(session)
+        servicio = TurnoService(session)
+        turno = servicio.crear(
+            _base_turno(
+                ids["sillones"][0].id,
+                ids["profesionales"][0].id,
+                ids["paciente"].id,
+                datetime(2027, 5, 3, 9, 0, tzinfo=TZ_CONSULTORIO),
+                30,
+            )
+        )
+        servicio.cambiar_estado(turno.id, "atendido")
+        with pytest.raises(HTTPException) as exc:
+            servicio.reprogramar(
+                turno.id,
+                ReprogramarTurno(inicio=datetime(2027, 5, 3, 10, 0, tzinfo=TZ_CONSULTORIO)),
+            )
+        assert exc.value.status_code == 409
+        turno.soft_delete()
+        session.commit()
+    finally:
+        session.close()
+
+
+def test_sobreturno_permite_solapamiento_y_autoriza() -> None:
+    session = _session()
+    try:
+        ids = _seed_ids(session)
+        usuario = session.scalar(select(Usuario).where(Usuario.rol == "admin"))
+        assert usuario is not None
+        servicio = TurnoService(session)
+        inicio = datetime(2027, 5, 4, 9, 0, tzinfo=TZ_CONSULTORIO)
+        normal = servicio.crear(
+            _base_turno(
+                ids["sillones"][0].id,
+                ids["profesionales"][0].id,
+                ids["paciente"].id,
+                inicio,
+                30,
+            )
+        )
+        sobreturno = servicio.crear_sobreturno(
+            SobreturnoCreate(
+                paciente_id=ids["paciente"].id,
+                profesional_id=ids["profesionales"][0].id,
+                sillon_id=ids["sillones"][0].id,
+                prestacion="Urgencia",
+                inicio=inicio,
+                duracion_min=30,
+                motivo_sobreturno="Dolor agudo",
+            ),
+            usuario.id,
+        )
+        assert sobreturno.es_sobreturno is True
+        assert sobreturno.autorizado_por == usuario.id
+        assert sobreturno.motivo_sobreturno == "Dolor agudo"
+        normal.soft_delete()
+        sobreturno.soft_delete()
+        session.commit()
+    finally:
+        session.close()
+
+
+def test_ausente_actualiza_estado_sin_borrar() -> None:
+    session = _session()
+    try:
+        ids = _seed_ids(session)
+        servicio = TurnoService(session)
+        turno = servicio.crear(
+            _base_turno(
+                ids["sillones"][0].id,
+                ids["profesionales"][0].id,
+                ids["paciente"].id,
+                datetime(2027, 5, 5, 9, 0, tzinfo=TZ_CONSULTORIO),
+                30,
+            )
+        )
+        servicio.cambiar_estado(turno.id, "ausente")
+        assert turno.estado == "ausente"
+        assert turno.deleted_at is None
         turno.soft_delete()
         session.commit()
     finally:

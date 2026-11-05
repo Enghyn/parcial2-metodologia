@@ -2,6 +2,7 @@ import type { ReactElement } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppLayout, PublicLayout, RequireAuth } from "./layout";
 import { AgendaPage } from "../features/agenda/AgendaPage";
+import { SemanaPage } from "../features/agenda/SemanaPage";
 import { CajaPage } from "../features/caja";
 import { OdontogramaPage, PacientesPage } from "../features/clinica";
 import {
@@ -21,6 +22,7 @@ export function AppRouter(): ReactElement {
           <Route path="/app" element={<AppLayout />}>
             <Route index element={<Navigate to="/app/agenda" replace />} />
             <Route path="agenda" element={<AgendaPage />} />
+            <Route path="agenda/semana" element={<SemanaPage />} />
             <Route path="pacientes" element={<PacientesPage />} />
             <Route path="odontograma/:pacienteId" element={<OdontogramaPage />} />
             <Route path="caja" element={<CajaPage />} />

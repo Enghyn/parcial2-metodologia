@@ -80,8 +80,20 @@ def usuario_en_memoria(rol: str = "recepcion") -> Usuario:
 def _seed_ids() -> dict:
     session = get_session_factory()()
     try:
-        sillones = list(session.scalars(select(Sillon).where(Sillon.deleted_at.is_(None)).order_by(Sillon.nombre)))
-        profesionales = list(session.scalars(select(Profesional).where(Profesional.deleted_at.is_(None)).order_by(Profesional.matricula)))
+        sillones = list(
+            session.scalars(
+                select(Sillon)
+                .where(Sillon.deleted_at.is_(None), Sillon.activo.is_(True))
+                .order_by(Sillon.nombre)
+            )
+        )
+        profesionales = list(
+            session.scalars(
+                select(Profesional)
+                .where(Profesional.deleted_at.is_(None), Profesional.activo.is_(True))
+                .order_by(Profesional.matricula)
+            )
+        )
         pacientes = list(session.scalars(select(Paciente).where(Paciente.deleted_at.is_(None))))
         return {
             "sillon_a": sillones[0],
@@ -100,6 +112,18 @@ IDS: dict = {}
 @pytest.fixture(scope="module", autouse=True)
 def _cargar_ids(db_disponible) -> None:
     IDS.update(_seed_ids())
+
+
+def _usuario_db(rol: str) -> Usuario:
+    session = get_session_factory()()
+    try:
+        usuario = session.scalar(
+            select(Usuario).where(Usuario.rol == rol, Usuario.activo.is_(True))
+        )
+        assert usuario is not None
+        return usuario
+    finally:
+        session.close()
 
 
 def _turno_payload(sillon, prof, paciente, inicio, duracion=30) -> dict:
@@ -353,6 +377,57 @@ async def test_turno_recurso_inexistente_404() -> None:
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         r = await _post_turno(client, payload, {"Authorization": "Bearer t"})
     assert r.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_reprogramar_turno_200() -> None:
+    app = app_fresco()
+    app.dependency_overrides[get_current_user] = lambda: usuario_en_memoria("recepcion")
+    ids = IDS
+    inicio = datetime(2027, 1, 20, 12, 0, tzinfo=TZ_CONSULTORIO)
+    payload = _turno_payload(ids["sillon_a"], ids["prof_a"], ids["paciente"], inicio)
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        r = await _post_turno(client, payload, {"Authorization": "Bearer t"})
+        assert r.status_code == 201
+        turno_id = r.json()["id"]
+        nuevo = (inicio + timedelta(hours=1)).isoformat()
+        rp = await client.patch(
+            f"{BASE}/turnos/{turno_id}/reprogramar",
+            json={"inicio": nuevo, "duracion_min": 45},
+            headers={"Authorization": "Bearer t"},
+        )
+    assert rp.status_code == 200
+    assert rp.json()["duracion_min"] == 45
+
+
+@pytest.mark.asyncio
+async def test_sobreturno_201_y_ausente_200() -> None:
+    app = app_fresco()
+    usuario = _usuario_db("recepcion")
+    app.dependency_overrides[get_current_user] = lambda: usuario
+    ids = IDS
+    inicio = datetime(2027, 1, 20, 14, 0, tzinfo=TZ_CONSULTORIO)
+    normal = _turno_payload(ids["sillon_a"], ids["prof_a"], ids["paciente"], inicio)
+    sobreturno = {**normal, "prestacion": "Urgencia", "motivo_sobreturno": "Dolor agudo"}
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        r1 = await _post_turno(client, normal, {"Authorization": "Bearer t"})
+        assert r1.status_code == 201
+        r2 = await client.post(
+            f"{BASE}/turnos/sobreturno",
+            json=sobreturno,
+            headers={"Authorization": "Bearer t"},
+        )
+        assert r2.status_code == 201, r2.text
+        assert r2.json()["es_sobreturno"] is True
+        assert r2.json()["autorizado_por"] == str(usuario.id)
+        turno_id = r2.json()["id"]
+        r3 = await client.patch(
+            f"{BASE}/turnos/{turno_id}/estado",
+            json={"estado": "ausente"},
+            headers={"Authorization": "Bearer t"},
+        )
+    assert r3.status_code == 200
+    assert r3.json()["estado"] == "ausente"
 
 
 @pytest.mark.asyncio

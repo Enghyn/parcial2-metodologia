@@ -9,7 +9,7 @@ interface EstadoTurnoMenuProps {
   onCambiarEstado: (id: string, estado: EstadoTurno) => void;
 }
 
-const OPCIONES: EstadoTurno[] = ["confirmado", "presente", "cancelado"];
+const OPCIONES: EstadoTurno[] = ["confirmado", "presente", "cancelado", "ausente"];
 
 export function EstadoTurnoMenu({
   turnoId,

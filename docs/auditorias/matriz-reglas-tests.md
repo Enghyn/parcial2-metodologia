@@ -6,11 +6,11 @@
 
 | Regla | Evidencia principal | Estado |
 |---|---|---|
-| RN-AG-01 | `test_agenda_conflicts.py`, `test_agenda_router.py` (409) | ✅ |
+| RN-AG-01 | `test_agenda_conflicts.py`, `test_agenda_router.py` (409), reprogramación en `test_agenda_service.py` | ✅ |
 | RN-AG-02 | `test_agenda_service.py::test_crear_en_hueco_libre_persiste_fin` | ✅ |
 | RN-AG-03 | `test_agenda_schemas.py`, NOT NULL del modelo | ✅ |
 | RN-AG-04 | `test_agenda_service.py::test_bloqueo_conflicto_en_turno` | ✅ |
-| RN-AG-05 | `test_turno_estado_update_extra_forbid_y_valores` (solo catálogo) | ⚠️ |
+| RN-AG-05 | Catálogo con `ausente`; sin matriz de transiciones | ⚠️ |
 | RN-AG-06 | `test_public_schemas.py::test_paciente_requiere_nombre_dni_telefono` | ✅ |
 | RN-CL-01 | `test_clinica_service.py` (pieza 19), `test_clinica_schemas.py`, CHECK FDI | ✅ |
 | RN-CL-02 | `test_clinica_router.py::test_recepcion_no_puede_editar_pieza_403` | ✅ |
@@ -25,9 +25,9 @@
 | R3 | `test_caja_inmutable.py`, triggers de `0003`, `test_caja_router.py` sin PATCH/DELETE | ✅ |
 | R4 | `test_caja_router.py` (usuario JWT, body con `usuario_id` 422) | ✅ |
 | R5 | `ruff`, type hints, `test_migration_*` | ✅ |
-| R6 | `test_agenda_conflicts.py`, 409 HTTP | ✅ |
+| R6 | `test_agenda_conflicts.py`, 409 HTTP, reprogramación con antisolapamiento | ✅ |
 | R7 | `tsc`, `eslint`, `build`; sin tests de componentes | ⚠️ |
-| R8 | `test_auth_deps.py`, RBAC de agenda/clinica | ✅ |
+| R8 | `test_auth_deps.py`, RBAC de agenda/clinica, sobreturno/reprogramación admin/recepción | ✅ |
 | R9 | `test_login_fallido_no_loguea_credenciales`, `test_crear_turno_no_loguea_notas`, `test_reservar_no_loguea_datos_paciente`, `test_no_loguea_estado_ni_observacion`, `test_no_loguea_concepto_clinico` | ✅ |
 | R10 | UI es-AR/ARS; sin test automatizado de textos | ⚠️ |
 | R11 | Regla de proceso | ➖ |

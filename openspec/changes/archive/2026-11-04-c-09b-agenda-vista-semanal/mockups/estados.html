@@ -1,0 +1,914 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Estados de la celda semanal — {marca}</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%233b82f6'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="../../../../design-system/tokens.css">
+  <style>
+    /*
+     * Mockup C-09b · Catálogo de estados y de feedback de la vista semanal.
+     * Reutiliza los tokens de la revisión 1 del sistema de diseño.
+     */
+
+    *,
+    *::before,
+    *::after { box-sizing: border-box; }
+
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      margin: 0;
+      background: var(--color-surface-muted);
+      color: var(--color-text);
+      font-family: var(--font-sans);
+      font-size: var(--text-sm);
+      line-height: var(--leading-normal);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3, p, ul { margin: 0; }
+    ul { padding: 0; list-style: none; }
+    img { max-width: 100%; }
+    button, input, select { font: inherit; }
+
+    :focus-visible {
+      outline: var(--focus-ring-width) solid var(--focus-ring-color);
+      outline-offset: var(--focus-ring-offset);
+    }
+
+    .sr-only {
+      position: absolute;
+      left: 0;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      clip-path: inset(50%);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .skip-link {
+      position: absolute;
+      top: -60px;
+      left: 12px;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      min-height: var(--control-min-size);
+      padding: 0 var(--space-4);
+      background: var(--color-primary);
+      color: var(--color-on-primary);
+      border-radius: var(--radius-control);
+      text-decoration: none;
+      font-weight: var(--font-semibold);
+    }
+
+    .skip-link:focus { top: 12px; }
+
+    /* Chrome ---------------------------------------------------------- */
+
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px 12px;
+      padding: 8px 10px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-card);
+      background: var(--color-surface);
+    }
+
+    .topbar__brand {
+      display: flex;
+      flex: 1 1 200px;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .topbar__logo { width: auto; height: 32px; flex: none; }
+
+    .topbar__name {
+      min-width: 0;
+      font-size: var(--text-sm);
+      font-weight: var(--font-semibold);
+      overflow-wrap: anywhere;
+    }
+
+    .topbar__nav { display: flex; flex-wrap: wrap; gap: 2px; }
+
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: var(--control-min-size);
+      padding: 0 10px;
+      border-radius: var(--radius-control);
+      color: var(--color-text-muted);
+      font-size: var(--text-sm);
+      font-weight: var(--font-medium);
+      text-decoration: none;
+    }
+
+    .nav-link[aria-current="page"] {
+      background: var(--color-primary-soft);
+      color: var(--color-primary);
+      font-weight: var(--font-semibold);
+    }
+
+    .user-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      margin-left: auto;
+      padding: 2px 10px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-full);
+      background: var(--color-surface-muted);
+      color: var(--color-text-muted);
+      font-size: var(--text-xs);
+      white-space: nowrap;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      padding: 1px 8px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xs);
+      background: var(--color-surface-muted);
+      color: var(--color-text-muted);
+      font-size: var(--text-2xs);
+      font-weight: var(--font-semibold);
+      letter-spacing: var(--tracking-caps);
+      line-height: 1;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .tag-tbd {
+      border-color: var(--color-warning-border);
+      background: var(--color-warning-soft);
+      color: var(--color-warning);
+    }
+
+    .page {
+      width: 100%;
+      max-width: var(--container-max);
+      margin: 0 auto;
+      padding: var(--space-3) var(--space-4) var(--space-8);
+    }
+
+    .page > .topbar { margin-bottom: var(--space-4); }
+
+    .eyebrow {
+      color: var(--color-text-muted);
+      font-size: var(--text-2xs);
+      font-weight: var(--font-semibold);
+      letter-spacing: var(--tracking-caps);
+      text-transform: uppercase;
+    }
+
+    .page-head { margin-bottom: var(--space-4); }
+
+    .page-head h1 {
+      margin-top: 2px;
+      font-size: clamp(1.2rem, 3.4vw, 1.65rem);
+      line-height: var(--leading-tight);
+      letter-spacing: -0.01em;
+    }
+
+    .page-head p {
+      max-width: var(--measure);
+      margin-top: var(--space-1);
+      color: var(--color-text-muted);
+      font-size: var(--text-sm);
+    }
+
+    .section {
+      margin-bottom: var(--space-3);
+      padding: clamp(0.875rem, 2.5vw, 1.25rem);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-card);
+      background: var(--color-surface);
+    }
+
+    .section__head { margin-bottom: var(--space-3); }
+
+    .section__head h2 {
+      margin-top: 2px;
+      font-size: var(--text-lg);
+      line-height: var(--leading-tight);
+    }
+
+    .section__desc {
+      max-width: var(--measure);
+      margin-top: 2px;
+      color: var(--color-text-muted);
+      font-size: var(--text-xs);
+    }
+
+    /* Estados --------------------------------------------------------- */
+
+    .state-reservado { --state-border: var(--state-reservado-border); --state-bg: var(--state-reservado-bg); --state-text: var(--state-reservado-text); }
+    .state-confirmado { --state-border: var(--state-confirmado-border); --state-bg: var(--state-confirmado-bg); --state-text: var(--state-confirmado-text); }
+    .state-presente { --state-border: var(--state-presente-border); --state-bg: var(--state-presente-bg); --state-text: var(--state-presente-text); }
+    .state-atendido { --state-border: var(--state-atendido-border); --state-bg: var(--state-atendido-bg); --state-text: var(--state-atendido-text); }
+    .state-cancelado { --state-border: var(--state-cancelado-border); --state-bg: var(--state-cancelado-bg); --state-text: var(--state-cancelado-text); }
+    .state-ausente { --state-border: var(--state-ausente-border); --state-bg: var(--state-ausente-bg); --state-text: var(--state-ausente-text); }
+
+    .chip {
+      display: grid;
+      gap: 1px;
+      width: 100%;
+      min-height: var(--control-min-size);
+      padding: 4px 5px;
+      border: 1px solid var(--state-border);
+      border-radius: var(--radius-xs);
+      background: var(--state-bg);
+      color: var(--state-text);
+      font-size: var(--text-2xs);
+      line-height: 1.3;
+      text-align: left;
+      cursor: pointer;
+      overflow-wrap: anywhere;
+      transition: filter var(--duration-base) var(--ease-out);
+    }
+
+    .chip:hover { filter: brightness(0.97); }
+
+    .chip__body {
+      display: grid;
+      gap: 1px;
+      min-width: 0;
+    }
+
+    .chip__time {
+      font-size: var(--text-2xs);
+      font-weight: var(--font-bold);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .chip__patient { font-size: var(--text-xs); font-weight: var(--font-semibold); line-height: 1.2; }
+    .chip__meta { font-size: 0.625rem; line-height: 1.25; opacity: 0.9; }
+
+    .chip__state {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      margin-top: 1px;
+      font-size: 0.625rem;
+      font-weight: var(--font-semibold);
+      letter-spacing: var(--tracking-caps);
+      line-height: 1.4;
+      text-transform: uppercase;
+    }
+
+    .chip__state::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      flex: none;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .chip__sob {
+      display: inline-flex;
+      align-items: center;
+      width: max-content;
+      max-width: 100%;
+      margin-bottom: 1px;
+      padding: 0 4px;
+      border: 1px dashed currentColor;
+      border-radius: var(--radius-xs);
+      font-size: 0.625rem;
+      font-weight: var(--font-bold);
+      letter-spacing: var(--tracking-wide);
+      line-height: 1.5;
+      text-transform: uppercase;
+    }
+
+    .chip--sobreturno {
+      border-style: dashed;
+      border-color: var(--state-sobreturno-border);
+      background: var(--color-surface);
+      color: var(--state-sobreturno-text);
+    }
+
+    .chip--cancelado .chip__body { text-decoration: line-through; opacity: 0.72; }
+    .chip--cancelado { opacity: 0.85; }
+
+    /* Tarjetas del catálogo */
+
+    .state-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: var(--space-2);
+    }
+
+    .state-card {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-card);
+      background: var(--color-surface-muted);
+      align-content: start;
+    }
+
+    .state-card__name {
+      font-size: var(--text-xs);
+      font-weight: var(--font-semibold);
+    }
+
+    .state-card__cap {
+      color: var(--color-text-muted);
+      font-size: var(--text-2xs);
+      line-height: var(--leading-snug);
+    }
+
+    .state-card__token {
+      color: var(--color-text-subtle);
+      font-family: var(--font-mono);
+      font-size: 0.625rem;
+      overflow-wrap: anywhere;
+    }
+
+    /* Celda, columna y superposición -------------------------------- */
+
+    .cell-demos {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: var(--space-3);
+    }
+
+    .cell-demo { display: grid; gap: 6px; align-content: start; }
+
+    .cell-demo__label {
+      color: var(--color-text-muted);
+      font-size: var(--text-2xs);
+      font-weight: var(--font-semibold);
+      letter-spacing: var(--tracking-caps);
+      text-transform: uppercase;
+    }
+
+    .cell-frame {
+      display: grid;
+      gap: 3px;
+      min-height: 96px;
+      padding: 5px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xs);
+      background: var(--color-surface);
+      align-content: start;
+    }
+
+    .cell-frame--today {
+      background: color-mix(in oklab, var(--color-primary-soft) 45%, var(--color-surface));
+      box-shadow: inset 3px 0 0 var(--color-primary);
+    }
+
+    .cell-frame__head {
+      display: flex;
+      align-items: baseline;
+      gap: 5px;
+      color: var(--color-text-muted);
+      font-size: var(--text-2xs);
+    }
+
+    .cell-frame__head strong { color: var(--color-text); font-size: var(--text-xs); }
+
+    .week-empty {
+      display: flex;
+      align-items: center;
+      min-height: 40px;
+      color: var(--color-text-muted);
+      font-size: var(--text-2xs);
+    }
+
+    .cell-demo__note { color: var(--color-text-muted); font-size: var(--text-2xs); line-height: var(--leading-snug); }
+
+    /* Vacío, esqueleto y error --------------------------------------- */
+
+    .empty {
+      display: grid;
+      justify-items: center;
+      gap: var(--space-2);
+      padding: var(--space-8) var(--space-4);
+      border: 1px dashed var(--color-border-strong);
+      border-radius: var(--radius-card);
+      background: var(--color-surface-muted);
+      text-align: center;
+    }
+
+    .empty__mark {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--color-border-strong);
+      border-radius: var(--radius-full);
+      color: var(--color-text-muted);
+      font-size: var(--text-lg);
+    }
+
+    .empty h3 { font-size: var(--text-base); }
+    .empty p { max-width: 42ch; color: var(--color-text-muted); font-size: var(--text-sm); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: var(--control-min-size);
+      padding: 0 var(--space-4);
+      border: 1px solid transparent;
+      border-radius: var(--radius-control);
+      font-size: var(--text-sm);
+      font-weight: var(--font-medium);
+      line-height: 1;
+      text-decoration: none;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .btn--primary { background: var(--color-primary); color: var(--color-on-primary); font-weight: var(--font-semibold); }
+    .btn--primary:hover { background: var(--color-primary-hover); }
+    .btn--secondary { border-color: var(--color-border-strong); background: var(--color-surface); color: var(--color-text); }
+    .btn--secondary:hover { background: var(--color-surface-muted); }
+
+    .empty__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); }
+
+    /* Skeleton de la grilla */
+
+    .skel-scroll {
+      overflow-x: auto;
+      overflow-y: hidden;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-card);
+      background: var(--color-surface);
+    }
+
+    .skel-grid {
+      display: grid;
+      grid-template-columns: 82px repeat(7, minmax(118px, 1fr));
+      min-width: 940px;
+      gap: 1px;
+      background: var(--color-border);
+    }
+
+    .skel-head {
+      display: grid;
+      gap: 4px;
+      padding: 8px 6px;
+      background: var(--color-surface-muted);
+    }
+
+    .skel-chair {
+      display: grid;
+      gap: 4px;
+      align-content: start;
+      padding: 8px 6px;
+      background: var(--color-surface-muted);
+    }
+
+    .skel-cell {
+      display: grid;
+      gap: 5px;
+      min-height: 132px;
+      padding: 5px;
+      background: var(--color-surface);
+      align-content: start;
+    }
+
+    .skeleton {
+      height: 10px;
+      border-radius: var(--radius-xs);
+      background: linear-gradient(
+        90deg,
+        var(--color-surface-sunken) 25%,
+        var(--color-border) 37%,
+        var(--color-surface-sunken) 63%
+      );
+      background-size: 400% 100%;
+      animation: shimmer 1.4s var(--ease-in-out) infinite;
+    }
+
+    .skeleton--chip { height: 54px; border-radius: var(--radius-xs); }
+    .skeleton--short { width: 55%; }
+
+    @keyframes shimmer {
+      0% { background-position: 100% 0; }
+      100% { background-position: 0 0; }
+    }
+
+    .loading-note {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: var(--space-2);
+      color: var(--color-text-muted);
+      font-size: var(--text-xs);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .skeleton { animation: none; background: var(--color-surface-muted); }
+    }
+
+    /* Alerta de error */
+
+    .alert {
+      display: flex;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid;
+      border-left-width: 4px;
+      border-radius: var(--radius-card);
+      font-size: var(--text-sm);
+    }
+
+    .alert__icon {
+      display: grid;
+      place-items: center;
+      width: 20px;
+      height: 20px;
+      flex: none;
+      border: 1px solid currentColor;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: var(--font-bold);
+      line-height: 1;
+    }
+
+    .alert strong { display: block; font-weight: var(--font-semibold); }
+    .alert p { margin-top: 1px; font-size: var(--text-xs); }
+
+    .alert--danger {
+      border-color: var(--color-danger-border);
+      border-left-color: var(--color-danger);
+      background: var(--color-danger-soft);
+      color: var(--color-danger);
+    }
+
+    .alert__actions { margin-top: var(--space-2); }
+
+    .alert__actions .btn { border-color: currentColor; background: var(--color-surface); color: var(--color-danger); }
+
+    .note {
+      margin-top: var(--space-2);
+      color: var(--color-text-muted);
+      font-size: var(--text-2xs);
+    }
+
+    @media (max-width: 640px) {
+      .page { padding: var(--space-3) var(--space-3) var(--space-8); }
+      .topbar__nav { order: 3; width: 100%; }
+      .nav-link { padding: 0 8px; font-size: var(--text-xs); }
+      .topbar__logo { height: 28px; }
+      .topbar__name { font-size: var(--text-xs); }
+      .topbar .tag-tbd { display: none; }
+      .user-chip { display: none; }
+      .state-cards { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+  <div class="page">
+    <header class="topbar">
+      <div class="topbar__brand">
+        <img class="topbar__logo" src="../../../../design-system/assets/logo.svg"
+             alt="Logo provisorio: la marca está pendiente de definición" width="126" height="32">
+        <span class="topbar__name" data-brand-name>Consultorio (marca provisoria)</span>
+        <span class="tag tag-tbd">TBD</span>
+      </div>
+      <nav class="topbar__nav" aria-label="Navegación principal">
+        <a class="nav-link" href="semana.html" aria-current="page">Agenda</a>
+        <a class="nav-link" href="#contenido">Pacientes</a>
+        <a class="nav-link" href="#contenido">Caja</a>
+        <a class="nav-link" href="#contenido">Reportes</a>
+        <a class="nav-link" href="#contenido">Recepción</a>
+      </nav>
+      <span class="user-chip">Recepción</span>
+    </header>
+
+    <main id="contenido">
+      <header class="page-head">
+        <p class="eyebrow">Agenda semanal · catálogo de estados</p>
+        <h1>Chips, vacío, carga y error de la grilla semanal</h1>
+        <p>
+          Cada estado se identifica por su etiqueta textual además del color. El sobreturno
+          suma la palabra “Sobreturno” y borde discontinuo; el cancelado sigue visible,
+          atenuado y tachado.
+        </p>
+      </header>
+
+      <!-- 1. Estados -->
+      <section class="section" aria-labelledby="estados-titulo">
+        <div class="section__head">
+          <p class="eyebrow">Celda de la grilla</p>
+          <h2 id="estados-titulo">Chips por estado</h2>
+          <p class="section__desc">
+            Mismo trío de color que la vista diaria (<span style="font-family: var(--font-mono)">estadoColor.ts</span>).
+            La etiqueta en mayúscula y el punto de color están siempre presentes.
+          </p>
+        </div>
+
+        <div class="state-cards">
+          <div class="state-card">
+            <button class="chip state-reservado" type="button" aria-label="Reservado: 09:00 a 09:30, Consulta, Camila Ruiz, Dra. Lucía Fernández">
+              <span class="chip__body">
+                <span class="chip__time">09:00–09:30</span>
+                <span class="chip__patient">Camila Ruiz</span>
+                <span class="chip__meta">Consulta · LF</span>
+              </span>
+              <span class="chip__state">reservado</span>
+            </button>
+            <p class="state-card__name">Reservado</p>
+            <p class="state-card__cap">Turno agendado sin confirmación del paciente.</p>
+            <p class="state-card__token">--state-reservado-*</p>
+          </div>
+
+          <div class="state-card">
+            <button class="chip state-confirmado" type="button" aria-label="Confirmado: 09:30 a 10:00, Control, Lucas Rivas, Dr. Martín Aguirre">
+              <span class="chip__body">
+                <span class="chip__time">09:30–10:00</span>
+                <span class="chip__patient">Lucas Rivas</span>
+                <span class="chip__meta">Control · MA</span>
+              </span>
+              <span class="chip__state">confirmado</span>
+            </button>
+            <p class="state-card__name">Confirmado</p>
+            <p class="state-card__cap">El paciente confirmó la asistencia.</p>
+            <p class="state-card__token">--state-confirmado-*</p>
+          </div>
+
+          <div class="state-card">
+            <button class="chip state-presente" type="button" aria-label="Presente: 10:00 a 10:30, Obturación, Estela Marín, Dr. Martín Aguirre">
+              <span class="chip__body">
+                <span class="chip__time">10:00–10:30</span>
+                <span class="chip__patient">Estela Marín</span>
+                <span class="chip__meta">Obturación · MA</span>
+              </span>
+              <span class="chip__state">presente</span>
+            </button>
+            <p class="state-card__name">Presente</p>
+            <p class="state-card__cap">El paciente está en el consultorio.</p>
+            <p class="state-card__token">--state-presente-*</p>
+          </div>
+
+          <div class="state-card">
+            <button class="chip state-atendido" type="button" aria-label="Atendido: 10:30 a 11:00, Limpieza, Bruno Salas, Dra. Lucía Fernández">
+              <span class="chip__body">
+                <span class="chip__time">10:30–11:00</span>
+                <span class="chip__patient">Bruno Salas</span>
+                <span class="chip__meta">Limpieza · LF</span>
+              </span>
+              <span class="chip__state">atendido</span>
+            </button>
+            <p class="state-card__name">Atendido</p>
+            <p class="state-card__cap">Atención finalizada y registrada.</p>
+            <p class="state-card__token">--state-atendido-*</p>
+          </div>
+
+          <div class="state-card">
+            <button class="chip state-cancelado chip--cancelado" type="button" aria-label="Cancelado: 14:30 a 15:00, Control, Marta Quiroga, Dra. Lucía Fernández">
+              <span class="chip__body">
+                <span class="chip__time">14:30–15:00</span>
+                <span class="chip__patient">Marta Quiroga</span>
+                <span class="chip__meta">Control · LF</span>
+              </span>
+              <span class="chip__state">cancelado</span>
+            </button>
+            <p class="state-card__name">Cancelado</p>
+            <p class="state-card__cap">Sigue visible, atenuado y tachado: recepción conserva el contexto del hueco liberado.</p>
+            <p class="state-card__token">--state-cancelado-*</p>
+          </div>
+
+          <div class="state-card">
+            <button class="chip state-ausente" type="button" aria-label="Ausente: 11:00 a 11:30, Control, Emiliano Castro, Dr. Martín Aguirre">
+              <span class="chip__body">
+                <span class="chip__time">11:00–11:30</span>
+                <span class="chip__patient">Emiliano Castro</span>
+                <span class="chip__meta">Control · MA</span>
+              </span>
+              <span class="chip__state">ausente</span>
+            </button>
+            <p class="state-card__name">Ausente</p>
+            <p class="state-card__cap">No se presentó. Se distingue de <em>cancelado</em> por la etiqueta y el tratamiento.</p>
+            <p class="state-card__token">--state-ausente-*</p>
+          </div>
+
+          <div class="state-card">
+            <button class="chip state-confirmado chip--sobreturno" type="button" aria-label="Sobreturno confirmado: 10:15 a 10:45, Urgencia, Micaela Duarte, Dr. Martín Aguirre">
+              <span class="chip__sob">Sobreturno</span>
+              <span class="chip__body">
+                <span class="chip__time">10:15–10:45</span>
+                <span class="chip__patient">Micaela Duarte</span>
+                <span class="chip__meta">Urgencia · MA</span>
+              </span>
+              <span class="chip__state">confirmado</span>
+            </button>
+            <p class="state-card__name">Sobreturno confirmado</p>
+            <p class="state-card__cap">Badge textual + borde discontinuo sobre el color del estado. Nunca solo color.</p>
+            <p class="state-card__token">--state-sobreturno-*</p>
+          </div>
+
+          <div class="state-card">
+            <button class="chip state-reservado chip--sobreturno" type="button" aria-label="Sobreturno reservado: 11:00 a 11:20, Urgencia, Valeria Ortiz, Dra. Lucía Fernández">
+              <span class="chip__sob">Sobreturno</span>
+              <span class="chip__body">
+                <span class="chip__time">11:00–11:20</span>
+                <span class="chip__patient">Valeria Ortiz</span>
+                <span class="chip__meta">Urgencia · LF</span>
+              </span>
+              <span class="chip__state">reservado</span>
+            </button>
+            <p class="state-card__name">Sobreturno reservado</p>
+            <p class="state-card__cap">El sobreturno toma el color de su propio estado; el badge y el borde no cambian.</p>
+            <p class="state-card__token">--state-sobreturno-* + estado</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. Celda y columna -->
+      <section class="section" aria-labelledby="celda-titulo">
+        <div class="section__head">
+          <p class="eyebrow">Grilla</p>
+          <h2 id="celda-titulo">Celda vacía, columna de hoy y superposición</h2>
+          <p class="section__desc">
+            Una celda sin turnos no genera error ni acción: solo indica que el espacio está
+            libre. Dos turnos pueden convivir en la misma celda por un sobreturno.
+          </p>
+        </div>
+
+        <div class="cell-demos">
+          <div class="cell-demo">
+            <p class="cell-demo__label">Celda libre</p>
+            <div class="cell-frame">
+              <p class="cell-frame__head"><strong>jue 5</strong> Sillón 3</p>
+              <span class="week-empty">Libre</span>
+              <span class="sr-only">Sin turnos el jueves 5 en el sillón 3</span>
+            </div>
+            <p class="cell-demo__note">Click en la celda: no abre nada y no envía requests.</p>
+          </div>
+
+          <div class="cell-demo">
+            <p class="cell-demo__label">Columna de hoy</p>
+            <div class="cell-frame cell-frame--today">
+              <p class="cell-frame__head"><strong>mié 4</strong> Sillón 2 · hoy</p>
+              <button class="chip state-presente" type="button" aria-label="Miércoles 4, 10:30 a 11:00, Limpieza, Bruno Salas, Dra. Lucía Fernández, presente">
+                <span class="chip__body">
+                  <span class="chip__time">10:30–11:00</span>
+                  <span class="chip__patient">Bruno Salas</span>
+                  <span class="chip__meta">Limpieza · LF</span>
+                </span>
+                <span class="chip__state">presente</span>
+              </button>
+            </div>
+            <p class="cell-demo__note">El día actual se marca con fondo y con el texto “Hoy” en el encabezado.</p>
+          </div>
+
+          <div class="cell-demo">
+            <p class="cell-demo__label">Normal + sobreturno</p>
+            <div class="cell-frame">
+              <p class="cell-frame__head"><strong>jue 5</strong> Sillón 2</p>
+              <button class="chip state-confirmado" type="button" aria-label="Jueves 5, 10:00 a 10:30, Obturación, Pablo Herrera, Dr. Martín Aguirre, confirmado">
+                <span class="chip__body">
+                  <span class="chip__time">10:00–10:30</span>
+                  <span class="chip__patient">Pablo Herrera</span>
+                  <span class="chip__meta">Obturación · MA</span>
+                </span>
+                <span class="chip__state">confirmado</span>
+              </button>
+              <button class="chip state-reservado chip--sobreturno" type="button" aria-label="Jueves 5, 10:15 a 10:45, Urgencia, Micaela Duarte, Dr. Martín Aguirre, sobreturno reservado">
+                <span class="chip__sob">Sobreturno</span>
+                <span class="chip__body">
+                  <span class="chip__time">10:15–10:45</span>
+                  <span class="chip__patient">Micaela Duarte</span>
+                  <span class="chip__meta">Urgencia · MA</span>
+                </span>
+                <span class="chip__state">reservado</span>
+              </button>
+            </div>
+            <p class="cell-demo__note">Se listan por hora de inicio; el sobreturno se reconoce por texto y borde.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Semana sin turnos -->
+      <section class="section" aria-labelledby="vacio-titulo">
+        <div class="section__head">
+          <p class="eyebrow">Semana vacía</p>
+          <h2 id="vacio-titulo">Semana sin turnos</h2>
+          <p class="section__desc">
+            Ocurre al navegar a una semana futura sin agenda o al filtrar un profesional sin
+            turnos. La grilla se reemplaza por un vacío con salida a la vista diaria.
+          </p>
+        </div>
+
+        <div class="empty" role="status">
+          <span class="empty__mark" aria-hidden="true">—</span>
+          <h3>No hay turnos en esta semana</h3>
+          <p>La semana del 9 al 15 de noviembre de 2026 no tiene turnos cargados para los filtros actuales.</p>
+          <div class="empty__actions">
+            <a class="btn btn--primary" href="semana.html">Ir a la vista diaria</a>
+            <a class="btn btn--secondary" href="semana.html">Ver la semana siguiente</a>
+          </div>
+        </div>
+        <p class="note">El vacío no reemplaza la cabecera: la navegación de semana y el filtro siguen disponibles.</p>
+      </section>
+
+      <!-- 4. Carga -->
+      <section class="section" aria-labelledby="carga-titulo">
+        <div class="section__head">
+          <p class="eyebrow">Carga</p>
+          <h2 id="carga-titulo">Grilla en carga</h2>
+          <p class="section__desc">
+            Una sola consulta por semana: el esqueleto mantiene la forma 7 × 3 para evitar
+            saltos de layout. Se anuncia “Cargando la semana” a lectores de pantalla.
+          </p>
+        </div>
+
+        <div class="skel-scroll">
+          <div class="skel-grid" role="status" aria-live="polite" aria-busy="true">
+            <span class="sr-only">Cargando la semana del 2 al 8 de noviembre de 2026</span>
+            <div class="skel-head"><span class="skeleton skeleton--short"></span></div>
+            <div class="skel-head"><span class="skeleton"></span></div>
+            <div class="skel-head"><span class="skeleton"></span></div>
+            <div class="skel-head"><span class="skeleton"></span></div>
+            <div class="skel-head"><span class="skeleton"></span></div>
+            <div class="skel-head"><span class="skeleton"></span></div>
+            <div class="skel-head"><span class="skeleton"></span></div>
+            <div class="skel-head"><span class="skeleton"></span></div>
+
+            <div class="skel-chair"><span class="skeleton"></span><span class="skeleton skeleton--short"></span></div>
+            <div class="skel-cell"><span class="skeleton skeleton--chip"></span><span class="skeleton skeleton--chip"></span></div>
+            <div class="skel-cell"><span class="skeleton skeleton--chip"></span></div>
+            <div class="skel-cell"><span class="skeleton skeleton--chip"></span><span class="skeleton skeleton--chip"></span></div>
+            <div class="skel-cell"><span class="skeleton skeleton--chip"></span></div>
+            <div class="skel-cell"><span class="skeleton skeleton--chip"></span><span class="skeleton skeleton--chip"></span></div>
+            <div class="skel-cell"><span class="skeleton skeleton--chip"></span></div>
+            <div class="skel-cell"><span class="skeleton skeleton--chip"></span></div>
+
+            <div class="skel-chair"><span class="skeleton"></span><span class="skeleton skeleton--short"></span></div>
+            <div class="skel-cell"><span class="skeleton skeleton--chip"></span></div>
+            <div class="skel-cell"><span class="skeleton skeleton--chip"></span><span class="skeleton skeleton--chip"></span></div>
+            <div class="skel-cell"><span class="skeleton skeleton--chip"></span></div>
+            <div class="skel-cell"><span class="skeleton skeleton--chip"></span><span class="skeleton skeleton--chip"></span></div>
+            <div class="skel-cell"><span class="skeleton skeleton--chip"></span></div>
+            <div class="skel-cell"><span class="skeleton skeleton--chip"></span></div>
+            <div class="skel-cell"><span class="skeleton skeleton--chip"></span></div>
+
+            <div class="skel-chair"><span class="skeleton"></span><span class="skeleton skeleton--short"></span></div>
+            <div class="skel-cell"><span class="skeleton skeleton--chip"></span></div>
+            <div class="skel-cell"><span class="skeleton skeleton--chip"></span></div>
+            <div class="skel-cell"><span class="skeleton skeleton--chip"></span><span class="skeleton skeleton--chip"></span></div>
+            <div class="skel-cell"><span class="skeleton skeleton--chip"></span></div>
+            <div class="skel-cell"><span class="skeleton skeleton--chip"></span></div>
+            <div class="skel-cell"><span class="skeleton skeleton--chip"></span></div>
+            <div class="skel-cell"><span class="skeleton skeleton--chip"></span></div>
+          </div>
+        </div>
+        <p class="loading-note"><span aria-hidden="true">◌</span> Cargando la semana…</p>
+        <p class="note">Con <span style="font-family: var(--font-mono)">prefers-reduced-motion</span> el esqueleto queda estático.</p>
+      </section>
+
+      <!-- 5. Error -->
+      <section class="section" aria-labelledby="error-titulo">
+        <div class="section__head">
+          <p class="eyebrow">Error</p>
+          <h2 id="error-titulo">No se pudo cargar la semana</h2>
+          <p class="section__desc">
+            El mensaje dice qué pasó y qué hacer. Reintentar no recarga la página ni pierde la
+            semana elegida.
+          </p>
+        </div>
+
+        <div class="alert alert--danger" role="alert">
+          <span class="alert__icon" aria-hidden="true">!</span>
+          <div>
+            <strong>No pudimos cargar la semana del 2 al 8 de noviembre.</strong>
+            <p>Revisá la conexión y volvé a intentar. Si el problema sigue, avisale al administrador.</p>
+            <div class="alert__actions">
+              <button class="btn btn--secondary" type="button">Reintentar</button>
+            </div>
+          </div>
+        </div>
+        <p class="note">El detalle técnico no se muestra en pantalla ni se registra con datos de pacientes (R9).</p>
+      </section>
+    </main>
+  </div>
+
+  <script src="../../../../design-system/brand.js"></script>
+</body>
+</html>

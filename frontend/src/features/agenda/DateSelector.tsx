@@ -16,17 +16,29 @@ export function DateSelector({ fecha, onChange }: DateSelectorProps): ReactEleme
     onChange(toIsoDate(new Date()));
   }
   return (
-    <div className="flex items-center gap-2">
-      <button type="button" onClick={() => ir(-1)} className="rounded border border-border px-3 py-1">
+    <div className="flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        onClick={() => ir(-1)}
+        className="inline-flex min-h-11 items-center rounded border border-border px-3"
+      >
         Anterior
       </button>
-      <button type="button" onClick={irHoy} className="rounded border border-border px-3 py-1">
+      <button
+        type="button"
+        onClick={irHoy}
+        className="inline-flex min-h-11 items-center rounded border border-border px-3"
+      >
         Hoy
       </button>
-      <button type="button" onClick={() => ir(1)} className="rounded border border-border px-3 py-1">
+      <button
+        type="button"
+        onClick={() => ir(1)}
+        className="inline-flex min-h-11 items-center rounded border border-border px-3"
+      >
         Siguiente
       </button>
-      <span className="ml-2 text-sm font-medium">{fecha}</span>
+      <span className="text-sm font-medium sm:ml-2">{fecha}</span>
     </div>
   );
 }

@@ -4,7 +4,7 @@ R1: TODOS los schemas de API declaran `extra="forbid"`.
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Literal
 from uuid import UUID
@@ -49,7 +49,81 @@ class TurnoEstadoUpdate(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    estado: Literal["reservado", "confirmado", "presente", "atendido", "cancelado"]
+    estado: Literal["reservado", "confirmado", "presente", "atendido", "cancelado", "ausente"]
+
+
+class ReprogramarTurno(BaseModel):
+    """Nuevo horario y duración opcional de un turno (C-09a)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    inicio: datetime
+    duracion_min: int | None = Field(default=None, gt=0)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _normalizar_fechas(cls, data: object) -> object:
+        if isinstance(data, dict):
+            data = dict(data)
+            if "inicio" in data:
+                data["inicio"] = _a_art(data["inicio"])
+        return data
+
+
+class SobreturnoCreate(TurnoCreate):
+    """Alta de sobreturno: turno normal + motivo obligatorio (C-09a)."""
+
+    motivo_sobreturno: str = Field(min_length=1, max_length=255)
+
+
+RANGO_MAX_DIAS: int = 31
+"""Máximo de días de calendario que puede abarcar `desde`/`hasta` (C-09b, D2)."""
+
+
+def _validar_rango(
+    fecha: date | None, desde: date | None, hasta: date | None
+) -> None:
+    """Valida la combinación `fecha` / `desde`+`hasta` del filtro de turnos.
+
+    Reglas de D1/D2: `fecha` y el rango son mutuamente excluyentes, `desde` y
+    `hasta` van siempre juntos, `desde <= hasta` y el rango no supera
+    `RANGO_MAX_DIAS` días de calendario (ambos extremos incluidos). Levanta
+    `ValueError` con el mensaje en español que el borde HTTP devuelve como 422.
+    """
+    if fecha is not None and (desde is not None or hasta is not None):
+        raise ValueError("fecha y el rango desde/hasta son mutuamente excluyentes")
+    if (desde is None) != (hasta is None):
+        raise ValueError("desde y hasta deben enviarse juntos")
+    if desde is not None and hasta is not None:
+        if desde > hasta:
+            raise ValueError("desde no puede ser posterior a hasta")
+        if (hasta - desde).days > RANGO_MAX_DIAS - 1:
+            raise ValueError(
+                f"El rango no puede superar los {RANGO_MAX_DIAS} días de calendario"
+            )
+
+
+class FiltroTurnos(BaseModel):
+    """Filtros de consulta de `GET /api/v1/turnos` (C-09b, D1/D2).
+
+    `fecha` (un día ART) y el rango inclusivo `desde`/`hasta` (días ART) son
+    mutuamente excluyentes. `profesional_id` y `sillon_id` acompañan a
+    cualquiera de los dos. R1: `extra="forbid"` — el modelo rechaza campos no
+    declarados; el query string desconocido lo ignora FastAPI (compatibilidad).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    fecha: date | None = None
+    desde: date | None = None
+    hasta: date | None = None
+    profesional_id: UUID | None = None
+    sillon_id: UUID | None = None
+
+    @model_validator(mode="after")
+    def _validar(self) -> FiltroTurnos:
+        _validar_rango(self.fecha, self.desde, self.hasta)
+        return self
 
 
 class TurnoOut(BaseModel):
@@ -69,6 +143,9 @@ class TurnoOut(BaseModel):
     token_publico: UUID
     sena_monto: Decimal
     notas: str | None
+    es_sobreturno: bool
+    motivo_sobreturno: str | None
+    autorizado_por: UUID | None
     created_at: datetime
     updated_at: datetime
 
@@ -119,9 +196,34 @@ class BloqueoOut(BaseModel):
     updated_at: datetime
 
 
+class SillonOut(BaseModel):
+    """Sillón activo del catálogo de la agenda (C-09b: filas de la grilla)."""
+
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
+
+    id: UUID
+    nombre: str
+    activo: bool
+
+
+class ProfesionalOut(BaseModel):
+    """Profesional activo del catálogo de la agenda (C-09b: filtro y chips)."""
+
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
+
+    id: UUID
+    nombre: str
+
+
 __all__ = [
+    "RANGO_MAX_DIAS",
     "BloqueoCreate",
     "BloqueoOut",
+    "FiltroTurnos",
+    "ProfesionalOut",
+    "ReprogramarTurno",
+    "SillonOut",
+    "SobreturnoCreate",
     "TurnoCreate",
     "TurnoEstadoUpdate",
     "TurnoOut",

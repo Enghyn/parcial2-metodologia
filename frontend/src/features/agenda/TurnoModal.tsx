@@ -10,6 +10,7 @@ interface TurnoModalProps {
   catalogos: Catalogos;
   onClose: () => void;
   onCrear: (input: TurnoCreateInput) => Promise<void>;
+  onCrearSobreturno: (input: TurnoCreateInput, motivo: string) => Promise<void>;
 }
 
 interface FormState {
@@ -21,6 +22,8 @@ interface FormState {
   duracion_min: string;
   sena_monto: string;
   notas: string;
+  es_sobreturno: boolean;
+  motivo_sobreturno: string;
 }
 
 const EMPTY: FormState = {
@@ -32,9 +35,17 @@ const EMPTY: FormState = {
   duracion_min: "30",
   sena_monto: "0",
   notas: "",
+  es_sobreturno: false,
+  motivo_sobreturno: "",
 };
 
-export function TurnoModal({ open, catalogos, onClose, onCrear }: TurnoModalProps): ReactElement | null {
+export function TurnoModal({
+  open,
+  catalogos,
+  onClose,
+  onCrear,
+  onCrearSobreturno,
+}: TurnoModalProps): ReactElement | null {
   const [form, setForm] = useState<FormState>(EMPTY);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -62,7 +73,8 @@ export function TurnoModal({ open, catalogos, onClose, onCrear }: TurnoModalProp
       form.sillon_id === "" ||
       form.prestacion.trim() === "" ||
       form.inicio === "" ||
-      Number(form.duracion_min) <= 0
+      Number(form.duracion_min) <= 0 ||
+      (form.es_sobreturno && form.motivo_sobreturno.trim() === "")
     ) {
       setError("Completá todos los campos requeridos.");
       return;
@@ -80,7 +92,11 @@ export function TurnoModal({ open, catalogos, onClose, onCrear }: TurnoModalProp
         sena_monto: form.sena_monto,
         notas: form.notas.trim() === "" ? null : form.notas.trim(),
       };
-      await onCrear(input);
+      if (form.es_sobreturno) {
+        await onCrearSobreturno(input, form.motivo_sobreturno.trim());
+      } else {
+        await onCrear(input);
+      }
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo crear el turno");
@@ -184,6 +200,26 @@ export function TurnoModal({ open, catalogos, onClose, onCrear }: TurnoModalProp
               className="w-full rounded border border-border px-3 py-2"
             />
           </div>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={form.es_sobreturno}
+              onChange={(e) => update("es_sobreturno", e.target.checked)}
+            />
+            Sobreturno autorizado
+          </label>
+          {form.es_sobreturno && (
+            <div>
+              <label className="block text-sm font-medium">Motivo del sobreturno</label>
+              <input
+                type="text"
+                value={form.motivo_sobreturno}
+                onChange={(e) => update("motivo_sobreturno", e.target.value)}
+                maxLength={255}
+                className="w-full rounded border border-border px-3 py-2"
+              />
+            </div>
+          )}
           {error !== null && <p className="text-sm text-rose-600">{error}</p>}
           <div className="flex justify-end gap-2">
             <button

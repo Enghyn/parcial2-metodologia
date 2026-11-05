@@ -81,7 +81,7 @@ El sistema SHALL tratar los bloqueos activos (no borrados lógicamente) como ocu
 
 ### Requirement: Listado de turnos con filtros
 
-El sistema SHALL exponer `GET /api/v1/turnos` que devuelva los turnos no borrados lógicamente, admitiendo filtros opcionales por `fecha`, `profesional_id` y `sillon_id`, para los roles `admin`, `recepcion` y `odontologo`.
+El sistema SHALL exponer `GET /api/v1/turnos` para los roles `admin`, `recepcion` y `odontologo`, devolviendo solo turnos no borrados lógicamente y ordenados por `inicio` ascendente con desempate determinista. Acepta `fecha`, o el rango inclusivo `desde`/`hasta`, y los filtros opcionales `profesional_id` y `sillon_id`; `fecha` y el rango son mutuamente excluyentes.
 
 #### Scenario: Filtrado por fecha
 
@@ -92,6 +92,41 @@ El sistema SHALL exponer `GET /api/v1/turnos` que devuelva los turnos no borrado
 
 - **WHEN** se consulta con `profesional_id` o `sillon_id`
 - **THEN** solo se devuelven los turnos que coinciden con el filtro
+
+#### Scenario: Rango semanal en una sola consulta
+
+- **WHEN** se consulta con `desde=2027-01-04` y `hasta=2027-01-10`
+- **THEN** se devuelven en una única respuesta todos los turnos cuyo `inicio` cae entre las 00:00 ART del 4 y las 00:00 ART del 11, ambos extremos del rango incluidos
+
+#### Scenario: Rango con un solo extremo rechazado
+
+- **WHEN** se envía solo `desde` o solo `hasta`
+- **THEN** la API responde 422 con la forma única de error y no devuelve turnos
+
+#### Scenario: Rango invertido rechazado
+
+- **WHEN** se envía `desde` posterior a `hasta`
+- **THEN** la API responde 422 con la forma única de error
+
+#### Scenario: Rango excesivo rechazado
+
+- **WHEN** el rango solicitado supera los 31 días de calendario
+- **THEN** la API responde 422 con la forma única de error
+
+#### Scenario: Rango combinado con filtros de recurso
+
+- **WHEN** se consulta un rango junto con `profesional_id` o `sillon_id`
+- **THEN** se devuelven solo los turnos del rango que además coinciden con el recurso
+
+#### Scenario: Orden determinista
+
+- **WHEN** dos turnos del rango comparten el mismo `inicio`
+- **THEN** el listado los devuelve en un orden estable entre llamadas
+
+#### Scenario: Sin datos clínicos en logs ni en la URL
+
+- **WHEN** se consulta un rango de turnos
+- **THEN** la URL solo contiene fechas y filtros de recurso, y los logs de la aplicación no incluyen `prestacion` ni `notas` de los pacientes
 
 ### Requirement: Creación de turno
 
@@ -150,7 +185,7 @@ El sistema SHALL validar token y rol en el backend para cada endpoint de agenda;
 
 ### Requirement: Día calendario en zona del consultorio
 
-El sistema SHALL interpretar todo `datetime` sin `tzinfo` como hora del consultorio (`America/Argentina/Buenos_Aires`) y SHALL calcular el filtro `fecha` entre las 00:00 y las 24:00 de esa zona, no en UTC.
+El sistema SHALL interpretar todo `datetime` sin `tzinfo` como hora del consultorio (`America/Argentina/Buenos_Aires`) y SHALL calcular los filtros `fecha` y `desde`/`hasta` entre las 00:00 y las 24:00 de esa zona, no en UTC.
 
 #### Scenario: Naive se interpreta como ART
 
@@ -166,6 +201,16 @@ El sistema SHALL interpretar todo `datetime` sin `tzinfo` como hora del consulto
 
 - **WHEN** existe un turno a las 22:00 ART del 2027-01-10
 - **THEN** aparece en el filtro `fecha=2027-01-10` y no en `fecha=2027-01-11`
+
+#### Scenario: Límites del rango en ART
+
+- **WHEN** se consulta `desde=2027-01-04` y `hasta=2027-01-10`
+- **THEN** el rango cubre desde `2027-01-04T00:00-03:00` hasta `2027-01-11T00:00-03:00` y un turno de las 23:30 ART del 10 aparece en la respuesta
+
+#### Scenario: Turno del domingo anterior excluido
+
+- **WHEN** existe un turno a las 23:30 ART del 2027-01-03 y se consulta `desde=2027-01-04`
+- **THEN** ese turno no aparece en la respuesta
 
 ### Requirement: Recursos vigentes al crear un turno
 
@@ -194,3 +239,55 @@ El sistema SHALL rechazar la creación de un turno cuyo `inicio` sea anterior o 
 
 - **WHEN** se intenta crear un turno con `inicio` en el pasado
 - **THEN** la API responde 422 y no persiste el turno
+
+### Requirement: Reprogramación de turno con antisolapamiento
+
+El sistema SHALL exponer `PATCH /api/v1/turnos/{id}/reprogramar` para `admin` y `recepcion`, aceptando un nuevo `inicio` y opcionalmente `duracion_min`; SHALL recalcular `fin`, excluir el propio turno de la validación de solapamiento y SHALL rechazar con 409 si el nuevo rango choca con otro turno activo o bloqueo.
+
+#### Scenario: Reprogramación exitosa
+
+- **WHEN** se mueve un turno a un hueco libre manteniendo sillón y profesional
+- **THEN** la API responde 200 con el nuevo `inicio`/`fin` y el turno conserva su identidad
+
+#### Scenario: Reprogramación que choca con otro turno
+
+- **WHEN** el nuevo rango se solapa con otro turno activo del mismo sillón o profesional
+- **THEN** la API responde 409 y no modifica el turno
+
+#### Scenario: Turno atendido no se reprograma
+
+- **WHEN** se intenta reprogramar un turno en estado `atendido`, `cancelado` o `ausente`
+- **THEN** la API responde 409
+
+### Requirement: Sobreturno autorizado
+
+El sistema SHALL exponer `POST /api/v1/turnos/sobreturno` solo para `admin` y `recepcion`, exigiendo `motivo_sobreturno` no vacío, tomando `autorizado_por` del JWT y permitiendo el solapamiento deliberado con otro turno.
+
+#### Scenario: Sobreturno creado
+
+- **WHEN** recepción crea un sobreturno con motivo en un horario ya ocupado
+- **THEN** la API responde 201 y el turno queda marcado como sobreturno con el usuario autorizador
+
+#### Scenario: Sobreturno sin motivo
+
+- **WHEN** se intenta crear un sobreturno sin `motivo_sobreturno`
+- **THEN** la API responde 422 y no persiste nada
+
+#### Scenario: Turno normal en horario ocupado
+
+- **WHEN** se crea un turno normal en un horario ocupado
+- **THEN** la API responde 409, como antes
+
+### Requirement: Estado ausente por no-show
+
+El sistema SHALL incluir `ausente` en el catálogo de estados del turno y SHALL permitir marcarlo mediante `PATCH /api/v1/turnos/{id}/estado`; el turno SHALL conservar sus datos y no se borra.
+
+#### Scenario: Marcar ausente
+
+- **WHEN** un usuario autorizado marca un turno como `ausente`
+- **THEN** la API responde 200 con el estado actualizado
+
+#### Scenario: Estado fuera del catálogo
+
+- **WHEN** se envía un estado distinto de los permitidos
+- **THEN** la API responde 422

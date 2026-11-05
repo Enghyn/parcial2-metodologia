@@ -11,6 +11,7 @@ interface AgendaColumnProps {
   profesionalNombre: (id: string) => string;
   rol: string;
   onCambiarEstado: (id: string, estado: import("../../shared/api/agenda").EstadoTurno) => void;
+  onReprogramar: (turno: TurnoOut) => void;
 }
 
 export function AgendaColumn({
@@ -20,6 +21,7 @@ export function AgendaColumn({
   profesionalNombre,
   rol,
   onCambiarEstado,
+  onReprogramar,
 }: AgendaColumnProps): ReactElement {
   const ordenados = [...turnos].sort((a, b) =>
     a.inicio < b.inicio ? -1 : a.inicio > b.inicio ? 1 : 0,
@@ -39,6 +41,7 @@ export function AgendaColumn({
               profesionalNombre={profesionalNombre(t.profesional_id)}
               rol={rol}
               onCambiarEstado={onCambiarEstado}
+              onReprogramar={onReprogramar}
             />
           ))
         )}

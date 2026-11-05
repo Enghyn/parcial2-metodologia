@@ -236,6 +236,12 @@ class PublicReservaService:
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"No se puede cancelar un turno en estado {turno.estado}",
             )
+        ventana = get_settings().cancelacion_min_horas
+        if turno.inicio - ahora() < timedelta(hours=ventana):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"La cancelación requiere al menos {ventana} horas de anticipación",
+            )
         turno.estado = "cancelado"
         self.db.commit()
         self.db.refresh(turno)

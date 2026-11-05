@@ -38,8 +38,12 @@ def _fecha_unica() -> date:
 
 
 def _seed_ids(session: Session) -> dict:
-    sillon = session.scalar(select(Sillon).where(Sillon.deleted_at.is_(None)))
-    profesional = session.scalar(select(Profesional).where(Profesional.deleted_at.is_(None)))
+    sillon = session.scalar(
+        select(Sillon).where(Sillon.deleted_at.is_(None), Sillon.activo.is_(True))
+    )
+    profesional = session.scalar(
+        select(Profesional).where(Profesional.deleted_at.is_(None), Profesional.activo.is_(True))
+    )
     paciente = session.scalar(select(Paciente).where(Paciente.deleted_at.is_(None)))
     assert sillon is not None and profesional is not None and paciente is not None
     return {"sillon": sillon, "profesional": profesional, "paciente": paciente}

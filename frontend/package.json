@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "lint": "eslint src --max-warnings 0",
-    "test": "node --test test/whatsapp.test.ts test/fdi.test.ts"
+    "test": "node --test test/whatsapp.test.ts test/fdi.test.ts test/apiAgendaRango.test.ts test/agendaSemana.test.ts test/date.test.ts"
   },
   "dependencies": {
     "react": "^18.3.1",

@@ -9,6 +9,8 @@ from pydantic import ValidationError
 from app.modules.agenda.schemas import (
     BloqueoCreate,
     BloqueoOut,
+    ReprogramarTurno,
+    SobreturnoCreate,
     TurnoCreate,
     TurnoEstadoUpdate,
     TurnoOut,
@@ -101,6 +103,7 @@ def test_turno_estado_update_extra_forbid_y_valores() -> None:
         TurnoEstadoUpdate(estado="reservado", extra="x")
     ok = TurnoEstadoUpdate(estado="cancelado")
     assert ok.estado == "cancelado"
+    assert TurnoEstadoUpdate(estado="ausente").estado == "ausente"
     with pytest.raises(ValidationError):
         TurnoEstadoUpdate(estado="no-existe")
 
@@ -130,6 +133,32 @@ def test_turno_create_sena_monto_default() -> None:
         duracion_min=30,
     )
     assert t.sena_monto == Decimal("0.00")
+
+
+def test_reprogramar_turno_normaliza_naive_y_duracion_opcional() -> None:
+    datos = ReprogramarTurno(inicio=datetime(2027, 1, 10, 9, 0))  # noqa: DTZ001
+    assert datos.duracion_min is None
+    assert datos.inicio.utcoffset().total_seconds() == -3 * 3600
+    with pytest.raises(ValidationError):
+        ReprogramarTurno(inicio=_now(), duracion_min=0)
+
+
+def test_sobreturno_exige_motivo_y_hereda_turno() -> None:
+    datos = {
+        "paciente_id": uuid4(),
+        "profesional_id": uuid4(),
+        "sillon_id": uuid4(),
+        "prestacion": "Consulta",
+        "inicio": _now(),
+        "duracion_min": 30,
+        "motivo_sobreturno": "Urgencia",
+    }
+    sobreturno = SobreturnoCreate(**datos)
+    assert sobreturno.motivo_sobreturno == "Urgencia"
+    with pytest.raises(ValidationError):
+        SobreturnoCreate(**{**datos, "motivo_sobreturno": ""})
+    with pytest.raises(ValidationError):
+        SobreturnoCreate(**{**datos, "campo_extra": "x"})
 
 
 def test_turno_out_from_attributes_config() -> None:

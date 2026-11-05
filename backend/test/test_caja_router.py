@@ -58,11 +58,40 @@ def _fecha_unica() -> date:
     return date(2030, 1, 1) + timedelta(days=uuid4().int % 20000)
 
 
+def _fecha_sin_movimientos() -> date:
+    """Día del rango de prueba que no tiene movimientos cargados.
+
+    El azar solo no alcanza: `test_listado_y_resumen_diario` deja su movimiento
+    en la base y, con corridas repetidas, la colisión es esperable.
+    """
+    session = get_session_factory()()
+    try:
+        dia = _fecha_unica()
+        for _ in range(500):
+            inicio = datetime.combine(dia, time.min, tzinfo=TZ_CONSULTORIO)
+            fin = inicio + timedelta(days=1)
+            ocupados = session.scalar(
+                select(MovimientoCaja.id).where(
+                    MovimientoCaja.fecha >= inicio, MovimientoCaja.fecha < fin
+                )
+            )
+            if ocupados is None:
+                return dia
+            dia += timedelta(days=1)
+        raise AssertionError("no se encontró un día sin movimientos para el resumen vacío")
+    finally:
+        session.close()
+
+
 def _crear_turno_borrado() -> str:
     session = get_session_factory()()
     try:
-        sillon = session.scalar(select(Sillon).where(Sillon.deleted_at.is_(None)))
-        profesional = session.scalar(select(Profesional).where(Profesional.deleted_at.is_(None)))
+        sillon = session.scalar(
+            select(Sillon).where(Sillon.deleted_at.is_(None), Sillon.activo.is_(True))
+        )
+        profesional = session.scalar(
+            select(Profesional).where(Profesional.deleted_at.is_(None), Profesional.activo.is_(True))
+        )
         paciente = session.scalar(select(Paciente).where(Paciente.deleted_at.is_(None)))
         assert sillon is not None and profesional is not None and paciente is not None
         turno = TurnoService(session).crear(
@@ -165,7 +194,7 @@ async def test_listado_y_resumen_diario() -> None:
 @pytest.mark.asyncio
 async def test_resumen_vacio() -> None:
     app, _ = _app("recepcion")
-    dia = _fecha_unica()
+    dia = _fecha_sin_movimientos()
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         r = await client.get(f"{BASE}/resumen-diario", params={"fecha": dia.isoformat()})
     assert r.status_code == 200

@@ -49,8 +49,8 @@ C-01 foundation
    └─ C-03 auth
       ├─ C-04 agenda-servicio
       │  └─ C-05 agenda-frontend
-      │     └─ C-09a agenda-dominio
-      │        ├─ C-09b agenda-semanal
+      │     └─ C-09a agenda-dominio [x]
+      │        ├─ C-09b agenda-semanal [x]
       │        ├─ C-10 reserva-avanzada
       │        └─ C-14 notificaciones
       │             └─ C-15 lista-espera
@@ -100,7 +100,7 @@ Libro append-only, alta de ingreso/egreso con usuario del JWT, listado y resumen
 ---
 
 ### C-09a: `agenda-dominio-avanzado`
-- **Estado:** `[ ]`
+- **Estado:** `[x]` (Completado y archivado)
 - **Alcance:**
   - Reprogramación de turno con validación de solapamiento (excluyendo el propio turno).
   - Sobreturnos: flag, motivo obligatorio y autorizador; se permiten solapamientos deliberados.
@@ -114,7 +114,7 @@ Libro append-only, alta de ingreso/egreso con usuario del JWT, listado y resumen
 - **Comando:** `/opsx:propose C-09a-agenda-dominio-avanzado`
 
 ### C-09b: `agenda-vista-semanal`
-- **Estado:** `[ ]`
+- **Estado:** `[x]` (Completado y archivado)
 - **Alcance:** grilla semanal 7 días × 3 sillones, filtros por profesional, performance y estados visuales; consume C-09a.
 - **Dependencias:** C-05, C-09a.
 - **Leer antes:** KB 06 (US-001), KB 08 (frontend).
