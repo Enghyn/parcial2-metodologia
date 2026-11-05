@@ -1,0 +1,274 @@
+/*
+ * Sistema de diseño — Consultorio odontológico
+ * Revisión 1 · Aprobación pendiente · Marca provisoria (TBD)
+ *
+ * Fuente de verdad de los valores visuales. Los comentarios marcan qué se heredó
+ * del frontend existente y qué se derivó para completar la fundación.
+ *
+ * Heredado de: frontend/src/index.css
+ *   --color-background, --color-foreground, --color-border,
+ *   --color-primary, --color-primary-foreground
+ * Heredado de: frontend/src/features/agenda/estadoColor.ts
+ *   Los seis tríos de estado de turno (Tailwind sky/blue/amber/emerald/rose/slate).
+ *
+ * No hay tema oscuro aprobado. Todos los componentes consumen tokens semánticos;
+ * un tema oscuro futuro debería redefinir únicamente este bloque (ver el ejemplo
+ * comentado al final). Ningún valor remoto: no hay fuentes ni assets externos.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* ------------------------------------------------------------------ */
+  /* Color — heredado del frontend                                      */
+  /* ------------------------------------------------------------------ */
+
+  /* [HEREDADO index.css] Fondo base de la aplicación. */
+  --color-background: oklch(1 0 0);
+
+  /* [HEREDADO index.css] Texto principal. */
+  --color-foreground: oklch(0.25 0.02 260);
+
+  /* [HEREDADO index.css] Bordes de cards, columnas, inputs y tablas. */
+  --color-border: oklch(0.9 0.01 260);
+
+  /* [HEREDADO index.css] Azul de acción principal. No cambiar el hue. */
+  --color-primary: oklch(0.55 0.15 240);
+
+  /* [HEREDADO index.css] Texto sobre primario (blanco). */
+  --color-primary-foreground: oklch(1 0 0);
+
+  /* ------------------------------------------------------------------ */
+  /* Color — derivado para completar la fundación                       */
+  /* ------------------------------------------------------------------ */
+
+  /* Superficies: la app existente usa bg-background para cards y modales. */
+  --color-surface: var(--color-background);
+  --color-surface-muted: oklch(0.975 0.005 260); /* ≈ foreground/5 sobre blanco */
+  --color-surface-sunken: oklch(0.96 0.008 260);
+
+  /* Texto secundario: equivale a los usos existentes de foreground/70 y /60. */
+  --color-text: var(--color-foreground);
+  --color-text-muted: oklch(0.46 0.02 260);
+  --color-text-subtle: oklch(0.58 0.015 260); /* solo placeholders / metadatos */
+
+  /* Bordes con más presencia para controles de formulario. */
+  --color-border-strong: oklch(0.82 0.012 260);
+
+  /* Variantes del primario para hover, active y fondos suaves. */
+  --color-primary-hover: oklch(0.49 0.15 240);
+  --color-primary-active: oklch(0.44 0.14 240);
+  --color-primary-soft: oklch(0.96 0.022 240);
+  --color-on-primary: var(--color-primary-foreground);
+
+  /* Foco visible: mismo hue que el primario. */
+  --color-focus: oklch(0.55 0.15 240);
+  --color-focus-ring: oklch(0.55 0.15 240 / 0.45);
+
+  /* Semánticos generales (no confundir con los estados de turno). */
+  --color-success: oklch(0.5 0.12 165);
+  --color-success-soft: oklch(0.979 0.021 166);
+  --color-success-border: oklch(0.765 0.177 163);
+
+  --color-warning: oklch(0.47 0.12 60);
+  --color-warning-soft: oklch(0.987 0.022 95);
+  --color-warning-border: oklch(0.828 0.189 84);
+
+  --color-danger: oklch(0.51 0.2 17.5);
+  --color-danger-hover: oklch(0.45 0.2 17.5);
+  --color-danger-soft: oklch(0.969 0.015 12.4);
+  --color-danger-border: oklch(0.81 0.117 11.6);
+
+  --color-info: oklch(0.42 0.1 245);
+  --color-info-soft: oklch(0.977 0.013 236);
+  --color-info-border: oklch(0.828 0.111 230);
+
+  /* ------------------------------------------------------------------ */
+  /* Estados de turno — heredados de estadoColor.ts                     */
+  /* Los valores equivalen a Tailwind sky/blue/amber/emerald/rose/slate. */
+  /* ------------------------------------------------------------------ */
+
+  /* reservado: sky-300 / sky-50 / sky-900 */
+  --state-reservado-border: oklch(0.828 0.111 230.318);
+  --state-reservado-bg: oklch(0.977 0.013 236.62);
+  --state-reservado-text: oklch(0.391 0.09 240.876);
+
+  /* confirmado: blue-400 / blue-50 / blue-900 */
+  --state-confirmado-border: oklch(0.707 0.165 254.624);
+  --state-confirmado-bg: oklch(0.97 0.014 254.604);
+  --state-confirmado-text: oklch(0.379 0.146 265.522);
+
+  /* presente: amber-400 / amber-50 / amber-900 */
+  --state-presente-border: oklch(0.828 0.189 84.429);
+  --state-presente-bg: oklch(0.987 0.022 95.277);
+  --state-presente-text: oklch(0.414 0.112 45.904);
+
+  /* atendido: emerald-400 / emerald-50 / emerald-900 */
+  --state-atendido-border: oklch(0.765 0.177 163.223);
+  --state-atendido-bg: oklch(0.979 0.021 166.113);
+  --state-atendido-text: oklch(0.378 0.077 168.94);
+
+  /* cancelado: rose-300 / rose-50 / rose-900 (tachado + opacidad en la card) */
+  --state-cancelado-border: oklch(0.81 0.117 11.638);
+  --state-cancelado-bg: oklch(0.969 0.015 12.422);
+  --state-cancelado-text: oklch(0.41 0.159 10.272);
+
+  /* ausente: slate-400 / slate-100 / slate-700 */
+  --state-ausente-border: oklch(0.704 0.04 256.788);
+  --state-ausente-bg: oklch(0.968 0.007 247.896);
+  --state-ausente-text: oklch(0.372 0.044 257.287);
+
+  /* sobreturno: no existía como estado visual. Derivado neutral con borde
+     discontinuo para distinguirlo sin depender solo del color. */
+  --state-sobreturno-border: var(--color-border-strong);
+  --state-sobreturno-bg: var(--color-surface);
+  --state-sobreturno-text: var(--color-text);
+
+  /* ------------------------------------------------------------------ */
+  /* Tipografía                                                          */
+  /* ------------------------------------------------------------------ */
+
+  /* Stack del sistema: sin fuentes remotas ni build. */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "Cascadia Mono", Consolas,
+    "Liberation Mono", monospace;
+
+  --text-2xs: 0.6875rem; /* 11px — metadatos densos y acciones micro */
+  --text-xs: 0.75rem;    /* 12px — texto auxiliar */
+  --text-sm: 0.875rem;   /* 14px — base de la interfaz interna */
+  --text-base: 1rem;     /* 16px — formularios públicos */
+  --text-lg: 1.125rem;   /* 18px — títulos de modal */
+  --text-xl: 1.25rem;    /* 20px — títulos de página */
+  --text-2xl: 1.5rem;    /* 24px — títulos de portal público */
+  --text-3xl: 1.875rem;  /* 30px — portada / jerarquía máxima */
+
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  --leading-tight: 1.2;
+  --leading-snug: 1.35;
+  --leading-normal: 1.5;
+
+  --tracking-wide: 0.04em;
+  --tracking-caps: 0.07em;
+
+  --measure: 68ch;
+
+  /* ------------------------------------------------------------------ */
+  /* Espaciado — base de 4px                                             */
+  /* ------------------------------------------------------------------ */
+
+  --space-0: 0;
+  --space-1: 0.25rem;  /* 4px */
+  --space-2: 0.5rem;   /* 8px */
+  --space-3: 0.75rem;  /* 12px */
+  --space-4: 1rem;     /* 16px */
+  --space-5: 1.25rem;  /* 20px */
+  --space-6: 1.5rem;   /* 24px */
+  --space-8: 2rem;     /* 32px */
+  --space-10: 2.5rem;  /* 40px */
+  --space-12: 3rem;    /* 48px */
+  --space-16: 4rem;    /* 64px */
+
+  /* ------------------------------------------------------------------ */
+  /* Radios — el frontend existente usa `rounded` = 4px                 */
+  /* ------------------------------------------------------------------ */
+
+  --radius-xs: 0.125rem; /* 2px */
+  --radius-sm: 0.25rem;  /* 4px — heredado del uso de `rounded` */
+  --radius-md: 0.375rem; /* 6px */
+  --radius-lg: 0.5rem;   /* 8px */
+  --radius-full: 9999px;
+
+  --radius-control: var(--radius-sm);
+  --radius-card: var(--radius-sm);
+  --radius-modal: var(--radius-sm);
+
+  /* ------------------------------------------------------------------ */
+  /* Sombras                                                             */
+  /* ------------------------------------------------------------------ */
+
+  --shadow-xs: 0 1px 2px 0 oklch(0.25 0.02 260 / 0.05);
+  --shadow-sm: 0 1px 3px 0 oklch(0.25 0.02 260 / 0.1),
+    0 1px 2px -1px oklch(0.25 0.02 260 / 0.1);
+  --shadow-md: 0 4px 6px -1px oklch(0.25 0.02 260 / 0.08),
+    0 2px 4px -2px oklch(0.25 0.02 260 / 0.06);
+  /* Equivale al `shadow-lg` del modal existente. */
+  --shadow-lg: 0 10px 15px -3px oklch(0.25 0.02 260 / 0.1),
+    0 4px 6px -4px oklch(0.25 0.02 260 / 0.08);
+  --shadow-focus: 0 0 0 var(--focus-ring-width) var(--color-focus-ring);
+
+  /* ------------------------------------------------------------------ */
+  /* Foco                                                                */
+  /* ------------------------------------------------------------------ */
+
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --focus-ring-color: var(--color-focus);
+
+  /* ------------------------------------------------------------------ */
+  /* Movimiento                                                          */
+  /* ------------------------------------------------------------------ */
+
+  --duration-instant: 0ms;
+  --duration-fast: 100ms;  /* feedback de presión */
+  --duration-base: 160ms;  /* hover / cambio de color */
+  --duration-slow: 240ms;  /* entrada de modal o panel */
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-standard: var(--ease-out);
+
+  /* ------------------------------------------------------------------ */
+  /* Layout y controles                                                  */
+  /* ------------------------------------------------------------------ */
+
+  --control-min-size: 44px; /* objetivo táctil mínimo */
+  --container-max: 76rem;
+  --z-modal: 50;
+
+  /* Superposiciones: equivalen a bg-black/40 y a una capa blanca translúcida. */
+  --color-overlay: oklch(0.25 0.02 260 / 0.4);
+  --color-surface-translucent: oklch(1 0 0 / 0.55);
+}
+
+/*
+ * Movimiento reducido: se conservan opacidad y color, se elimina el
+ * desplazamiento. El esqueleto de carga queda estático.
+ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 1ms;
+    --duration-base: 1ms;
+    --duration-slow: 1ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/*
+ * Tema oscuro: NO aprobado todavía. Se deja el punto de extensión documentado
+ * para que un cambio futuro solo redefina tokens, no componentes.
+ *
+ * [data-theme="dark"] {
+ *   color-scheme: dark;
+ *   --color-background: oklch(0.22 0.02 260);
+ *   --color-foreground: oklch(0.96 0.005 260);
+ *   --color-surface: oklch(0.25 0.02 260);
+ *   --color-surface-muted: oklch(0.29 0.02 260);
+ *   --color-border: oklch(0.36 0.015 260);
+ *   --color-text-muted: oklch(0.78 0.015 260);
+ *   --color-primary: oklch(0.68 0.14 240);
+ *   --color-primary-foreground: oklch(0.18 0.02 260);
+ * }
+ */
