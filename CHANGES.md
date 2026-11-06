@@ -133,7 +133,7 @@ Libro append-only, alta de ingreso/egreso con usuario del JWT, listado y resumen
 - **Gobernanza:** MEDIO.
 
 ### C-11: `ficha-clinica-avanzada`
-- **Estado:** `[ ]`
+- **Estado:** `[x]` (Completado y archivado)
 - **Alcance:**
   - Evolución clínica por paciente (fecha, autor, texto).
   - Consentimiento informado (versión, fecha, autor).

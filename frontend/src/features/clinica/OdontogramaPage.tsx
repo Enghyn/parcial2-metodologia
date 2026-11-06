@@ -3,9 +3,16 @@ import type { ReactElement } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuthStore } from "../../app/AuthContext";
-import { getOdontograma, listarPacientes, upsertPieza } from "../../shared/api/clinica";
+import {
+  getOdontograma,
+  listarPacientes,
+  upsertPieza,
+} from "../../shared/api/clinica";
 import type { EstadoPieza, Hallazgo, Odontograma } from "../../shared/api/clinica";
 import { CUADRANTES_FDI } from "./piezas";
+import { ConsentimientoList } from "./ConsentimientoList";
+import { EvolucionList } from "./EvolucionList";
+import { HistorialPieza } from "./HistorialPieza";
 
 const ESTADOS: { value: EstadoPieza; label: string; clase: string }[] = [
   { value: "sano", label: "Sano", clase: "bg-emerald-50 text-emerald-800 border-emerald-300" },
@@ -190,6 +197,18 @@ export function OdontogramaPage(): ReactElement {
           )}
         </div>
       )}
+
+      {seleccionada !== null && (
+        <div className="rounded border border-border p-3">
+          <h2 className="text-lg font-semibold">
+            Historial de pieza {seleccionada}
+          </h2>
+          <HistorialPieza pacienteId={pacienteId ?? ""} pieza={seleccionada} />
+        </div>
+      )}
+
+      <EvolucionList pacienteId={pacienteId ?? ""} />
+      <ConsentimientoList pacienteId={pacienteId ?? ""} />
     </section>
   );
 }

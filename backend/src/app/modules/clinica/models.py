@@ -7,17 +7,20 @@ from uuid import UUID, uuid4
 from sqlalchemy import (
     CheckConstraint,
     Date,
+    DateTime,
     ForeignKey,
     Integer,
     String,
     Text,
     UniqueConstraint,
     Uuid,
+    func,
     text,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, SoftDeleteMixin, TimestampMixin
+from app.modules.admin.models import Usuario  # noqa: F401  (registra tabla usuarios para FK)
 
 ESTADOS_PIEZA: tuple[str, ...] = (
     "sano",
@@ -91,3 +94,96 @@ class HallazgoPieza(TimestampMixin, Base):
     estado: Mapped[str] = mapped_column(String(30), nullable=False)
     observacion: Mapped[str | None] = mapped_column(String(255), nullable=True)
     fecha: Mapped[date] = mapped_column(Date, nullable=False, default=date.today)
+    autor_usuario_id: Mapped[UUID | None] = mapped_column(Uuid, nullable=True)
+
+
+class EvolucionClinica(TimestampMixin, Base):
+    """Evolución clínica append-only de un paciente (C-11, D3).
+
+    No hereda SoftDeleteMixin: nunca se borra físicamente. Corrección
+    = nueva fila, igual que RN-CJ-02 en caja.
+    """
+
+    __tablename__ = "evoluciones_clinicas"
+    __table_args__ = (
+        CheckConstraint(
+            "length(btrim(texto)) > 0", name="evoluciones_texto_no_vacio"
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(
+        Uuid, primary_key=True, default=uuid4, server_default=text("gen_random_uuid()")
+    )
+    paciente_id: Mapped[UUID] = mapped_column(
+        ForeignKey("pacientes.id", name="fk_evoluciones_paciente_id_pacientes"),
+        nullable=False,
+    )
+    autor_usuario_id: Mapped[UUID] = mapped_column(
+        ForeignKey("usuarios.id", name="fk_evoluciones_autor_id_usuarios"),
+        nullable=False,
+    )
+    fecha: Mapped[DateTime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    texto: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+class ConsentimientoInformado(TimestampMixin, Base):
+    """Consentimiento informado versionado (C-11, D4).
+
+    Una fila por versión; nunca se reescribe. UNIQUE(paciente_id, version)
+    evita duplicados accidentales.
+    """
+
+    __tablename__ = "consentimientos_informados"
+    __table_args__ = (
+        UniqueConstraint("paciente_id", "version", name="consentimiento_paciente_version"),
+        CheckConstraint(
+            "length(btrim(version)) > 0", name="consentimiento_version_no_vacia"
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(
+        Uuid, primary_key=True, default=uuid4, server_default=text("gen_random_uuid()")
+    )
+    paciente_id: Mapped[UUID] = mapped_column(
+        ForeignKey("pacientes.id", name="fk_consentimientos_paciente_id_pacientes"),
+        nullable=False,
+    )
+    version: Mapped[str] = mapped_column(String(20), nullable=False)
+    fecha: Mapped[DateTime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    autor_usuario_id: Mapped[UUID] = mapped_column(
+        ForeignKey("usuarios.id", name="fk_consentimientos_autor_id_usuarios"),
+        nullable=False,
+    )
+
+
+class HallazgoPiezaHistorial(TimestampMixin, Base):
+    """Historial append-only de cambios de estado por pieza (C-11, D1).
+
+    Cada upsert de `hallazgos_pieza` inserta una fila aquí con el
+    estado/observación anteriores y los nuevos.
+    """
+
+    __tablename__ = "hallazgos_pieza_historial"
+
+    id: Mapped[UUID] = mapped_column(
+        Uuid, primary_key=True, default=uuid4, server_default=text("gen_random_uuid()")
+    )
+    hallazgo_id: Mapped[UUID] = mapped_column(
+        ForeignKey("hallazgos_pieza.id", name="fk_historial_hallazgo_id_hallazgos"),
+        nullable=False,
+    )
+    estado_anterior: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    estado_nuevo: Mapped[str] = mapped_column(String(30), nullable=False)
+    observacion_anterior: Mapped[str | None] = mapped_column(
+        String(255), nullable=True
+    )
+    observacion_nueva: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    registrado_en: Mapped[DateTime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    registrado_por: Mapped[UUID | None] = mapped_column(Uuid, nullable=True)
+

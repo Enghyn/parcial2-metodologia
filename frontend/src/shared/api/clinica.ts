@@ -1,5 +1,11 @@
 // Cliente tipado de ficha clínica (C-07): pacientes y odontograma FDI.
-import { request } from "./client";
+// `request` se importa de forma diferida para que los tests de node:test
+// puedan cargar el módulo sin arrastrar AuthContext/React.
+function request<T>(path: string, init?: RequestInit): Promise<T> {
+  return import("./client.ts").then(({ request: doRequest }) =>
+    doRequest<T>(path, init),
+  );
+}
 
 export type EstadoPieza =
   | "sano"
@@ -80,5 +86,81 @@ export function upsertPieza(
       method: "PUT",
       body: JSON.stringify(input),
     },
+  );
+}
+
+// ── C-11: Evolución clínica ──────────────────────────────────────────────
+
+export interface Evolucion {
+  id: string;
+  paciente_id: string;
+  autor_usuario_id: string;
+  fecha: string;
+  texto: string;
+}
+
+export interface EvolucionCreateInput {
+  texto: string;
+}
+
+export function listarEvoluciones(pacienteId: string): Promise<Evolucion[]> {
+  return request<Evolucion[]>(`/api/v1/pacientes/${pacienteId}/evoluciones`);
+}
+
+export function crearEvolucion(
+  pacienteId: string,
+  input: EvolucionCreateInput,
+): Promise<Evolucion> {
+  return request<Evolucion>(`/api/v1/pacientes/${pacienteId}/evoluciones`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+// ── C-11: Consentimiento informado ───────────────────────────────────────
+
+export interface Consentimiento {
+  id: string;
+  paciente_id: string;
+  version: string;
+  fecha: string;
+  autor_usuario_id: string;
+}
+
+export interface ConsentimientoCreateInput {
+  version: string;
+}
+
+export function listarConsentimientos(pacienteId: string): Promise<Consentimiento[]> {
+  return request<Consentimiento[]>(`/api/v1/pacientes/${pacienteId}/consentimientos`);
+}
+
+export function crearConsentimiento(
+  pacienteId: string,
+  input: ConsentimientoCreateInput,
+): Promise<Consentimiento> {
+  return request<Consentimiento>(`/api/v1/pacientes/${pacienteId}/consentimientos`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+// ── C-11: Historial por pieza ────────────────────────────────────────────
+
+export interface HistorialPieza {
+  estado_anterior: string | null;
+  estado_nuevo: string;
+  observacion_anterior: string | null;
+  observacion_nueva: string | null;
+  registrado_en: string;
+  registrado_por: string | null;
+}
+
+export function getHistorialPieza(
+  pacienteId: string,
+  pieza: number,
+): Promise<HistorialPieza[]> {
+  return request<HistorialPieza[]>(
+    `/api/v1/pacientes/${pacienteId}/odontograma/piezas/${pieza}/historial`,
   );
 }

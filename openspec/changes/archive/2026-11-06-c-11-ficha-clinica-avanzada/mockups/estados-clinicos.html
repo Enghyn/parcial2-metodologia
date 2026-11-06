@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Estados clínicos y RBAC · {marca}</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%233b82f6'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="../../../../design-system/tokens.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; background: var(--color-surface-muted); color: var(--color-text); font-family: var(--font-sans); font-size: var(--text-sm); line-height: var(--leading-normal); -webkit-font-smoothing: antialiased; }
+    h1, h2, h3, p { margin: 0; }
+    button { font: inherit; }
+    :focus-visible { outline: var(--focus-ring-width) solid var(--focus-ring-color); outline-offset: var(--focus-ring-offset); }
+    .sr-only { position: absolute; left: 0; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+    .skip-link { position: absolute; top: -60px; left: 12px; z-index: 100; display: inline-flex; align-items: center; min-height: var(--control-min-size); padding: 0 var(--space-4); background: var(--color-primary); color: var(--color-on-primary); border-radius: var(--radius-control); text-decoration: none; font-weight: var(--font-semibold); }
+    .skip-link:focus { top: 12px; }
+
+    .page { max-width: 42rem; margin: 0 auto; padding: var(--space-4); }
+    @media (min-width: 768px) { .page { padding: var(--space-6); } }
+
+    .brand { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-4); }
+    .brand__logo { width: 32px; height: 32px; border-radius: var(--radius-sm); }
+    .brand__name { font-size: var(--text-lg); font-weight: var(--font-semibold); }
+
+    .card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: var(--space-4); box-shadow: var(--shadow-sm); margin-bottom: var(--space-3); }
+    .h2 { font-size: var(--text-lg); font-weight: var(--font-semibold); margin-bottom: var(--space-2); }
+    .muted { color: var(--color-text-muted); font-size: var(--text-sm); }
+
+    .error-box { border: 1px solid var(--color-danger-border); background: var(--color-danger-soft); color: var(--color-danger); border-radius: var(--radius-card); padding: var(--space-4); }
+    .error-box__title { font-weight: var(--font-semibold); margin-bottom: var(--space-1); }
+    .error-box--warn { border-color: var(--color-warning-border); background: var(--color-warning-soft); color: var(--color-warning); }
+    .error-box--info { border-color: var(--color-info-border); background: var(--color-info-soft); color: var(--color-info); }
+    .error-box--success { border-color: var(--color-success-border); background: var(--color-success-soft); color: var(--color-success); }
+
+    .empty { text-align: center; padding: var(--space-6) var(--space-4); color: var(--color-text-muted); }
+    .empty__icon { font-size: 32px; margin-bottom: var(--space-2); }
+    .empty__title { font-weight: var(--font-semibold); color: var(--color-text); margin-bottom: var(--space-1); }
+
+    .skeleton { background: linear-gradient(90deg, var(--color-surface-sunken) 25%, var(--color-surface-muted) 50%, var(--color-surface-sunken) 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: var(--radius-sm); height: 16px; margin-bottom: var(--space-2); }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    .role-card { border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: var(--space-3); background: var(--color-surface); margin-bottom: var(--space-2); }
+    .role-card__title { font-weight: var(--font-semibold); margin-bottom: var(--space-1); }
+    .role-card__perm { font-size: var(--text-xs); color: var(--color-text-muted); }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--control-min-size); padding: 0 var(--space-4); border: 1px solid transparent; border-radius: var(--radius-control); font-weight: var(--font-semibold); cursor: pointer; text-decoration: none; margin-top: var(--space-3); }
+    .btn--primary { background: var(--color-primary); color: var(--color-on-primary); }
+    .btn--ghost { background: var(--color-surface); color: var(--color-text); border-color: var(--color-border-strong); }
+
+    .section-title { font-size: var(--text-lg); font-weight: var(--font-semibold); margin: var(--space-6) 0 var(--space-3); }
+    .note { font-size: var(--text-xs); color: var(--color-text-subtle); margin-top: var(--space-2); }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Saltar al contenido</a>
+  <main id="main" class="page">
+    <header class="brand">
+      <img class="brand__logo" src="../../../../design-system/assets/logo.svg" alt="">
+      <span class="brand__name" data-brand-name>Consultorio</span>
+    </header>
+
+    <h1 class="h2" style="margin-bottom: var(--space-4);">Estados clínicos y RBAC</h1>
+
+    <!-- RBAC -->
+    <h2 class="section-title">Vistas por rol</h2>
+    <div class="role-card">
+      <div class="role-card__title">Odontólogo</div>
+      <div class="role-card__perm">Lectura + escritura clínica: evolución, consentimiento, hallazgos. Puede editar piezas.</div>
+    </div>
+    <div class="role-card">
+      <div class="role-card__title">Recepción</div>
+      <div class="role-card__perm">Lectura informativa de la ficha. Sin escritura clínica (RN-CL-02). Los formularios aparecen deshabilitados.</div>
+    </div>
+    <div class="role-card">
+      <div class="role-card__title">Admin</div>
+      <div class="role-card__perm">Supervisión y lectura. No escribe clínica (R8: RBAC en backend).</div>
+    </div>
+
+    <!-- Estados transversales -->
+    <h2 class="section-title">Estados transversales</h2>
+
+    <div class="card">
+      <h3 class="h2">Carga</h3>
+      <div class="skeleton" style="width: 60%;"></div>
+      <div class="skeleton" style="width: 80%;"></div>
+      <div class="skeleton" style="width: 40%;"></div>
+      <p class="note">role="status", aria-busy="true", texto "Cargando ficha clínica".</p>
+    </div>
+
+    <div class="card">
+      <h3 class="h2">Vacío (sin evoluciones)</h3>
+      <div class="empty">
+        <div class="empty__icon" aria-hidden="true">📋</div>
+        <div class="empty__title">Sin notas de evolución</div>
+        <p>Todavía no hay registros para este paciente.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="h2">Vacío (sin consentimientos)</h3>
+      <div class="empty">
+        <div class="empty__icon" aria-hidden="true">📝</div>
+        <div class="empty__title">Sin consentimientos registrados</div>
+        <p>Los consentimientos firmados aparecerán aquí.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="h2">Vacío (sin historial de pieza)</h3>
+      <div class="empty">
+        <div class="empty__icon" aria-hidden="true">🦷</div>
+        <div class="empty__title">Sin historial para esta pieza</div>
+        <p>Los cambios de estado se registran automáticamente.</p>
+      </div>
+    </div>
+
+    <!-- Banners de error -->
+    <h2 class="section-title">Banners de error</h2>
+
+    <div class="card">
+      <div class="error-box">
+        <div class="error-box__title">401 · Sesión expirada</div>
+        <p>Volvé a iniciar sesión para continuar.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="error-box">
+        <div class="error-box__title">403 · Sin permiso</div>
+        <p>No tenés permiso para modificar la ficha clínica. Solo el odontólogo puede hacerlo.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="error-box">
+        <div class="error-box__title">404 · Paciente no encontrado</div>
+        <p>No encontramos la ficha solicitada.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="error-box error-box--warn">
+        <div class="error-box__title">409 · Versión de consentimiento duplicada</div>
+        <p>Ya existe un consentimiento con esa versión para este paciente.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="error-box error-box--warn">
+        <div class="error-box__title">422 · Datos inválidos</div>
+        <p>Revisá los campos obligatorios.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="error-box error-box--success">
+        <div class="error-box__title">Guardado</div>
+        <p>La nota de evolución se registró correctamente.</p>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top: var(--space-4);">Los datos clínicos nunca aparecen en logs ni en URLs (R9). Las rutas usan únicamente pacienteId y número de pieza.</p>
+  </main>
+  <script src="../../../../design-system/brand.js"></script>
+</body>
+</html>
