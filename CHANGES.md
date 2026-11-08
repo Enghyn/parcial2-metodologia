@@ -145,7 +145,7 @@ Libro append-only, alta de ingreso/egreso con usuario del JWT, listado y resumen
 - **Gobernanza:** CRÍTICO.
 
 ### C-12: `caja-cierre-cuenta-corriente`
-- **Estado:** `[ ]`
+- **Estado:** `[x]`
 - **Alcance:**
   - Cierre diario con aprobación de `admin` y bloqueo del período.
   - Cuenta corriente por paciente y saldo derivado.

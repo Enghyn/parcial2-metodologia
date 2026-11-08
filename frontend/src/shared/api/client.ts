@@ -37,6 +37,22 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return (await resp.json()) as T;
 }
 
+export async function requestText(path: string, init?: RequestInit): Promise<string> {
+  const token = useAuthStore.getState().accessToken;
+  const headers: Record<string, string> = {};
+  if (token !== null) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  const resp = await fetch(`${BASE_URL}${path}`, { ...init, headers });
+  if (!resp.ok) {
+    const body = (await resp.json().catch(() => null)) as ApiErrorShape | null;
+    const retryHeader = resp.headers.get("Retry-After");
+    const retryAfterSegundos = parseRetryAfter(retryHeader);
+    throw new ApiError(resp.status, body?.error.code ?? "error", body?.error.message ?? "Error de red", retryAfterSegundos);
+  }
+  return resp.text();
+}
+
 export interface HealthResponse {
   status: string;
 }
