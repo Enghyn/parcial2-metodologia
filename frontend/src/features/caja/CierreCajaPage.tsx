@@ -4,17 +4,14 @@ import { useEffect, useState } from "react";
 import { useAuthStore } from "../../app/AuthContext";
 import {
   cerrarCaja,
-  cuentaCorriente,
   exportCajaCsv,
   listarCierres,
   listarMovimientos,
   resumenDiario,
 } from "../../shared/api/caja";
-import type { Cierre, Movimiento } from "../../shared/api/caja";
+import type { Cierre, Movimiento, ResumenDiario } from "../../shared/api/caja";
 import { formatFecha, formatHora, toIsoDate } from "../../shared/date";
 import { formatArs } from "../../shared/utils/format";
-
-const FORM_INICIAL = { fecha_dia: "" as string };
 
 export function CierreCajaPage(): ReactElement {
   const user = useAuthStore((s) => s.user);
@@ -22,7 +19,7 @@ export function CierreCajaPage(): ReactElement {
   const [fecha, setFecha] = useState<string>(toIsoDate(new Date()));
   const [cierres, setCierres] = useState<Cierre[]>([]);
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
-  const [resumen, setResumen] = ReturnType<typeof import("../../shared/api/caja")>["ResumenDiario"] | null>(null);
+  const [resumen, setResumen] = useState<ResumenDiario | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [guardando, setGuardando] = useState<boolean>(false);
   const [exportando, setExportando] = useState<boolean>(false);
@@ -52,17 +49,15 @@ export function CierreCajaPage(): ReactElement {
     if (!fecha) return;
     let activo = true;
     setLoading(true);
-    Promise.all([listarMovimientos(fecha), resumenDiario(fecha)]).then(
-      ([movs, res]) => {
+    Promise.all([listarMovimientos(fecha), resumenDiario(fecha)])
+      .then(([movs, res]) => {
         if (!activo) return;
         setMovimientos(movs);
         setResumen(res);
-      }
-    );
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    .finally(() => {
-      if (activo) setLoading(false);
-    });
+      })
+      .finally(() => {
+        if (activo) setLoading(false);
+      });
     return () => {
       activo = false;
     };

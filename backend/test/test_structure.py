@@ -60,7 +60,11 @@ MODULOS = [
     "clinica",
     "caja",
     "os",
+    "nomenclador",
+    "comprobante",
     "notificaciones",
+    "presupuestos",
+    "pagos",
     "admin",
     "auth",
     "public",
@@ -69,17 +73,17 @@ MODULOS = [
 MODULO_BARRELS = ["router.py", "service.py", "schemas.py", "models.py"]
 
 # C-02 implementó modelos reales en estos módulos: sus models.py ya no son stubs.
-MODULOS_CON_MODELOS = {"admin", "agenda", "clinica", "caja"}
+MODULOS_CON_MODELOS = {"admin", "agenda", "clinica", "caja", "os", "nomenclador", "comprobante", "notificaciones", "lista_espera", "presupuestos", "pagos"}
 
 # Auth (C-03) NO duplica la entidad Usuario: el modelo vive en modules/admin
 # (D4 de design.md), así que auth no tiene models.py ni stubs que implementar
 # (sus barrels son código real de esta misma change).
 MODULOS_SIN_MODELOS = {"auth", "public"}
-MODULOS_SIN_STUBS = {"auth", "agenda", "caja", "clinica", "public"}
+MODULOS_SIN_STUBS = {"auth", "agenda", "caja", "clinica", "public", "os", "nomenclador", "comprobante", "notificaciones", "lista_espera", "presupuestos", "pagos"}
 
 # Routers con rutas reales ya montadas (C-03 monta auth en /auth); el resto
 # nace vacío hasta su change dueño.
-MODULOS_CON_RUTAS = {"auth", "agenda", "caja", "clinica", "public"}
+MODULOS_CON_RUTAS = {"auth", "agenda", "caja", "clinica", "public", "os", "nomenclador", "comprobante", "notificaciones", "lista_espera", "presupuestos", "pagos"}
 
 
 def barrels_de_modulo(modulo: str) -> list[str]:

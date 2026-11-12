@@ -1,7 +1,27 @@
-"""Schemas lista_espera (stub; dueño: C-02 core-models-tenancy).
+"""Schemas de lista de espera (C-15). R1: extra='forbid'."""
+from __future__ import annotations
 
-TODO(C-02): definir schemas Pydantic de entrada/salida. R1: todo schema
-de API lleva `extra="forbid"`. Sin schemas reales en este stub.
-"""
+from datetime import datetime
+from uuid import UUID
 
-__all__: list[str] = []
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class ListaEsperaCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    paciente_id: UUID
+    profesional_id: UUID | None = None
+    sillon_id: UUID | None = None
+    fecha_preferida: datetime | None = None
+
+
+class ListaEsperaOut(BaseModel):
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
+    id: UUID
+    paciente_id: UUID
+    profesional_id: UUID | None
+    sillon_id: UUID | None
+    fecha_preferida: datetime | None
+    estado: str
+    ofrecido_en: datetime | None
+    expira_en: datetime | None

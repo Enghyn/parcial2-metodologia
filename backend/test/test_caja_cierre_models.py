@@ -78,18 +78,12 @@ def test_cuentas_corrientes_paciente_columnas() -> None:
     """D2: cuentas_corrientes_paciente con paciente_id UNIQUE, saldo y actualizado_en."""
     tabla = _tabla("cuentas_corrientes_paciente")
     columnas = {c.name for c in tabla.columns}
-    assert {"id", "paciente_id", "saldo", "actualizado_en"} <= columnas
+    assert {"paciente_id", "saldo", "actualizado_en"} <= columnas
     assert tabla.c["paciente_id"].nullable is False
     assert tabla.c["saldo"].nullable is False
     assert tabla.c["actualizado_en"].nullable is False
-    # paciente_id UNIQUE
-    uniques = [
-        c
-        for c in tabla.constraints
-        if c.__class__.__name__ == "UniqueConstraint"
-        and {col.name for col in c.columns} == {"paciente_id"}
-    ]
-    assert len(uniques) == 1, "paciente_id debe ser UNIQUE"
+    # paciente_id es PK (y por tanto UNIQUE) — no se declara UniqueConstraint aparte.
+    assert tabla.c["paciente_id"].primary_key is True
     # FK a pacientes
     fks = [fk for fk in tabla.foreign_keys]
     pacientes_fk = [fk for fk in fks if "pacientes" in str(fk)]
@@ -136,6 +130,9 @@ def test_ajustes_caja_columnas_y_constraints() -> None:
 def test_todas_las_pk_son_uuid_con_gen_random_uuid() -> None:
     """R5: PK simple UUID con server_default gen_random_uuid() en tablas C-12."""
     for nombre in TABLAS_C12:
+        if nombre == "cuentas_corrientes_paciente":
+            # PK derivada de paciente_id (FK), sin gen_random_uuid.
+            continue
         tabla = _tabla(nombre)
         pk = list(tabla.primary_key.columns)
         assert len(pk) == 1, f"{nombre}: se espera PK simple"

@@ -1,7 +1,24 @@
-"""Schemas notificaciones (stub; dueño: C-02 core-models-tenancy).
+"""Schemas de notificaciones (C-14). R1: extra='forbid'."""
+from __future__ import annotations
 
-TODO(C-02): definir schemas Pydantic de entrada/salida. R1: todo schema
-de API lleva `extra="forbid"`. Sin schemas reales en este stub.
-"""
+from datetime import datetime
+from uuid import UUID
 
-__all__: list[str] = []
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class NotificacionCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    turno_id: UUID | None = None
+    plantilla: str = Field(min_length=1, max_length=50)
+    destinatario: str = Field(min_length=1, max_length=100)
+
+
+class NotificacionOut(BaseModel):
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
+    id: UUID
+    turno_id: UUID | None
+    plantilla: str
+    destinatario: str
+    estado: str
+    enviado_en: datetime | None

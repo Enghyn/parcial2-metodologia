@@ -157,7 +157,7 @@ Libro append-only, alta de ingreso/egreso con usuario del JWT, listado y resumen
 - **Gobernanza:** CRÍTICO.
 
 ### C-13a: `os-nomenclador-cobertura`
-- **Estado:** `[ ]`
+- **Estado:** `[x]` (Completado y archivado)
 - **Alcance:**
   - Catálogo de obras sociales y convenios.
   - Nomenclador de prácticas, aranceles y copago.
@@ -169,7 +169,7 @@ Libro append-only, alta de ingreso/egreso con usuario del JWT, listado y resumen
 - **Gobernanza:** MEDIO.
 
 ### C-13b: `comprobante-manual`
-- **Estado:** `[ ]`
+- **Estado:** `[x]` (Completado y archivado)
 - **Alcance:**
   - Modelo `Comprobante` vinculado a movimiento/presupuesto.
   - `Facturador` + `FacturadorManual`; sin ARCA.
@@ -180,7 +180,7 @@ Libro append-only, alta de ingreso/egreso con usuario del JWT, listado y resumen
 - **Gobernanza:** MEDIO.
 
 ### C-14: `notificaciones-simuladas`
-- **Estado:** `[ ]`
+- **Estado:** `[x]` (Completado y archivado)
 - **Alcance:**
   - `Notificador` + `NotificadorSimulado` (BD/consola).
   - Plantillas de confirmación, recordatorio 24 h/2 h y lista de espera.
@@ -191,7 +191,7 @@ Libro append-only, alta de ingreso/egreso con usuario del JWT, listado y resumen
 - **Gobernanza:** MEDIO.
 
 ### C-15: `lista-espera`
-- **Estado:** `[ ]`
+- **Estado:** `[x]` (Completado y archivado)
 - **Alcance:**
   - Lista de espera con preferencias y orden por compatibilidad/antigüedad.
   - Al cancelar, oferta automática con expiración y aceptación.
@@ -202,7 +202,7 @@ Libro append-only, alta de ingreso/egreso con usuario del JWT, listado y resumen
 - **Gobernanza:** MEDIO.
 
 ### C-16: `presupuestos`
-- **Estado:** `[ ]`
+- **Estado:** `[x]` (Completado y archivado)
 - **Alcance:**
   - `Presupuesto` + ítems, total y cobertura OS/copago.
   - Estados borrador/enviado/aprobado/rechazado/cobrado.
@@ -213,7 +213,7 @@ Libro append-only, alta de ingreso/egreso con usuario del JWT, listado y resumen
 - **Gobernanza:** ALTO.
 
 ### C-17: `pagos-simulados`
-- **Estado:** `[ ]`
+- **Estado:** `[x]` (Completado y archivado)
 - **Alcance:**
   - `Pago`/`IntentoPago` con estados pendiente/aprobado/rechazado.
   - `Cobrador` + `CobradorSimulado`; sin Mercado Pago.

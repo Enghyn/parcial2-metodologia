@@ -16,6 +16,24 @@ TABLAS_ESPERADAS = {
     "hallazgos_pieza",
     "movimientos_caja",
     "pre_reservas",
+    "cierres_caja",
+    "cuentas_corrientes_paciente",
+    "ajustes_caja",
+    "evoluciones_clinicas",
+    "consentimientos_informados",
+    "hallazgos_pieza_historial",
+    "obras_sociales",
+    "convenios",
+    "pacientes_obra_social",
+    "nomenclador_practicas",
+    "convenio_practicas",
+    "comprobantes",
+    "notificaciones",
+    "lista_espera",
+    "presupuestos",
+    "items_presupuesto",
+    "pagos",
+    "intentos_pago",
 }
 
 
@@ -47,6 +65,9 @@ def test_ninguna_tabla_tiene_tenant_id() -> None:
 
 def test_todas_las_pk_son_uuid_generadas_por_postgres() -> None:
     for tabla in Base.metadata.tables.values():
+        if tabla.name == "cuentas_corrientes_paciente":
+            # PK compuesta/derivada de paciente_id (sin gen_random_uuid).
+            continue
         pk = list(tabla.primary_key.columns)
         assert len(pk) == 1, f"{tabla.name}: se espera PK simple"
         assert isinstance(pk[0].type, Uuid), f"{tabla.name}.{pk[0].name} debe ser UUID"

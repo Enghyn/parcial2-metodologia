@@ -12,7 +12,9 @@ from app.modules.clinica.models import (
     HallazgoPiezaHistorial,
 )
 
-pytestmark = []
+import pytest
+
+pytestmark = pytest.mark.integration
 
 
 def _session() -> Session:

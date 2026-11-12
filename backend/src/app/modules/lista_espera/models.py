@@ -1,7 +1,39 @@
-"""Modelos lista_espera (stub; fuera del roadmap de 8 changes).
+"""Modelo de lista de espera (C-15)."""
+from __future__ import annotations
 
-TODO(C-02): decidir si este módulo pertenece a un change futuro o se elimina
-(registrado en design.md de c-02-core-models-seed). Sin modelos reales.
-"""
+from datetime import datetime
+from uuid import UUID, uuid4
 
-__all__: list[str] = []
+from sqlalchemy import (
+    DateTime,
+    ForeignKey,
+    String,
+    Uuid,
+    func,
+    text,
+)
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.db.base import Base, TimestampMixin
+
+
+class ListaEspera(Base, TimestampMixin):
+    __tablename__ = "lista_espera"
+    __table_args__ = ()
+
+    id: Mapped[UUID] = mapped_column(
+        Uuid, primary_key=True, default=uuid4, server_default=text("gen_random_uuid()")
+    )
+    paciente_id: Mapped[UUID] = mapped_column(
+        ForeignKey("pacientes.id", name="fk_le_paciente"), nullable=False
+    )
+    profesional_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("profesionales.id", name="fk_le_profesional"), nullable=True
+    )
+    sillon_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("sillones.id", name="fk_le_sillon"), nullable=True
+    )
+    fecha_preferida: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    estado: Mapped[str] = mapped_column(String(20), nullable=False, server_default=text("'pendiente'"))
+    ofrecido_en: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    expira_en: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

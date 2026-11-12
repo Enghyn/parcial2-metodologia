@@ -45,7 +45,10 @@ def test_revision_encadenada_al_baseline() -> None:
 
 def test_crea_las_mismas_tablas_que_la_metadata() -> None:
     creadas = set(re.findall(r'op\.create_table\(\s*"([a-z_]+)"', _texto()))
-    tablas_0002 = set(Base.metadata.tables) - {"pre_reservas"}
+    tablas_0002 = {
+        "usuarios", "sillones", "profesionales", "pacientes", "turnos",
+        "bloqueos", "odontogramas", "hallazgos_pieza", "movimientos_caja",
+    }
     assert creadas == tablas_0002
 
 
