@@ -11,12 +11,18 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.core.rate_limit import limitar_publico
 from app.db.session import get_db
+from app.modules.public.portal_service import PortalPublicoService
 from app.modules.public.qr import svg_qr, url_reserva, url_turno
 from app.modules.public.schemas import (
+    AprobacionPublicaIn,
+    ConfirmarPublicoIn,
+    PagoPublicoOut,
     PreReservaCreate,
     PreReservaOut,
+    PresupuestoPublicoOut,
     ProfesionalPublicoOut,
     PublicTurnoOut,
+    RechazoPublicoIn,
     ReprogramarPublico,
     ReservaCreate,
     SlotOut,
@@ -96,6 +102,73 @@ def reprogramar_turno(
     servicio = PublicReservaService(db)
     turno = servicio.reprogramar_por_token(token, datos)
     return servicio.to_public(turno)
+
+
+# --- Portal público de presupuestos y pagos (C-18, D5/R9) ---
+# Todo se identifica por `token_publico` opaco; nunca por IDs internos.
+
+
+@router.get(
+    "/presupuestos/{token}",
+    response_model=PresupuestoPublicoOut,
+    dependencies=[Depends(limitar_publico("lectura"))],
+)
+def obtener_presupuesto_publico(
+    token: UUID,
+    db: Annotated[Session, Depends(get_db)],
+) -> PresupuestoPublicoOut:
+    return PortalPublicoService(db).obtener_presupuesto_publico(token)
+
+
+@router.post(
+    "/presupuestos/{token}/aprobar",
+    response_model=PresupuestoPublicoOut,
+    dependencies=[Depends(limitar_publico("escritura"))],
+)
+def aprobar_presupuesto_publico(
+    token: UUID,
+    datos: AprobacionPublicaIn,
+    db: Annotated[Session, Depends(get_db)],
+) -> PresupuestoPublicoOut:
+    return PortalPublicoService(db).aprobar(token, datos.firma)
+
+
+@router.post(
+    "/presupuestos/{token}/rechazar",
+    response_model=PresupuestoPublicoOut,
+    dependencies=[Depends(limitar_publico("escritura"))],
+)
+def rechazar_presupuesto_publico(
+    token: UUID,
+    db: Annotated[Session, Depends(get_db)],
+    datos: RechazoPublicoIn | None = None,
+) -> PresupuestoPublicoOut:
+    return PortalPublicoService(db).rechazar(token, datos.motivo if datos else None)
+
+
+@router.get(
+    "/pagos/{token}",
+    response_model=PagoPublicoOut,
+    dependencies=[Depends(limitar_publico("lectura"))],
+)
+def obtener_pago_publico(
+    token: UUID,
+    db: Annotated[Session, Depends(get_db)],
+) -> PagoPublicoOut:
+    return PortalPublicoService(db).obtener_pago_publico(token)
+
+
+@router.post(
+    "/pagos/{token}/confirmar",
+    response_model=PagoPublicoOut,
+    dependencies=[Depends(limitar_publico("escritura"))],
+)
+def confirmar_pago_publico(
+    token: UUID,
+    db: Annotated[Session, Depends(get_db)],
+    datos: ConfirmarPublicoIn | None = None,
+) -> PagoPublicoOut:
+    return PortalPublicoService(db).confirmar_pago_publico(token, datos)
 
 
 @router.get("/qr/reserva.svg", dependencies=[Depends(limitar_publico("lectura"))])

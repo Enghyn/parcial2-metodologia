@@ -1,7 +1,7 @@
 """Servicio de pagos simulados (C-17)."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -33,7 +33,12 @@ class PagoService:
         self.db.refresh(p)
         return p
 
-    def confirmar(self, pago_id: UUID) -> Pago:
+    def confirmar(self, pago_id: UUID, usuario_id: UUID) -> Pago:
+        """Confirma un pago simulado imputando el ingreso a `usuario_id` (R4).
+
+        `usuario_id` es obligatorio: `movimientos_caja.usuario_id` es `NOT NULL`
+        y R4 exige usuario responsable en todo cobro (deuda de C-17).
+        """
         p = self.db.query(Pago).filter(Pago.id == pago_id).first()
         if p is None:
             raise ValueError("not_found")
@@ -48,14 +53,13 @@ class PagoService:
                 medio_pago="otro",
                 monto=p.monto,
                 concepto="Pago simulado",
-                usuario_id=None,  # se setea por caller idealmente; simplificado
+                usuario_id=usuario_id,
             )
-            # usuario_id requerido; si no hay, usar primer admin? Para evitar error, omitir creación si falta.
-            # Aquí simplificamos: no creamos movimiento si no hay usuario. (Mejorar en C-20)
             self.db.add(mov)
+            self.db.flush()  # asigna mov.id antes de referenciarlo
             p.movimiento_id = mov.id
             p.estado = "aprobado"
-            p.confirmado_en = datetime.now(timezone.utc)
+            p.confirmado_en = datetime.now(UTC)
         else:
             p.estado = "rechazado"
         self.db.commit()

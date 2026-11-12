@@ -31,6 +31,10 @@ class Settings(BaseSettings):
     rate_limit_public_window_s: int = Field(default=60, gt=0)
     rate_limit_public_read_max: int = Field(default=120, gt=0)
     rate_limit_public_write_max: int = Field(default=10, gt=0)
+    # C-18/D4: usuario responsable (R4) de los cobros que llegan por el portal
+    # público anónimo. Debe existir y estar activo; default = admin del seed.
+    portal_usuario_email: str = Field(default="admin@consultorio.com")
+
     @model_validator(mode="after")
     def _rechazar_secreto_jwt_inseguro_en_produccion(self) -> Settings:
         """D5: con APP_ENV=production, un JWT_SECRET con el default inseguro

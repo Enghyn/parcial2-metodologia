@@ -225,7 +225,7 @@ Libro append-only, alta de ingreso/egreso con usuario del JWT, listado y resumen
 - **Gobernanza:** CRÍTICO.
 
 ### C-18: `portal-publico`
-- **Estado:** `[ ]`
+- **Estado:** `[x]`
 - **Alcance:**
   - `/reservar` con QR (C-10), `/p/turno/:token`, `/p/presupuesto/:token`, `/p/pagar/:token`.
   - Marca única del consultorio; sin slug ni multi-tenant.

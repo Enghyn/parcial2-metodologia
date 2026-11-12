@@ -1,5 +1,6 @@
 import type { ReactElement } from "react";
 import { Navigate, NavLink, Outlet } from "react-router-dom";
+import { MarcaConsultorio } from "../features/portal-publico/MarcaConsultorio";
 import { useAuthStore } from "./AuthContext";
 
 export function RequireAuth(): ReactElement {
@@ -45,6 +46,7 @@ export function AppLayout(): ReactElement {
 export function PublicLayout(): ReactElement {
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <MarcaConsultorio />
       <main>
         <Outlet />
       </main>

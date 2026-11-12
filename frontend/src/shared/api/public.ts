@@ -133,3 +133,96 @@ export function reprogramarTurnoPublico(token: string, input: ReprogramarPublico
     body: JSON.stringify(input),
   });
 }
+
+// --- Portal público de presupuestos y pagos (C-18, D5/D7) ---
+// Contratos espejo de `app/modules/public/schemas.py`: sin `id`, `paciente_id`,
+// `presupuesto_id`, `movimiento_id` ni `token_publico` (R9). El token opaco viaja
+// solo en el path; nunca en query string ni en logs (R9).
+
+export interface ItemPresupuestoPublico {
+  descripcion: string;
+  cantidad: number;
+  arancel: number;
+  copago: number;
+}
+
+export interface PresupuestoPublico {
+  estado: string;
+  total: number;
+  items: ItemPresupuestoPublico[];
+}
+
+export interface PagoPublico {
+  estado: string;
+  monto: number;
+  confirmado_en: string | null;
+}
+
+export interface AprobacionPublicaInput {
+  firma: string;
+}
+
+export interface RechazoPublicoInput {
+  motivo?: string | null;
+}
+
+export function rutaPresupuestoPublico(token: string): string {
+  return `/api/v1/public/presupuestos/${token}`;
+}
+
+export function rutaAprobarPresupuestoPublico(token: string): string {
+  return `/api/v1/public/presupuestos/${token}/aprobar`;
+}
+
+export function rutaRechazarPresupuestoPublico(token: string): string {
+  return `/api/v1/public/presupuestos/${token}/rechazar`;
+}
+
+export function rutaPagoPublico(token: string): string {
+  return `/api/v1/public/pagos/${token}`;
+}
+
+export function rutaConfirmarPagoPublico(token: string): string {
+  return `/api/v1/public/pagos/${token}/confirmar`;
+}
+
+export function construirAprobacion(firma: string): AprobacionPublicaInput {
+  return { firma: firma.trim() };
+}
+
+export function construirRechazo(motivo?: string | null): RechazoPublicoInput {
+  const limpio = motivo?.trim();
+  return limpio ? { motivo: limpio } : {};
+}
+
+export function getPresupuestoPublico(token: string): Promise<PresupuestoPublico> {
+  return request<PresupuestoPublico>(rutaPresupuestoPublico(token));
+}
+
+export function aprobarPresupuestoPublico(
+  token: string,
+  firma: string,
+): Promise<PresupuestoPublico> {
+  return request<PresupuestoPublico>(rutaAprobarPresupuestoPublico(token), {
+    method: "POST",
+    body: JSON.stringify(construirAprobacion(firma)),
+  });
+}
+
+export function rechazarPresupuestoPublico(
+  token: string,
+  motivo?: string | null,
+): Promise<PresupuestoPublico> {
+  return request<PresupuestoPublico>(rutaRechazarPresupuestoPublico(token), {
+    method: "POST",
+    body: JSON.stringify(construirRechazo(motivo)),
+  });
+}
+
+export function getPagoPublico(token: string): Promise<PagoPublico> {
+  return request<PagoPublico>(rutaPagoPublico(token));
+}
+
+export function confirmarPagoPublico(token: string): Promise<PagoPublico> {
+  return request<PagoPublico>(rutaConfirmarPagoPublico(token), { method: "POST" });
+}

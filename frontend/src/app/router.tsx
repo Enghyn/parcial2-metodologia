@@ -5,10 +5,10 @@ import { AgendaPage } from "../features/agenda/AgendaPage";
 import { SemanaPage } from "../features/agenda/SemanaPage";
 import { CajaPage } from "../features/caja";
 import { OdontogramaPage, PacientesPage } from "../features/clinica";
+import { PagarPage } from "../features/portal-publico/PagarPage";
+import { PresupuestoPublicoPage } from "../features/portal-publico/PresupuestoPublicoPage";
 import {
   LoginPage,
-  PagarPage,
-  PresupuestoPublicoPage,
   ReprogramarPublicoPage,
   ReservarPage,
   TurnoPublicoPage,

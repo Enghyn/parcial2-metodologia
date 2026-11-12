@@ -119,12 +119,80 @@ class ReprogramarPublico(BaseModel):
         return normalizar_entrada(valor)
 
 
+# --- Portal público de presupuestos y pagos (C-18, D5) ---
+# R9: los contratos públicos omiten `id`, `paciente_id`, `presupuesto_id`,
+# `movimiento_id` y `token_publico`; nunca exponen PII ni datos clínicos.
+
+
+class ItemPresupuestoPublicoOut(BaseModel):
+    """Ítem visible en la vista pública del presupuesto (D5)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    descripcion: str
+    cantidad: int
+    arancel: float
+    copago: float
+
+
+class PresupuestoPublicoOut(BaseModel):
+    """Vista pública mínima del presupuesto: estado, total e ítems (D5/R9)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    estado: str
+    total: float
+    items: list[ItemPresupuestoPublicoOut]
+
+
+class PagoPublicoOut(BaseModel):
+    """Vista pública del pago simulado: estado, monto y fecha (D5/R9)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    estado: str
+    monto: float
+    confirmado_en: datetime | None
+
+
+class AprobacionPublicaIn(BaseModel):
+    """Firma simple del paciente para aprobar un presupuesto (D5)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    firma: str = Field(min_length=1, max_length=150)
+
+
+class RechazoPublicoIn(BaseModel):
+    """Motivo opcional al rechazar un presupuesto desde el portal (D5)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    motivo: str | None = Field(default=None, max_length=255)
+
+
+class ConfirmarPublicoIn(BaseModel):
+    """Cuerpo opcional para confirmar pago público (C-18, R1).
+
+    Declara ``extra="forbid"`` para que un body con campos no esperados responda 422.
+    El body es opcional: ``None`` o ``{}`` mantienen compatibilidad; cualquier campo
+    no declarado devuelve 422.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+
 __all__ = [
+    "AprobacionPublicaIn",
+    "ItemPresupuestoPublicoOut",
     "PacientePublicoIn",
+    "PagoPublicoOut",
     "PreReservaCreate",
     "PreReservaOut",
+    "PresupuestoPublicoOut",
     "ProfesionalPublicoOut",
     "PublicTurnoOut",
+    "RechazoPublicoIn",
     "ReprogramarPublico",
     "ReservaCreate",
     "SlotOut",
