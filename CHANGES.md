@@ -236,7 +236,7 @@ Libro append-only, alta de ingreso/egreso con usuario del JWT, listado y resumen
 - **Gobernanza:** MEDIO.
 
 ### C-19: `admin-crud`
-- **Estado:** `[ ]`
+- **Estado:** `[x]` (Completado y archivado)
 - **Alcance:**
   - CRUD de usuarios con roles y activo.
   - CRUD de sillones.

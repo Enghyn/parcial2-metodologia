@@ -79,11 +79,11 @@ MODULOS_CON_MODELOS = {"admin", "agenda", "clinica", "caja", "os", "nomenclador"
 # (D4 de design.md), así que auth no tiene models.py ni stubs que implementar
 # (sus barrels son código real de esta misma change).
 MODULOS_SIN_MODELOS = {"auth", "public"}
-MODULOS_SIN_STUBS = {"auth", "agenda", "caja", "clinica", "public", "os", "nomenclador", "comprobante", "notificaciones", "lista_espera", "presupuestos", "pagos"}
+MODULOS_SIN_STUBS = {"auth", "agenda", "caja", "clinica", "public", "admin", "os", "nomenclador", "comprobante", "notificaciones", "lista_espera", "presupuestos", "pagos"}
 
 # Routers con rutas reales ya montadas (C-03 monta auth en /auth); el resto
 # nace vacío hasta su change dueño.
-MODULOS_CON_RUTAS = {"auth", "agenda", "caja", "clinica", "public", "os", "nomenclador", "comprobante", "notificaciones", "lista_espera", "presupuestos", "pagos"}
+MODULOS_CON_RUTAS = {"auth", "agenda", "caja", "clinica", "public", "admin", "os", "nomenclador", "comprobante", "notificaciones", "lista_espera", "presupuestos", "pagos"}
 
 
 def barrels_de_modulo(modulo: str) -> list[str]:
