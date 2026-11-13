@@ -259,7 +259,7 @@ Libro append-only, alta de ingreso/egreso con usuario del JWT, listado y resumen
 - **Gobernanza:** MEDIO/ALTO.
 
 ### C-20: `auditoria-export`
-- **Estado:** `[ ]`
+- **Estado:** `[x]` (Completado y archivado)
 - **Alcance:**
   - Modelo `Auditoria` (quién, cuándo, recurso, acción, diff).
   - Hooks en escrituras sensibles (turnos, caja, presupuestos, odontograma).

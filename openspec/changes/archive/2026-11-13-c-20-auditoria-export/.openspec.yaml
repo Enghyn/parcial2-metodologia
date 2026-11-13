@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-11-13
+goal: Auditoria transversal de escrituras sensibles (quien, cuando, recurso,
+  accion, diff) con visor paginado y export CSV enmascarado, conforme RN-SEG
