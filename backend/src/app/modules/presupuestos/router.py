@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.deps import require_role
 from app.db.session import get_db
+from app.modules.admin.models import Usuario
 from app.modules.presupuestos.schemas import PresupuestoCreate, PresupuestoOut
 from app.modules.presupuestos.service import PresupuestoService
 
@@ -23,9 +24,9 @@ def listar(db: Annotated[Session, Depends(get_db)]) -> list[PresupuestoOut]:
     return [PresupuestoOut.model_validate(p) for p in PresupuestoService(db).listar()]
 
 
-@router.post("", response_model=PresupuestoOut, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_role(*_GESTION))])
-def crear(datos: PresupuestoCreate, db: Annotated[Session, Depends(get_db)]) -> PresupuestoOut:
-    return PresupuestoOut.model_validate(PresupuestoService(db).crear(datos))
+@router.post("", response_model=PresupuestoOut, status_code=status.HTTP_201_CREATED)
+def crear(datos: PresupuestoCreate, db: Annotated[Session, Depends(get_db)], usuario: Annotated[Usuario, Depends(require_role(*_GESTION))]) -> PresupuestoOut:
+    return PresupuestoOut.model_validate(PresupuestoService(db).crear(datos, usuario_id=usuario.id))
 
 
 @router.post("/aprobar/{token}", response_model=PresupuestoOut)

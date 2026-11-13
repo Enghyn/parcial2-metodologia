@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.core.timezone import ahora
 from app.modules.admin.models import Usuario
+from app.modules.audit.service import registrar_auditoria
 from app.modules.clinica.models import (
     ConsentimientoInformado,
     EvolucionClinica,
@@ -151,6 +152,7 @@ class OdontogramaService:
                 HallazgoPieza.pieza == pieza,
             )
         )
+        es_nuevo = hallazgo is None
         if hallazgo is None:
             hallazgo = HallazgoPieza(
                 odontograma_id=odontograma.id,
@@ -196,6 +198,20 @@ class OdontogramaService:
                         registrado_por=usuario.id,
                     )
                 )
+        self.db.flush()
+        registrar_auditoria(
+            self.db,
+            usuario_id=usuario.id if usuario is not None else None,
+            accion="crear" if es_nuevo else "actualizar",
+            recurso="hallazgo_pieza",
+            recurso_id=hallazgo.id,
+            diff={
+                "paciente_id": str(paciente_id),
+                "pieza": pieza,
+                "estado": datos.estado,
+                "observacion": datos.observacion,
+            },
+        )
         self.db.commit()
         self.db.refresh(hallazgo)
         return hallazgo

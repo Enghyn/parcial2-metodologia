@@ -6,6 +6,7 @@ from app.db.base import Base
 from app.modules.admin.models import Usuario
 
 TABLAS_ESPERADAS = {
+    "auditorias",
     "usuarios",
     "sillones",
     "profesionales",

@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.core.timezone import ahora, fin_dia, inicio_dia
 from app.modules.admin.models import Usuario
 from app.modules.agenda.models import Turno
+from app.modules.audit.service import registrar_auditoria
 from app.modules.caja.models import (
     MEDIOS_PAGO,
     AjusteCaja,
@@ -74,6 +75,21 @@ class CajaService:
             usuario_id=usuario_id,
         )
         self.db.add(movimiento)
+        self.db.flush()
+        registrar_auditoria(
+            self.db,
+            usuario_id=usuario_id,
+            accion="crear",
+            recurso="movimiento_caja",
+            recurso_id=movimiento.id,
+            diff={
+                "tipo": datos.tipo,
+                "medio_pago": datos.medio_pago,
+                "monto": str(datos.monto),
+                "concepto": datos.concepto,
+                "turno_id": str(datos.turno_id) if datos.turno_id is not None else None,
+            },
+        )
         self.db.commit()
         self.db.refresh(movimiento)
         self._recalcular_cuenta_corriente_por_turno(datos.turno_id)
@@ -174,6 +190,19 @@ class CierreService:
             aprobado_en=ahora(),
         )
         self.db.add(cierre)
+        self.db.flush()
+        registrar_auditoria(
+            self.db,
+            usuario_id=usuario_id,
+            accion="cerrar",
+            recurso="cierre_caja",
+            recurso_id=cierre.id,
+            diff={
+                "fecha_dia": str(dia),
+                "estado": "cerrado",
+                "balance": str(total_ingresos - total_egresos),
+            },
+        )
         self.db.commit()
         self.db.refresh(cierre)
         return cierre
@@ -298,6 +327,19 @@ class AjusteService:
             usuario_aprobador_id=usuario_id,
         )
         self.db.add(ajuste)
+        self.db.flush()
+        registrar_auditoria(
+            self.db,
+            usuario_id=usuario_id,
+            accion="crear",
+            recurso="ajuste_caja",
+            recurso_id=ajuste.id,
+            diff={
+                "movimiento_corregido_id": str(datos.movimiento_corregido_id),
+                "movimiento_ajuste_id": str(contra_asiento.id),
+                "motivo": datos.motivo,
+            },
+        )
         self.db.commit()
         self.db.refresh(ajuste)
         # Recalcular cuenta corriente del paciente del movimiento corregido si tiene turno

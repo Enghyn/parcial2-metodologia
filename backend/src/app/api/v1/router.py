@@ -13,11 +13,12 @@ from fastapi import APIRouter
 
 from app.modules.admin.router import router as admin_router
 from app.modules.agenda.router import router as agenda_router
+from app.modules.audit.router import router as audit_router
 from app.modules.auth.router import router as auth_router
 from app.modules.caja.router import router as caja_router
 from app.modules.clinica.router import router as clinica_router
-from app.modules.lista_espera.router import router as lista_espera_router
 from app.modules.comprobante.router import router as comprobante_router
+from app.modules.lista_espera.router import router as lista_espera_router
 from app.modules.nomenclador.router import router as nomenclador_router
 from app.modules.notificaciones.router import router as notificaciones_router
 from app.modules.os.router import router as os_router
@@ -28,6 +29,7 @@ from app.modules.public.router import router as public_router
 router = APIRouter()
 router.include_router(admin_router)
 router.include_router(auth_router)
+router.include_router(audit_router)
 router.include_router(agenda_router)
 router.include_router(caja_router)
 router.include_router(clinica_router)

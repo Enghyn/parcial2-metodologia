@@ -18,6 +18,7 @@ from app.modules.agenda.schemas import (
     SobreturnoCreate,
     TurnoCreate,
 )
+from app.modules.audit.service import registrar_auditoria
 from app.modules.clinica.models import Paciente
 
 
@@ -144,7 +145,7 @@ class TurnoService:
                 detail=f"{nombre} no encontrado o inactivo",
             )
 
-    def crear(self, datos: TurnoCreate, *, origen: str = "interno") -> Turno:
+    def crear(self, datos: TurnoCreate, *, origen: str = "interno", usuario_id: UUID | None = None) -> Turno:
         inicio = normalizar_entrada(datos.inicio)
         if inicio <= ahora():
             raise HTTPException(
@@ -197,12 +198,29 @@ class TurnoService:
             origen=origen,
         )
         self.db.add(turno)
+        self.db.flush()
+        registrar_auditoria(
+            self.db,
+            usuario_id=usuario_id,
+            accion="crear",
+            recurso="turno",
+            recurso_id=turno.id,
+            diff={
+                "prestacion": datos.prestacion,
+                "paciente_id": str(datos.paciente_id),
+                "profesional_id": str(datos.profesional_id),
+                "sillon_id": str(datos.sillon_id),
+                "inicio": str(inicio),
+                "duracion_min": datos.duracion_min,
+                "origen": origen,
+            },
+        )
         self.db.commit()
         self.db.refresh(turno)
         return turno
 
     def crear_sobreturno(
-        self, datos: SobreturnoCreate, autorizado_por: UUID, *, origen: str = "interno"
+        self, datos: SobreturnoCreate, autorizado_por: UUID, *, origen: str = "interno", usuario_id: UUID | None = None
     ) -> Turno:
         inicio = normalizar_entrada(datos.inicio)
         if inicio <= ahora():
@@ -231,11 +249,29 @@ class TurnoService:
             origen=origen,
         )
         self.db.add(turno)
+        self.db.flush()
+        registrar_auditoria(
+            self.db,
+            usuario_id=usuario_id if usuario_id is not None else autorizado_por,
+            accion="crear",
+            recurso="turno",
+            recurso_id=turno.id,
+            diff={
+                "prestacion": datos.prestacion,
+                "paciente_id": str(datos.paciente_id),
+                "profesional_id": str(datos.profesional_id),
+                "sillon_id": str(datos.sillon_id),
+                "inicio": str(inicio),
+                "duracion_min": datos.duracion_min,
+                "sobreturno": True,
+                "origen": origen,
+            },
+        )
         self.db.commit()
         self.db.refresh(turno)
         return turno
 
-    def reprogramar(self, turno_id: UUID, datos: ReprogramarTurno) -> Turno:
+    def reprogramar(self, turno_id: UUID, datos: ReprogramarTurno, *, usuario_id: UUID | None = None) -> Turno:
         turno = self.db.scalar(
             select(Turno).where(Turno.id == turno_id, Turno.deleted_at.is_(None))
         )
@@ -304,20 +340,39 @@ class TurnoService:
         turno.inicio = inicio
         turno.fin = fin
         turno.duracion_min = duracion
+        self.db.flush()
+        registrar_auditoria(
+            self.db,
+            usuario_id=usuario_id,
+            accion="reprogramar",
+            recurso="turno",
+            recurso_id=turno.id,
+            diff={"inicio": str(inicio), "duracion_min": duracion},
+        )
         self.db.commit()
         self.db.refresh(turno)
         return turno
 
-    def cambiar_estado(self, turno_id: UUID, estado: str) -> Turno:
+    def cambiar_estado(self, turno_id: UUID, estado: str, *, usuario_id: UUID | None = None) -> Turno:
         turno = self.db.scalar(select(Turno).where(Turno.id == turno_id, Turno.deleted_at.is_(None)))
         if turno is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Turno no encontrado")
         turno.estado = estado
+        self.db.flush()
+        accion = "cancelar" if estado == "cancelado" else "cambiar_estado"
+        registrar_auditoria(
+            self.db,
+            usuario_id=usuario_id,
+            accion=accion,
+            recurso="turno",
+            recurso_id=turno.id,
+            diff={"estado": estado},
+        )
         self.db.commit()
         self.db.refresh(turno)
         return turno
 
-    def crear_bloqueo(self, datos: BloqueoCreate) -> Bloqueo:
+    def crear_bloqueo(self, datos: BloqueoCreate, *, usuario_id: UUID | None = None) -> Bloqueo:
         desde = normalizar_entrada(datos.desde)
         hasta = normalizar_entrada(datos.hasta)
         bloqueo = Bloqueo(
@@ -328,14 +383,31 @@ class TurnoService:
             motivo=datos.motivo,
         )
         self.db.add(bloqueo)
+        self.db.flush()
+        registrar_auditoria(
+            self.db,
+            usuario_id=usuario_id,
+            accion="crear",
+            recurso="bloqueo",
+            recurso_id=bloqueo.id,
+            diff={"motivo": datos.motivo, "desde": str(desde), "hasta": str(hasta)},
+        )
         self.db.commit()
         self.db.refresh(bloqueo)
         return bloqueo
 
-    def eliminar_bloqueo(self, bloqueo_id: UUID) -> None:
+    def eliminar_bloqueo(self, bloqueo_id: UUID, *, usuario_id: UUID | None = None) -> None:
         bloqueo = self.db.scalar(select(Bloqueo).where(Bloqueo.id == bloqueo_id))
         if bloqueo is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bloqueo no encontrado")
+        registrar_auditoria(
+            self.db,
+            usuario_id=usuario_id,
+            accion="eliminar",
+            recurso="bloqueo",
+            recurso_id=bloqueo.id,
+            diff={"motivo": bloqueo.motivo},
+        )
         self.db.delete(bloqueo)
         self.db.commit()
 
