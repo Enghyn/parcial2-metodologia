@@ -6,7 +6,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "0009_os_nomenclador_cobertura"
-down_revision: str | None = "0008_caja_cierre_cuenta_corriente"
+down_revision: str | None = "0008_caja_cierre_cta_cte"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

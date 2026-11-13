@@ -48,6 +48,25 @@ def test_env_example_raiz_tiene_las_15_variables() -> None:
             assert v == "", f"{k} debe estar vacía en fase 1"
 
 
+def test_env_example_valores_numericos_son_enteros() -> None:
+    """Regresión: una nueva línea perdida dejó `RATE_LIMIT_PUBLIC_WRITE_MAX=10# Jornada...`,
+    que Pydantic no puede convertir a int y hacía fallar el arranque de la API."""
+    valores = _parse(ROOT / ".env.example")
+    enteras = [
+        "JWT_EXPIRE_MIN",
+        "TENANT_DEFAULT_CANCEL_HS",
+        "LISTA_ESPERA_OFERTA_MIN",
+        "PRE_RESERVA_TTL_MIN",
+        "REPROGRAMACION_MIN_HORAS",
+        "RATE_LIMIT_PUBLIC_WINDOW_S",
+        "RATE_LIMIT_PUBLIC_READ_MAX",
+        "RATE_LIMIT_PUBLIC_WRITE_MAX",
+        "PUBLIC_SLOT_GRID_MIN",
+    ]
+    invalidas = {k: valores[k] for k in enteras if not valores[k].isdigit()}
+    assert invalidas == {}, f"valores enteros inválidos en .env.example: {invalidas}"
+
+
 def test_backend_env_example_existe_y_sin_secretos() -> None:
     valores = _parse(ROOT / ".env.example")
     assert valores["FACTURADOR_MODO"] == "manual"

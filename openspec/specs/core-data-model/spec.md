@@ -321,7 +321,7 @@ El sistema SHALL crear `evoluciones_clinicas`, `consentimientos_informados`, `ha
 
 ### Requirement: Tablas de cierre, cuenta corriente y ajustes
 
-El sistema SHALL crear mediante la migración `0008_caja_cierre_cuenta_corriente` (encadenada a `0007_ficha_clinica_avanzada` y reversible con `downgrade`) las tablas `cierres_caja`, `cuentas_corrientes_paciente` y `ajustes_caja`, con sus índices, claves foráneas y check constraints, sin `tenant_id` (R2).
+El sistema SHALL crear mediante la migración `0008_caja_cierre_cta_cte` (encadenada a `0007_ficha_clinica_avanzada` y reversible con `downgrade`) las tablas `cierres_caja`, `cuentas_corrientes_paciente` y `ajustes_caja`, con sus índices, claves foráneas y check constraints, sin `tenant_id` (R2).
 
 #### Sub-requirement: cierres_caja
 
@@ -352,7 +352,7 @@ El sistema SHALL crear mediante la migración `0008_caja_cierre_cuenta_corriente
 
 ### Requirement: Migración 0008 reversible
 
-La migración `0008_caja_cierre_cuenta_corriente` SHALL crear las tres tablas con índices y FKs en `upgrade` y SHALL eliminarlas sin dejar objetos huérfanos en `downgrade`, encadenada a la última migración aplicada (`0007`).
+La migración `0008_caja_cierre_cta_cte` SHALL crear las tres tablas con índices y FKs en `upgrade` y SHALL eliminarlas sin dejar objetos huérfanos en `downgrade`, encadenada a la última migración aplicada (`0007`).
 
 #### Scenario: downgrade limpia las tablas
 

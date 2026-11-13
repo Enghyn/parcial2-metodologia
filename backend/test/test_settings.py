@@ -19,8 +19,10 @@ def test_falta_database_url_falla_nombrando_la_variable() -> None:
 
     from app.core.config import Settings
 
+    # `_env_file=None` desactiva la lectura de `backend/.env`: el test verifica la
+    # ausencia de la variable, no lo que tenga configurado el desarrollador local.
     with pytest.raises(ValidationError) as exc_info:
-        Settings()  # type: ignore[call-arg]
+        Settings(_env_file=None)  # type: ignore[call-arg]
     assert "database_url" in str(exc_info.value).lower()
     os.environ["DATABASE_URL"] = "postgresql+psycopg://u:p@localhost:5432/odonto_test"
 

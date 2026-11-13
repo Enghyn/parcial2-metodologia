@@ -11,7 +11,7 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "0008_caja_cierre_cuenta_corriente"
+revision: str = "0008_caja_cierre_cta_cte"
 down_revision: str | None = "0007_ficha_clinica_avanzada"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -225,10 +225,10 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     # Borrar triggers primero
-    op.execute(f"DROP TRIGGER IF EXISTS trg_ajustes_no_modificar ON ajustes_caja")
-    op.execute(f"DROP FUNCTION IF EXISTS fn_ajustes_no_modificar()")
-    op.execute(f"DROP TRIGGER IF EXISTS trg_cierres_no_modificar ON cierres_caja")
-    op.execute(f"DROP FUNCTION IF EXISTS fn_cierres_no_modificar()")
+    op.execute("DROP TRIGGER IF EXISTS trg_ajustes_no_modificar ON ajustes_caja")
+    op.execute("DROP FUNCTION IF EXISTS fn_ajustes_no_modificar()")
+    op.execute("DROP TRIGGER IF EXISTS trg_cierres_no_modificar ON cierres_caja")
+    op.execute("DROP FUNCTION IF EXISTS fn_cierres_no_modificar()")
 
     # Borrar índices y tablas en orden inverso
     op.drop_index("ix_ajustes_caja_movimiento_ajuste", table_name="ajustes_caja")

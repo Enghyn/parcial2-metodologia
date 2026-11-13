@@ -2,6 +2,7 @@
 import os
 import sys
 from logging.config import fileConfig
+from pathlib import Path
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
@@ -11,6 +12,15 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirna
 
 from app.db import registry  # noqa: F401  (registra las nueve tablas en Base.metadata)
 from app.db.base import Base
+
+# Carga `backend/.env` para no depender de exportar DATABASE_URL en cada shell.
+# No pisa variables ya presentes en el entorno (load_dotenv usa override=False).
+try:
+    from dotenv import load_dotenv
+except ImportError:  # pragma: no cover - dotenv llega con pydantic-settings
+    load_dotenv = None
+else:
+    load_dotenv(Path(__file__).resolve().parents[4] / ".env")
 
 config = context.config
 if config.config_file_name is not None:
