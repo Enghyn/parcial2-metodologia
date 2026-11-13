@@ -2,7 +2,7 @@
 
 > Índice canónico de los changes del **Sistema Odontológico Multi-Sillón (AR)** para el parcial académico de **Metodología de Desarrollo de Sistemas**.
 > Cada change es atómico, auto-contenido y se implementa con TDD.
-> **MVP base**: C-01 a C-08 (archivados). **Expansión**: C-09a a C-21.
+> **MVP base**: C-01 a C-08 (archivados). **Expansión**: C-09a a C-21 (+ C-12b, bugfix de caja).
 > Los changes de hardening/calidad (C-02b, C-04b, C-06b, chore-quality, traceability) ya están archivados y no suman al conteo funcional.
 
 ---
@@ -35,7 +35,7 @@
 | 0 — Base | C-01, C-02 |
 | 1 — Auth | C-03 |
 | 2 — Núcleo MVP base | C-04 a C-08 |
-| 3 — Profundizar núcleo | C-09a, C-09b, C-10, C-11, C-12 |
+| 3 — Profundizar núcleo | C-09a, C-09b, C-10, C-11, C-12, C-12b |
 | 4 — Facturación y clínica | C-13a, C-13b, C-14, C-15, C-16, C-17 |
 | 5 — Portal y administración | C-18, C-19, C-20, C-21 |
 
@@ -56,7 +56,7 @@ C-01 foundation
       │             └─ C-15 lista-espera
       ├─ C-06 reserva-publica ── C-10, C-14
       ├─ C-07 clinica ── C-11 ficha-avanzada
-      ├─ C-08 caja ── C-12 caja-cierre
+      ├─ C-08 caja ── C-12 caja-cierre ── C-12b estado-varchar [x]
       ├─ C-11 + C-12 ── C-13a OS
       │                 ├─ C-13b comprobante
       │                 └─ C-16 presupuestos (también C-11/C-12)
@@ -156,6 +156,17 @@ Libro append-only, alta de ingreso/egreso con usuario del JWT, listado y resumen
 - **Leer antes:** KB 04 (MovimientoCaja), KB 05 (RN-CJ-01/02/04), KB 06 (US-030/032).
 - **Gobernanza:** CRÍTICO.
 
+### C-12b: `caja-estado-varchar`
+- **Estado:** `[x]` (Completado y archivado)
+- **Alcance:**
+  - Bugfix del ENUM nativo `estado_cierre` de `cierres_caja.estado` (creado en `0008`): la base lo usaba como ENUM mientras el modelo y el servicio esperan `String(20)` + `CHECK`.
+  - Migración reversible `0015_cierres_estado_varchar`: castea la columna a `varchar(20)`, agrega el `CHECK estado`, restablece `server_default = 'pendiente'` y elimina el tipo `estado_cierre` del catálogo.
+  - `downgrade` simétrico: recrea el ENUM y vuelve la columna a ese tipo.
+  - Test estructural `backend/test/test_migration_0015.py`; desbloquea los tests de integración de cierre, cuenta corriente y ajustes.
+- **Dependencias:** C-12, C-17 (la `0014` es el padre de la cadena).
+- **Leer antes:** KB 04 (`CierreCaja`), KB 05 (RN-CJ-01/02), `design.md` del change.
+- **Gobernanza:** CRÍTICO.
+
 ### C-13a: `os-nomenclador-cobertura`
 - **Estado:** `[x]` (Completado y archivado)
 - **Alcance:**
@@ -253,7 +264,7 @@ Libro append-only, alta de ingreso/egreso con usuario del JWT, listado y resumen
   - Modelo `Auditoria` (quién, cuándo, recurso, acción, diff).
   - Hooks en escrituras sensibles (turnos, caja, presupuestos, odontograma).
   - Visor paginado y export CSV con enmascarado.
-  - Migración `0014`.
+  - Migración `0016` (la `0014` quedó tomada por C-17 y la `0015` por C-12b).
 - **Dependencias:** C-03, C-12, C-13a, C-16, C-18, C-19.
 - **Leer antes:** KB 03, KB 05 (RN-SEG), KB 04 (Transversal).
 - **Gobernanza:** CRÍTICO.

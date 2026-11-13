@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-11-13
+goal: "Corregir el 500 de cierre de caja: alinear cierres_caja.estado con la
+  convencion String+CHECK del resto del esquema"
