@@ -69,14 +69,15 @@ El plan de implementación académico simplificado está en [CHANGES.md](CHANGES
   - `C-06-reserva-online-publica` [x]: `/reservar`, token y WhatsApp click-to-chat.
   - `C-07-clinica-odontograma` [x]: pacientes, ficha y odontograma FDI.
   - `C-08-caja-movimientos-balance` [x]: libro append-only y resumen diario.
-- **Expansión (pendiente)**:
-  - `C-09a-agenda-dominio-avanzado` [x] (Completado y archivado), `C-09b-agenda-vista-semanal` [x] (Completado y archivado)
-  - `C-10-reserva-publica-avanzada`, `C-11-ficha-clinica-avanzada`, `C-12-caja-cierre-cuenta-corriente`
-  - `C-13a-os-nomenclador-cobertura`, `C-13b-comprobante-manual`
-  - `C-14-notificaciones-simuladas`, `C-15-lista-espera`
-  - `C-16-presupuestos`, `C-17-pagos-simulados`, `C-18-portal-publico`
-  - `C-19-admin-crud`, `C-20-auditoria-export`, `C-21-reportes`
+- **Expansión (completada y archivada)**:
+  - `C-09a-agenda-dominio-avanzado` [x], `C-09b-agenda-vista-semanal` [x]
+  - `C-10-reserva-publica-avanzada` [x], `C-11-ficha-clinica-avanzada` [x], `C-12-caja-cierre-cuenta-corriente` [x], `C-12b-caja-estado-varchar` [x]
+  - `C-13a-os-nomenclador-cobertura` [x], `C-13b-comprobante-manual` [x]
+  - `C-14-notificaciones-simuladas` [x], `C-15-lista-espera` [x]
+  - `C-16-presupuestos` [x], `C-17-pagos-simulados` [x], `C-18-portal-publico` [x]
+  - `C-19-admin-crud` [x], `C-20-auditoria-export` [x], `C-21-reportes` [x]
   - Regla: sin integraciones con requisitos externos; adapters simulados (`Cobrador`, `Facturador`, `Notificador`).
+- **Estado final**: 23 changes funcionales completos (C-01 a C-21 + C-12b). MVP expandido cerrado.
 
 **Antes de cualquier `/opsx:propose`**: leé [CHANGES.md](CHANGES.md), identificá las dependencias del change y los archivos de "Leer antes".
 

@@ -1,8 +1,6 @@
 """Tests puros del RateLimiter (C-10, D8)."""
 from __future__ import annotations
 
-import math
-
 import pytest
 
 from app.core.rate_limit import RateLimiter, RateLimitResult

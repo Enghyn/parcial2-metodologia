@@ -9,7 +9,6 @@ from sqlalchemy import (
     ForeignKey,
     String,
     Uuid,
-    func,
     text,
 )
 from sqlalchemy.orm import Mapped, mapped_column

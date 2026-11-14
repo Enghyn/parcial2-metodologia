@@ -4,6 +4,11 @@ import { AppLayout, PublicLayout, RequireAuth } from "./layout";
 import { AgendaPage } from "../features/agenda/AgendaPage";
 import { SemanaPage } from "../features/agenda/SemanaPage";
 import { CajaPage } from "../features/caja";
+import {
+  AusentismoPage,
+  FacturacionPage,
+  OcupacionPage,
+} from "../features/reportes";
 import { OdontogramaPage, PacientesPage } from "../features/clinica";
 import { PagarPage } from "../features/portal-publico/PagarPage";
 import { PresupuestoPublicoPage } from "../features/portal-publico/PresupuestoPublicoPage";
@@ -27,6 +32,9 @@ export function AppRouter(): ReactElement {
             <Route path="pacientes" element={<PacientesPage />} />
             <Route path="odontograma/:pacienteId" element={<OdontogramaPage />} />
             <Route path="caja" element={<CajaPage />} />
+            <Route path="reportes/ocupacion" element={<OcupacionPage />} />
+            <Route path="reportes/facturacion" element={<FacturacionPage />} />
+            <Route path="reportes/ausentismo" element={<AusentismoPage />} />
           </Route>
         </Route>
         <Route element={<PublicLayout />}>

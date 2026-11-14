@@ -7,6 +7,7 @@ from uuid import uuid4
 
 import pytest
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import select
 
 from app.core.config import get_settings
 from app.core.security import crear_access_token
@@ -16,7 +17,6 @@ from app.modules.admin.models import Usuario
 from app.modules.clinica.models import Paciente
 from app.modules.clinica.schemas import HallazgoIn
 from app.modules.clinica.service import OdontogramaService
-from sqlalchemy import select
 
 pytestmark = [pytest.mark.integration]
 

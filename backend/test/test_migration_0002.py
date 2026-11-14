@@ -5,7 +5,6 @@ from pathlib import Path
 from sqlalchemy import CheckConstraint, Column, Integer, MetaData, Table
 
 from app.db.base import NAMING_CONVENTION
-from app.db.registry import Base
 
 ROOT = Path(__file__).resolve().parents[2]
 VERSIONES = ROOT / "backend" / "src" / "app" / "db" / "migrations" / "versions"

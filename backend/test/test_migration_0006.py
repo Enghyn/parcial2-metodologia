@@ -1,7 +1,6 @@
 """Estructura de la migración 0006 (C-10). Sin PostgreSQL: checks estáticos."""
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 MIG = Path("src/app/db/migrations/versions/0006_pre_reserva_origen.py")

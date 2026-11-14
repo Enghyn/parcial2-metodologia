@@ -1,9 +1,8 @@
 """Servicio de notificaciones (C-14)."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from urllib.parse import quote
-from uuid import UUID
 
 from sqlalchemy.orm import Session
 
@@ -33,7 +32,7 @@ class NotificadorSimulado(Notificador):
             plantilla=datos.plantilla,
             destinatario=datos.destinatario,
             estado="enviado",
-            enviado_en=datetime.now(timezone.utc),
+            enviado_en=datetime.now(UTC),
         )
         db.add(n)
         db.commit()

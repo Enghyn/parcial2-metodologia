@@ -3,8 +3,6 @@ from __future__ import annotations
 
 from uuid import UUID
 
-import pytest
-
 from app.modules.public.qr import svg_qr, url_reserva, url_turno
 
 

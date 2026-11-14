@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import csv
 import io
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -15,7 +15,6 @@ from app.main import create_app
 from app.modules.admin.models import Usuario
 from app.modules.audit.models import Auditoria
 from app.modules.audit.service import registrar_auditoria
-
 
 BASE = "/api/v1/auditoria"
 CAJA_BASE = "/api/v1/caja"

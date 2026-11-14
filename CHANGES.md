@@ -270,7 +270,7 @@ Libro append-only, alta de ingreso/egreso con usuario del JWT, listado y resumen
 - **Gobernanza:** CRÍTICO.
 
 ### C-21: `reportes`
-- **Estado:** `[ ]`
+- **Estado:** `[x]` (Completado y archivado)
 - **Alcance:**
   - Ocupación por sillón/profesional.
   - Facturación por medio/OS.

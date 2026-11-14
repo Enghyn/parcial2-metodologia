@@ -1,7 +1,7 @@
 """Tests de `origen` en Turno (C-10, D3). Parte pura (schemas + firma)."""
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import pytest
@@ -12,7 +12,7 @@ from app.modules.agenda.service import TurnoService
 
 
 def _inicio() -> datetime:
-    return datetime.now(timezone.utc) + timedelta(hours=1)
+    return datetime.now(UTC) + timedelta(hours=1)
 
 
 def test_turno_create_rechaza_origen():

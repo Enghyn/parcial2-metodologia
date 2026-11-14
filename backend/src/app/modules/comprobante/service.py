@@ -1,7 +1,7 @@
 """Servicio de comprobante (C-13b)."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -23,7 +23,7 @@ class FacturadorManual(Facturador):
             presupuesto_id=datos.presupuesto_id,
             estado="emitido",
             emitido_por=usuario_id,
-            emitido_en=datetime.now(timezone.utc),
+            emitido_en=datetime.now(UTC),
         )
         db.add(comp)
         db.commit()
@@ -44,7 +44,7 @@ class ComprobanteService:
         if comp is None:
             raise ValueError("not_found")
         comp.estado = "anulado"
-        comp.anulado_en = datetime.now(timezone.utc)
+        comp.anulado_en = datetime.now(UTC)
         self.db.commit()
         self.db.refresh(comp)
         return comp

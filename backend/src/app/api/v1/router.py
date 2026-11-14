@@ -25,6 +25,7 @@ from app.modules.os.router import router as os_router
 from app.modules.pagos.router import router as pagos_router
 from app.modules.presupuestos.router import router as presupuestos_router
 from app.modules.public.router import router as public_router
+from app.modules.reportes.router import router as reportes_router
 
 router = APIRouter()
 router.include_router(admin_router)
@@ -41,5 +42,6 @@ router.include_router(os_router)
 router.include_router(pagos_router)
 router.include_router(presupuestos_router)
 router.include_router(public_router)
+router.include_router(reportes_router)
 
 __all__ = ["router"]

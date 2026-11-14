@@ -1,8 +1,6 @@
 """Servicio de nomenclador (C-13a)."""
 from __future__ import annotations
 
-from uuid import UUID
-
 from sqlalchemy.orm import Session
 
 from app.modules.nomenclador.models import ConvenioPractica, NomencladorPractica

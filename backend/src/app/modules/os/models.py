@@ -1,23 +1,20 @@
 """Modelos de obras sociales, convenios y afiliación (C-13a)."""
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date
 from uuid import UUID, uuid4
 
 from sqlalchemy import (
-    CheckConstraint,
     Date,
-    DateTime,
     ForeignKey,
     Numeric,
     String,
     Uuid,
-    func,
     text,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.db.base import Base, SoftDeleteMixin, TimestampMixin
+from app.db.base import Base, TimestampMixin
 
 
 class ObraSocial(TimestampMixin, Base):
@@ -77,5 +74,5 @@ class PacienteObraSocial(TimestampMixin, Base):
 
 
 # Importar Paciente para que la FK se registre en metadata (ya está en clinica.models)
-from app.modules.clinica.models import Paciente  # noqa: F401,E402
-from app.modules.admin.models import Usuario  # noqa: F401,E402
+from app.modules.admin.models import Usuario  # noqa: F401
+from app.modules.clinica.models import Paciente  # noqa: F401

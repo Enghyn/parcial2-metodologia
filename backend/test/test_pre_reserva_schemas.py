@@ -1,23 +1,21 @@
 """Tests de schemas de pre-reserva y reprogramación pública (C-10, R1)."""
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+from uuid import uuid4
 
 import pytest
 from pydantic import ValidationError
 
 from app.modules.public.schemas import (
     PreReservaCreate,
-    PreReservaOut,
     ReprogramarPublico,
     ReservaCreate,
 )
 
-from uuid import uuid4
-
 
 def _dt() -> datetime:
-    return datetime.now(timezone.utc) + timedelta(hours=1)
+    return datetime.now(UTC) + timedelta(hours=1)
 
 
 def test_pre_reserva_create_acepta_los_cinco_campos():

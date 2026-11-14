@@ -1,6 +1,7 @@
 """Servicio admin (C-19)."""
 from __future__ import annotations
 
+from datetime import UTC
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -61,9 +62,9 @@ class AdminService:
         if s is None:
             raise ValueError("not_found")
         s.activo = False
-        from datetime import datetime, timezone
+        from datetime import datetime
 
-        s.deleted_at = datetime.now(timezone.utc)
+        s.deleted_at = datetime.now(UTC)
         self.db.commit()
         self.db.refresh(s)
         return s
@@ -91,9 +92,9 @@ class AdminService:
         if p is None:
             raise ValueError("not_found")
         p.activo = False
-        from datetime import datetime, timezone
+        from datetime import datetime
 
-        p.deleted_at = datetime.now(timezone.utc)
+        p.deleted_at = datetime.now(UTC)
         self.db.commit()
         self.db.refresh(p)
         return p

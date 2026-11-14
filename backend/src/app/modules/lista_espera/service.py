@@ -1,7 +1,7 @@
 """Servicio de lista de espera (C-15)."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -35,7 +35,7 @@ class ListaEsperaService:
         if le is None:
             raise ValueError("not_found")
         le.estado = "ofrecido"
-        le.ofrecido_en = datetime.now(timezone.utc)
+        le.ofrecido_en = datetime.now(UTC)
         le.expira_en = expira_en
         self.db.commit()
         self.db.refresh(le)

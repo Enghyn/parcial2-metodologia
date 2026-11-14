@@ -2,6 +2,7 @@
 
 RED: estos tests deben fallar porque las tablas y columnas nuevas no existen.
 """
+import pytest
 from sqlalchemy import inspect
 from sqlalchemy.orm import Session
 
@@ -11,8 +12,6 @@ from app.modules.clinica.models import (
     EvolucionClinica,
     HallazgoPiezaHistorial,
 )
-
-import pytest
 
 pytestmark = pytest.mark.integration
 
