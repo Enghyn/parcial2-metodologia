@@ -3,7 +3,7 @@
 **Proyecto:** Sistema Odontológico Multi-Sillón (AR)
 **Fecha:** 2026-10-14
 **Equipo:** (completar apellidos)
-**Estado:** Borrador — sección MCP pendiente de verificación.
+**Estado:** Verificado — MCP Context7 operativo; Playwright como soft dep.
 
 ---
 
@@ -34,24 +34,25 @@ El proyecto tiene reglas de negocio densas (RN-AG-01..06, RN-CL-01, RN-CJ-01/02,
 - **Salida:** catálogo de reglas, matriz de cobertura, ambigüedades, conflictos, cobertura faltante propuesta, resumen cuantitativo, revisión crítica.
 - **Criterios de revisión:** cada ✅ con evidencia concreta; propuestas citan RN-xx/R-x; ambigüedades como preguntas abiertas; salida en español rioplatense.
 
-## 5. Comparación de servidores MCP (pendiente de verificación)
+## 5. Comparación de servidores MCP (verificada)
 
-| Aspecto | MCP A — Context7 | MCP B — (a definir) |
+| Aspecto | MCP A — Context7 | MCP B — Playwright |
 |---|---|---|
-| Propósito | Consulta de docs del stack (FastAPI, SQLAlchemy, React) | (completar) |
-| Capacidades | `resolve-library-id`, `query-docs` | (completar) |
-| Compatibilidad | OpenCode (ya instalado) | (completar) |
-| Instalación | Sin credenciales | (completar) |
-| Permisos/costos | Solo lectura de docs públicas, sin costo | (completar) |
+| Propósito | Consulta de docs del stack (FastAPI, SQLAlchemy, React) | Automatización de navegador (UI/E2E) |
+| Capacidades | `resolve-library-id`, `query-docs` | `browser_navigate`, `browser_click`, `browser_take_screenshot`, etc. |
+| Compatibilidad | OpenCode (ya instalado) | OpenCode (instalado como soft dep) |
+| Instalación | Sin credenciales | Requiere navegador; sin costo |
+| Permisos/costos | Solo lectura de docs públicas, sin costo | Local, sin costo |
 
-**Elección tentativa:** Context7 (sin secretos, útil para verificar sintaxis en los escenarios generados).
+**Elección:** Context7 para verificación de sintaxis/docs; Playwright para verificación visual (soft dependency).
 
-> Completar el MCP B y la verificación real antes de la entrega. Registrar cualquier problema de acceso/compatibilidad.
+Verificación real de Context7 (2026-11-15): `resolve-library-id("FastAPI")` → `/websites/fastapi_tiangolo`; `query-docs` devolvió snippet de `APIRouter(prefix=..., dependencies=...)`. Sin errores de acceso.
 
-## 6. Pasos de instalación/configuración MCP (pendiente)
+## 6. Pasos de instalación/configuración MCP (verificado)
 
-- (Completar según documentación del servidor elegido y del cliente.)
-- Verificación de conexión: ejecutar al menos una herramienta real y guardar evidencia (solicitud + resultado).
+- Context7 ya estaba instalado en OpenCode; no requiere credenciales.
+- Verificación de conexión realizada: `resolve-library-id` + `query-docs` exitosos (evidencia en `docs/skills-mcp/aplicacion.md`).
+- Playwright MCP es soft dependency: se usa si está instalado para capturas; si no, revisión manual.
 
 ## 7. Archivos de la fundación a actualizar
 
@@ -71,6 +72,5 @@ El proyecto tiene reglas de negocio densas (RN-AG-01..06, RN-CL-01, RN-CJ-01/02,
 
 ## Pendientes registrados
 
-- Completar comparación y verificación del MCP.
-- Ejecutar la skill sobre un change real y guardar evidencia (punto 8 del TP).
-- Completar `docs/skills-mcp/aplicacion.md`.
+- Ejecutar la skill `business-rule-coverage-auditor` sobre un change real y guardar evidencia (punto 8 del TP).
+- Completar `docs/skills-mcp/aplicacion.md` con resultados de la auditoría.
